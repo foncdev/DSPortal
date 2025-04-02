@@ -1,0 +1,26 @@
+{
+  "name": "DSPortal",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "lib/*",
+    "Demo"
+  ],
+  "scripts": {
+    "build": "lerna run build",
+    "dev": "lerna run dev --parallel",
+    "test": "lerna run test",
+    "lint": "lerna run lint",
+    "lint:fix": "lerna run lint",
+    "clean": "lerna run clean",
+    "bootstrap": "lerna bootstrap"
+  },
+  "devDependencies": {
+    "lerna": "^6.6.2",
+    "typescript": "^5.7.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.48.0",
+    "prettier": "^3.0.3"
+  }
+}

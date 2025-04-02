@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "npmClient": "yarn",
+  "useWorkspaces": true,
+  "packages": ["packages/*", "lib/*", "App", "Demo"],
+  "command": {
+    "publish": {
+      "conventionalCommits": true,
+      "message": "chore(release): publish"
+    },
+    "bootstrap": {
+      "npmClientArgs": ["--no-package-lock"]
+    }
+  }
+}

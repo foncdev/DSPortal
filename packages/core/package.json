@@ -1,0 +1,44 @@
+{
+  "name": "@ds/core",
+  "version": "1.0.0",
+  "description": "Core functionality for the project",
+  "type": "module",
+  "main": "dist/core.umd.js",
+  "module": "dist/core.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/core.es.js",
+      "require": "./dist/core.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "dev": "vite build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "eslint": "^8.48.0",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.1",
+    "terser": "^5.39.0",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vite-plugin-dts": "^3.5.2",
+    "vitest": "^1.6.0"
+  }
+}
