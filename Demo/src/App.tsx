@@ -3,7 +3,7 @@ import { getDocuments, User, Document } from '@ds/core';
 import { truncateText } from '@ds/utils';
 import './App.css';
 
-function App() {
+function App(): JSX.Element {
     const [users, setUsers] = useState<User[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -17,8 +17,14 @@ function App() {
         setDocuments(documentData);
     }, []);
 
-    const handleSelectDocument = (doc: Document) => {
+    const handleSelectDocument = (doc: Document): void => {
         setSelectedDocument(doc);
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent, doc: Document): void => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            setSelectedDocument(doc);
+        }
     };
 
     return (
@@ -28,8 +34,8 @@ function App() {
                 <div className="user-info">
                     {users.length > 0 && (
                         <span>
-              로그인 사용자: {users[0].name} ({users[0].email})
-            </span>
+                          로그인 사용자: {users[0].name} ({users[0].email})
+                        </span>
                     )}
                 </div>
             </header>
@@ -42,6 +48,10 @@ function App() {
                             key={doc.id}
                             className={`document-item ${selectedDocument?.id === doc.id ? 'selected' : ''}`}
                             onClick={() => handleSelectDocument(doc)}
+                            onKeyDown={(e) => handleKeyDown(e, doc)}
+                            tabIndex={0}
+                            role="button"
+                            aria-pressed={selectedDocument?.id === doc.id}
                         >
                             <h3>{doc.title}</h3>
                             <p>{truncateText(doc.content, 50)}</p>
