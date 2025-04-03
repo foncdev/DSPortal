@@ -1,0 +1,28 @@
+// 변수와 믹스인 먼저 임포트
+@use 'variables' as vars;
+@use 'mixins' as mix;
+
+// 그 다음 Tailwind 지시어
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// 글로벌 스타일
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+// 커스텀 컴포넌트 스타일
+@layer components {
+  .btn-primary {
+    @apply bg-blue-500 text-white px-4 py-2 rounded;
+
+    &:hover {
+      @apply bg-blue-600;
+    }
+  }
+}
+
+// 컴포넌트 스타일 임포트
+//@use 'components/header';
+//@use 'components/sidebar';

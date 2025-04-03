@@ -11,7 +11,7 @@
       "@ds/utils": ["../packages/utils/src"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/**/*.scss", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../packages/core" },

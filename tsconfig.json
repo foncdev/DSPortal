@@ -28,7 +28,7 @@
     "rootDir": "./src",
     "outDir": "./dist"
   },
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "src/**/*.scss", "**/*.test.tsx"],
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/utils" }

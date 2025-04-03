@@ -1,0 +1,24 @@
+@use '../styles/variables' as vars;
+@use '../styles/mixins' as mix;
+
+.header {
+  @apply bg-white shadow-md py-4;
+
+  .logo {
+    @apply text-xl font-bold text-blue-600;
+
+    // 변수 접근 시 네임스페이스 사용
+    color: vars.$primary-color;
+  }
+
+  .nav {
+    @apply flex gap-4;
+
+    // 믹스인 사용 시 네임스페이스 사용
+    @include mix.flex-center;
+
+    @include mix.mobile {
+      @apply flex-col;
+    }
+  }
+}
