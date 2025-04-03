@@ -3,10 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "composite": true,         // 프로젝트 참조를 위한 필수 설정
-    "declaration": true,       // .d.ts 파일 생성 (composite: true일 때 필요)
-    "declarationMap": true
+    "jsx": "react-jsx",
+    "composite": true,
+    "declaration": true,
   },
-  "include": ["src/**/*", "src/**/*.ts", "src/**/*.test.ts"],
+  "include": ["src/**/*", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.test.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
