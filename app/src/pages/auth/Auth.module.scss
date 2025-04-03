@@ -1,0 +1,177 @@
+// app/src/pages/auth/Auth.module.scss
+@use '@/styles/variables' as vars;
+@use '@/styles/mixins' as mix;
+
+.authPage {
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.authHeader {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-heading);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin-bottom: 0;
+    font-size: 0.9375rem;
+  }
+}
+
+.authForm {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+}
+
+.formControl {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--color-text-tertiary);
+  }
+}
+
+.passwordHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.forgotPassword {
+  font-size: 0.75rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.formCheck {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.formCheckInput {
+  margin-right: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.formCheckLabel {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.submitButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+
+  &.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.buttonIcon {
+  margin-right: 0.5rem;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s infinite linear;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorMessage {
+  padding: 0.75rem 1rem;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border-radius: 0.375rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.authFooter {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+
+  a {
+    font-weight: 500;
+    color: var(--color-primary);
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .formControl {
+    background-color: var(--color-bg-secondary);
+  }
+
+  .errorMessage {
+    background-color: rgba(239, 68, 68, 0.2);
+  }
+}

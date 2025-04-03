@@ -1,0 +1,57 @@
+// app/src/layouts/components/common/PageTitle.module.scss
+@use '@/styles/variables' as vars;
+@use '@/styles/mixins' as mix;
+
+.pageTitle {
+  margin-bottom: 2rem;
+
+  @include mix.mobile {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  @include mix.mobile {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+.titleContent {
+  flex: 1;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-heading);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+
+  @include mix.mobile {
+    font-size: 1.5rem;
+  }
+}
+
+.description {
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-size: 0.9375rem;
+  max-width: 800px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+
+  @include mix.mobile {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

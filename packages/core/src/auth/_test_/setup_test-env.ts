@@ -1,4 +1,3 @@
-// src/auth/test/setup.ts
 import { vi } from 'vitest';
 
 // localStorage 모킹
@@ -24,6 +23,7 @@ Object.defineProperty(global, 'localStorage', {
 });
 
 // 테스트 전에 항상 스토리지 초기화
+// @ts-ignore
 beforeEach(() => {
     localStorageMock.clear();
     vi.clearAllMocks();

@@ -1,0 +1,107 @@
+{
+  "app": {
+    "name": "DS 매니저",
+    "slogan": "문서 관리 시스템"
+  },
+  "theme": {
+    "light": "라이트 모드",
+    "dark": "다크 모드",
+    "system": "시스템 테마"
+  },
+  "auth": {
+    "login": "로그인",
+    "logout": "로그아웃",
+    "signup": "회원가입",
+    "forgotPassword": "비밀번호 찾기",
+    "resetPassword": "비밀번호 재설정",
+    "changePassword": "비밀번호 변경",
+    "email": "이메일",
+    "password": "비밀번호",
+    "confirmPassword": "비밀번호 확인",
+    "remember": "로그인 상태 유지",
+    "noAccount": "계정이 없으신가요?",
+    "hasAccount": "이미 계정이 있으신가요?"
+  },
+  "errors": {
+    "unexpected": "예기치 않은 오류가 발생했습니다",
+    "pageNotFound": "페이지를 찾을 수 없습니다",
+    "unauthorized": "이 페이지에 접근할 권한이 없습니다",
+    "serverError": "서버 오류"
+  },
+  "nav": {
+    "home": "홈",
+    "dashboard": "대시보드",
+    "documents": "문서",
+    "documentList": "모든 문서",
+    "createDocument": "문서 생성",
+    "users": "사용자",
+    "system": "시스템",
+    "vendor": "업체 포털",
+    "settings": "설정"
+  },
+  "header": {
+    "openSidebar": "사이드바 열기",
+    "closeSidebar": "사이드바 닫기",
+    "expandSidebar": "사이드바 확장",
+    "collapseSidebar": "사이드바 축소",
+    "toggleTheme": "테마 전환"
+  },
+  "sidebar": {
+    "collapse": "사이드바 축소",
+    "expand": "사이드바 확장",
+    "help": "도움말",
+    "about": "소개",
+    "support": "지원",
+    "close": "사이드바 닫기"
+  },
+  "footer": {
+    "allRightsReserved": "모든 권리 보유",
+    "version": "버전",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "help": "고객센터"
+  },
+  "userMenu": {
+    "profile": "프로필",
+    "settings": "설정"
+  },
+  "notifications": {
+    "title": "알림",
+    "toggle": "알림 전환",
+    "markAllRead": "모두 읽음으로 표시",
+    "markRead": "읽음으로 표시",
+    "remove": "삭제",
+    "clearAll": "모두 지우기",
+    "empty": "알림이 없습니다",
+    "viewAll": "모든 알림 보기",
+    "close": "닫기"
+  },
+  "breadcrumbs": {
+    "home": "홈",
+    "dashboard": "대시보드",
+    "documents": "문서",
+    "users": "사용자",
+    "settings": "설정",
+    "profile": "프로필",
+    "create": "생성",
+    "edit": "편집",
+    "system": "시스템",
+    "vendor": "업체"
+  },
+  "actions": {
+    "create": "생성",
+    "edit": "편집",
+    "delete": "삭제",
+    "save": "저장",
+    "cancel": "취소",
+    "confirm": "확인",
+    "submit": "제출",
+    "search": "검색",
+    "filter": "필터",
+    "sort": "정렬",
+    "download": "다운로드",
+    "upload": "업로드",
+    "share": "공유",
+    "refresh": "새로고침"
+  }
+}

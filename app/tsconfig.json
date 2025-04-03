@@ -9,9 +9,17 @@
     "paths": {
       "@ds/core": ["../packages/core/src"],
       "@ds/utils": ["../packages/utils/src"]
-    }
+    },
+    "resolveJsonModule": true,  // JSON 모듈 지원 추가
+    "esModuleInterop": true     // JSON 모듈 임포트 지원을 위해 필요
   },
-  "include": ["src/**/*", "src/**/*.scss", "src/**/*.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.scss",
+    "src/**/*.d.ts",
+    "src/**/*.json"  // JSON 파일 포함
+  ],
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../packages/core" },
