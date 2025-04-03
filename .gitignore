@@ -56,7 +56,7 @@ rust-artifacts
 # Environment and config files
 .DS_Store
 .env
+.env.production
 .npmrc
 !examples/**/.npmrc
-
 todos.md

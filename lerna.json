@@ -2,7 +2,7 @@
   "version": "1.0.0",
   "npmClient": "yarn",
   "useWorkspaces": true,
-  "packages": ["packages/*", "lib/*", "App", "Demo"],
+  "packages": ["packages/*", "lib/*", "App", "Demo", "app"],
   "command": {
     "publish": {
       "conventionalCommits": true,

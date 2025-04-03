@@ -5,7 +5,8 @@
   "workspaces": [
     "packages/*",
     "lib/*",
-    "Demo"
+    "Demo",
+    "app"
   ],
   "scripts": {
     "build": "lerna run build",

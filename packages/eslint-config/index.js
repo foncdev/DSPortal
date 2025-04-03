@@ -45,8 +45,26 @@ module.exports = {
             }
         }
     ],
-    ignorePatterns: ['dist', 'node_modules', '*.js', '**/*.config.js', '**/*.config.ts'],
+    ignorePatterns: [
+        'dist',
+        'node_modules',
+        '*.js',
+        '**/*.config.js',
+        '**/*.config.ts',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.spec.ts',
+        '**/*.spec.tsx'
+    ],
     settings: {
-        react: { version: 'detect' }
+        react: { version: 'detect' },
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+            typescript: {
+                alwaysTryTypes: true,
+            },
+        },
     }
 };

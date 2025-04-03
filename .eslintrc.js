@@ -12,7 +12,13 @@ module.exports = {
     settings: {
         react: {
             version: 'detect'
-        }
+        },
+        'import/resolver': {
+            typescript: {
+                // 프로젝트 경로들을 포함합니다
+                project: ['tsconfig.json', 'packages/*/tsconfig.json', 'Demo/tsconfig.json', 'app/tsconfig.json'],
+            },
+        },
     },
     env: {
         browser: true,
@@ -25,5 +31,16 @@ module.exports = {
         'react/react-in-jsx-scope': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
         '@typescript-eslint/no-explicit-any': 'warn'
-    }
+    },
+    ignorePatterns: [
+        'dist',
+        'node_modules',
+        '*.js',
+        '**/*.config.js',
+        '**/*.config.ts',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.spec.ts',
+        '**/*.spec.tsx'
+    ],
 };

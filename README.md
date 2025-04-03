@@ -17,6 +17,7 @@ The project follows a monorepo structure using Lerna with the following packages
 │   ├── eslint-config/  # Shared ESLint configuration
 │   └── eslint-config-react/ # React-specific ESLint configuration
 ├── Demo/               # Demo application showcasing the design system
+├── app/                # DS Manager 2 
 ```
 
 ## Features
