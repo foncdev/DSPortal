@@ -68,6 +68,7 @@ export interface SignupRequest {
     email: string;
     password: string;
     confirmPassword: string;
+    role?: string; // 관리자가 사용자 생성 시 역할 지정 가능
 }
 
 /**
@@ -81,6 +82,7 @@ export interface AuthState {
     expiresAt: Date | null;
     isLoading: boolean;
     error: string | null;
+    sessionTimeRemaining?: number; // 세션 만료까지 남은 시간(초)
 }
 
 /**
@@ -93,6 +95,7 @@ export type AuthErrorCode =
     | 'session_expired'
     | 'invalid_token'
     | 'network_error'
+    | 'insufficient_permissions'
     | 'unknown_error';
 
 /**
@@ -101,4 +104,13 @@ export type AuthErrorCode =
 export interface AuthError {
     code: AuthErrorCode;
     message: string;
+}
+
+/**
+ * 권한 확인 결과 인터페이스
+ */
+export interface PermissionCheckResult {
+    hasPermission: boolean;
+    requiredRole?: string;
+    userRole?: string;
 }

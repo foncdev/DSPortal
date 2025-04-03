@@ -4,13 +4,15 @@ import {
     ChangePasswordRequest,
     LoginRequest,
     LoginResponse,
+    PermissionCheckResult,
     RefreshTokenRequest,
     RefreshTokenResponse,
     ResetPasswordRequest,
     SignupRequest,
     TokenInfo
 } from './types';
-import { User } from '../types';
+import { User, UserRole } from '../types';
+import { createPermissionCheckResult, hasRequiredRole } from './permission';
 
 // 로컬 스토리지 키 정의
 const STORAGE_KEYS = {
@@ -18,6 +20,7 @@ const STORAGE_KEYS = {
     REFRESH_TOKEN: 'ds_refresh_token',
     EXPIRES_AT: 'ds_token_expires_at',
     USER: 'ds_user',
+    SESSION_CHECK_INTERVAL: 'ds_session_check_interval',
 };
 
 /**
@@ -26,7 +29,9 @@ const STORAGE_KEYS = {
 export class AuthManager {
     private state: AuthState;
     private tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+    private sessionCheckTimer: ReturnType<typeof setInterval> | null = null;
     private listeners: ((state: AuthState) => void)[] = [];
+    private sessionUpdateListeners: ((remainingTime: number) => void)[] = [];
 
     constructor() {
         this.state = this.loadStateFromStorage() || {
@@ -37,11 +42,13 @@ export class AuthManager {
             expiresAt: null,
             isLoading: false,
             error: null,
+            sessionTimeRemaining: 0
         };
 
         // 토큰이 있으면 자동으로 토큰 갱신 타이머 설정
         if (this.state.accessToken && this.state.expiresAt) {
             this.setupTokenRefreshTimer();
+            this.setupSessionCheckTimer();
         }
     }
 
@@ -59,6 +66,25 @@ export class AuthManager {
         // 구독 해제 함수 반환
         return () => {
             this.listeners = this.listeners.filter(l => l !== listener);
+        };
+    }
+
+    /**
+     * 세션 시간 업데이트를 구독
+     * @param listener 세션 시간 업데이트 리스너 함수
+     * @returns 구독 해제 함수
+     */
+    subscribeToSessionUpdates(listener: (remainingTime: number) => void): () => void {
+        this.sessionUpdateListeners.push(listener);
+
+        // 현재 세션 남은 시간 즉시 전달
+        if (this.state.sessionTimeRemaining !== undefined) {
+            listener(this.state.sessionTimeRemaining);
+        }
+
+        // 구독 해제 함수 반환
+        return () => {
+            this.sessionUpdateListeners = this.sessionUpdateListeners.filter(l => l !== listener);
         };
     }
 
@@ -82,6 +108,14 @@ export class AuthManager {
     private notifyListeners(): void {
         const stateCopy = { ...this.state };
         this.listeners.forEach(listener => listener(stateCopy));
+    }
+
+    /**
+     * 세션 시간 업데이트 리스너에게 알림
+     * @param remainingTime 남은 시간(초)
+     */
+    private notifySessionUpdateListeners(remainingTime: number): void {
+        this.sessionUpdateListeners.forEach(listener => listener(remainingTime));
     }
 
     /**
@@ -137,6 +171,9 @@ export class AuthManager {
                 return null;
             }
 
+            // 세션 남은 시간 계산 (초)
+            const sessionTimeRemaining = Math.floor((expiresAt.getTime() - Date.now()) / 1000);
+
             return {
                 isAuthenticated: true,
                 user,
@@ -145,6 +182,7 @@ export class AuthManager {
                 expiresAt,
                 isLoading: false,
                 error: null,
+                sessionTimeRemaining
             };
         } catch (error) {
             console.error('Failed to parse auth state from storage:', error);
@@ -177,6 +215,36 @@ export class AuthManager {
     }
 
     /**
+     * 세션 체크 타이머 설정 (1초마다 세션 남은 시간 업데이트)
+     */
+    private setupSessionCheckTimer(): void {
+        if (this.sessionCheckTimer) {
+            clearInterval(this.sessionCheckTimer);
+        }
+
+        // 1초마다 세션 남은 시간 체크
+        this.sessionCheckTimer = setInterval(() => {
+            if (this.state.expiresAt) {
+                const remainingTime = Math.max(0, Math.floor((this.state.expiresAt.getTime() - Date.now()) / 1000));
+
+                // 상태 업데이트
+                this.updateState({ sessionTimeRemaining: remainingTime });
+
+                // 세션 업데이트 리스너에게 알림
+                this.notifySessionUpdateListeners(remainingTime);
+
+                // 세션이 만료되었으면 로그아웃
+                if (remainingTime <= 0) {
+                    this.logout().catch(console.error);
+                }
+            }
+        }, 1000);
+
+        // 세션 체크 간격 저장
+        localStorage.setItem(STORAGE_KEYS.SESSION_CHECK_INTERVAL, this.sessionCheckTimer.toString());
+    }
+
+    /**
      * 사용자 로그인 처리
      * @param loginRequest 로그인 요청 정보
      * @returns 로그인 응답 정보
@@ -196,10 +264,13 @@ export class AuthManager {
                 refreshToken: response.refreshToken,
                 expiresAt: response.expiresAt,
                 isLoading: false,
+                sessionTimeRemaining: Math.floor((response.expiresAt.getTime() - Date.now()) / 1000)
             });
 
             // 토큰 갱신 타이머 설정
             this.setupTokenRefreshTimer();
+            // 세션 체크 타이머 설정
+            this.setupSessionCheckTimer();
 
             return response;
         } catch (error) {
@@ -219,33 +290,43 @@ export class AuthManager {
      * @returns 로그인 응답 정보
      */
     private async mockLogin(loginRequest: LoginRequest): Promise<LoginResponse> {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (loginRequest.email && loginRequest.password) {
-                    const now = new Date();
-                    // 1시간 후 만료
-                    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
 
-                    resolve({
-                        user: {
-                            id: '1',
-                            name: '테스트 유저',
-                            email: loginRequest.email,
-                            role: 'editor',
-                            createdAt: now,
-                            updatedAt: now
-                        },
-                        accessToken: 'mock-access-token-' + Math.random().toString(36).substring(2),
-                        refreshToken: 'mock-refresh-token-' + Math.random().toString(36).substring(2),
-                        expiresAt
-                    });
-                } else {
-                    reject({
-                        code: 'invalid_credentials',
-                        message: '이메일 또는 비밀번호가 올바르지 않습니다.'
-                    });
+        return new Promise((resolve, reject) => {
+            if (loginRequest.email && loginRequest.password) {
+                const now = new Date();
+                // 1시간 후 만료
+                const expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
+
+                // 이메일에 따라 다른 역할 부여 (테스트용)
+                let role: UserRole = 'user';
+                if (loginRequest.email.includes('admin')) {
+                    role = 'admin';
+                } else if (loginRequest.email.includes('super')) {
+                    role = 'super_admin';
+                } else if (loginRequest.email.includes('vendor')) {
+                    role = 'vendor';
                 }
-            }, 500); // 네트워크 지연 시뮬레이션
+
+                resolve({
+                    user: {
+                        id: '1',
+                        name: '테스트 유저',
+                        email: loginRequest.email,
+                        role,
+                        createdAt: now,
+                        updatedAt: now,
+                        lastLoginAt: now
+                    },
+                    accessToken: 'mock-access-token-' + Math.random().toString(36).substring(2),
+                    refreshToken: 'mock-refresh-token-' + Math.random().toString(36).substring(2),
+                    expiresAt
+                });
+            } else {
+                reject({
+                    code: 'invalid_credentials',
+                    message: '이메일 또는 비밀번호가 올바르지 않습니다.'
+                });
+            }
         });
     }
 
@@ -262,6 +343,12 @@ export class AuthManager {
                 this.tokenRefreshTimer = null;
             }
 
+            // 세션 체크 타이머 취소
+            if (this.sessionCheckTimer) {
+                clearInterval(this.sessionCheckTimer);
+                this.sessionCheckTimer = null;
+            }
+
             // 상태 초기화
             this.updateState({
                 isAuthenticated: false,
@@ -269,7 +356,8 @@ export class AuthManager {
                 accessToken: null,
                 refreshToken: null,
                 expiresAt: null,
-                error: null
+                error: null,
+                sessionTimeRemaining: 0
             });
 
             return Promise.resolve();
@@ -301,7 +389,8 @@ export class AuthManager {
             this.updateState({
                 accessToken: response.accessToken,
                 refreshToken: response.refreshToken,
-                expiresAt: response.expiresAt
+                expiresAt: response.expiresAt,
+                sessionTimeRemaining: Math.floor((response.expiresAt.getTime() - Date.now()) / 1000)
             });
 
             // 토큰 갱신 타이머 재설정
@@ -334,25 +423,47 @@ export class AuthManager {
      */
     private async mockRefreshToken(request: RefreshTokenRequest): Promise<RefreshTokenResponse> {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (request.refreshToken && request.refreshToken.startsWith('mock-refresh-token-')) {
-                    const now = new Date();
-                    // 1시간 후 만료
-                    const expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
+            if (request.refreshToken && request.refreshToken.startsWith('mock-refresh-token-')) {
+                const now = new Date();
+                // 1시간 후 만료
+                const expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
 
-                    resolve({
-                        accessToken: 'mock-access-token-' + Math.random().toString(36).substring(2),
-                        refreshToken: 'mock-refresh-token-' + Math.random().toString(36).substring(2),
-                        expiresAt
-                    });
-                } else {
-                    reject({
-                        code: 'invalid_token',
-                        message: '유효하지 않은 리프레시 토큰입니다.'
-                    });
-                }
-            }, 500); // 네트워크 지연 시뮬레이션
+                resolve({
+                    accessToken: 'mock-access-token-' + Math.random().toString(36).substring(2),
+                    refreshToken: 'mock-refresh-token-' + Math.random().toString(36).substring(2),
+                    expiresAt
+                });
+            } else {
+                reject({
+                    code: 'invalid_token',
+                    message: '유효하지 않은 리프레시 토큰입니다.'
+                });
+            }
         });
+    }
+
+    /**
+     * 세션 만료까지 남은 시간 형식화
+     * @returns 형식화된 시간 문자열 (예: "00:59:59")
+     */
+    getFormattedSessionTimeRemaining(): string {
+        if (!this.state.sessionTimeRemaining) {
+            return "00:00:00";
+        }
+
+        const hours = Math.floor(this.state.sessionTimeRemaining / 3600);
+        const minutes = Math.floor((this.state.sessionTimeRemaining % 3600) / 60);
+        const seconds = this.state.sessionTimeRemaining % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    /**
+     * 세션 만료까지 남은 시간 가져오기 (초)
+     * @returns 남은 시간 (초)
+     */
+    getSessionTimeRemaining(): number {
+        return this.state.sessionTimeRemaining || 0;
     }
 
     /**
@@ -396,16 +507,14 @@ export class AuthManager {
      */
     private async mockChangePassword(request: ChangePasswordRequest): Promise<void> {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (request.currentPassword === 'wrong-password') {
-                    reject({
-                        code: 'invalid_credentials',
-                        message: '현재 비밀번호가 올바르지 않습니다.'
-                    });
-                } else {
-                    resolve();
-                }
-            }, 500); // 네트워크 지연 시뮬레이션
+            if (request.currentPassword === 'wrong-password') {
+                reject({
+                    code: 'invalid_credentials',
+                    message: '현재 비밀번호가 올바르지 않습니다.'
+                });
+            } else {
+                resolve();
+            }
         });
     }
 
@@ -435,16 +544,14 @@ export class AuthManager {
      */
     private async mockResetPassword(request: ResetPasswordRequest): Promise<void> {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (!request.email) {
-                    reject({
-                        code: 'invalid_credentials',
-                        message: '이메일을 입력해주세요.'
-                    });
-                } else {
-                    resolve();
-                }
-            }, 500); // 네트워크 지연 시뮬레이션
+            if (!request.email) {
+                reject({
+                    code: 'invalid_credentials',
+                    message: '이메일을 입력해주세요.'
+                });
+            } else {
+                resolve();
+            }
         });
     }
 
@@ -485,29 +592,31 @@ export class AuthManager {
      */
     private async mockSignup(request: SignupRequest): Promise<User> {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (!request.email || !request.password || !request.name) {
-                    reject({
-                        code: 'invalid_credentials',
-                        message: '모든 필드를 입력해주세요.'
-                    });
-                } else if (request.email === 'existing@example.com') {
-                    reject({
-                        code: 'invalid_credentials',
-                        message: '이미 등록된 이메일입니다.'
-                    });
-                } else {
-                    const now = new Date();
-                    resolve({
-                        id: Math.random().toString(36).substring(2),
-                        name: request.name,
-                        email: request.email,
-                        role: 'viewer',
-                        createdAt: now,
-                        updatedAt: now
-                    });
-                }
-            }, 500); // 네트워크 지연 시뮬레이션
+            if (!request.email || !request.password || !request.name) {
+                reject({
+                    code: 'invalid_credentials',
+                    message: '모든 필드를 입력해주세요.'
+                });
+            } else if (request.email === 'existing@example.com') {
+                reject({
+                    code: 'invalid_credentials',
+                    message: '이미 등록된 이메일입니다.'
+                });
+            } else {
+                const now = new Date();
+                // 기본 역할은 user로 설정하지만, request에 역할이 포함되어 있으면 해당 역할 사용
+                const role = (request.role as UserRole) || 'user';
+
+                resolve({
+                    id: Math.random().toString(36).substring(2),
+                    name: request.name,
+                    email: request.email,
+                    role,
+                    createdAt: now,
+                    updatedAt: now,
+                    lastLoginAt: now
+                });
+            }
         });
     }
 
@@ -533,6 +642,36 @@ export class AuthManager {
      */
     isAuthenticated(): boolean {
         return this.state.isAuthenticated && !!this.state.accessToken;
+    }
+
+    /**
+     * 사용자가 특정 역할을 가지고 있는지 확인
+     * @param role 확인할 역할
+     * @returns 역할 보유 여부
+     */
+    hasRole(role: UserRole): boolean {
+        if (!this.state.user) {
+            return false;
+        }
+
+        return hasRequiredRole(this.state.user.role, role);
+    }
+
+    /**
+     * 사용자가 특정 역할 이상인지 확인
+     * @param requiredRole 요구되는 최소 역할
+     * @returns 권한 확인 결과
+     */
+    checkPermission(requiredRole: UserRole): PermissionCheckResult {
+        if (!this.state.user) {
+            return {
+                hasPermission: false,
+                requiredRole,
+                userRole: undefined
+            };
+        }
+
+        return createPermissionCheckResult(this.state.user.role, requiredRole);
     }
 
     /**

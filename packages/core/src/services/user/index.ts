@@ -1,6 +1,6 @@
-import { User, ApiResponse, PaginationRequest, PaginationResponse } from '../../types';
+import { ApiResponse, PaginationRequest, PaginationResponse, User } from '../../types';
 import { httpClient } from '../../api/client';
-import { userEndpoints, replacePathParams } from '../../api/endpoints';
+import { replacePathParams, userEndpoints } from '../../api/endpoints';
 
 /**
  * 프로필 업데이트 요청 인터페이스

@@ -9,6 +9,13 @@ export default defineConfig({
         coverage: {
             reporter: ['text', 'json', 'html'],
         },
+        exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/setup_test-env.ts'
+        ],
+        setupFiles: ['./src/auth/_test_/setup_test-env.ts'],
+        testTimeout: 10000,
     },
     resolve: {
         alias: {

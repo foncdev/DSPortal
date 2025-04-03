@@ -1,5 +1,4 @@
-// packages/core/src/user.ts
-import { User } from './types';
+import { User, UserRole } from './types';
 
 /**
  * 사용자 정보를 가져옵니다. (현재는 목업 데이터 반환)
@@ -11,7 +10,7 @@ export function getUserInfo(): User {
         id: '1',
         name: '테스트 유저',
         email: 'test@example.com',
-        role: 'editor',
+        role: 'user', // 변경: 'editor' -> 'user'
         createdAt: new Date(),
         updatedAt: new Date()
     };
@@ -47,7 +46,7 @@ export async function authenticateUser(email: string, password: string): Promise
             id: '1',
             name: '테스트 유저',
             email,
-            role: 'editor',
+            role: 'user', // 변경: 'editor' -> 'user'
             createdAt: new Date(),
             updatedAt: new Date()
         };
@@ -61,14 +60,14 @@ export async function authenticateUser(email: string, password: string): Promise
  * @param {string} name 사용자 이름
  * @param {string} email 사용자 이메일
  * @param {string} password 사용자 비밀번호
- * @param {'admin' | 'editor' | 'viewer'} role 사용자 권한
+ * @param {UserRole} role 사용자 권한
  * @returns {Promise<User>} 생성된 사용자 정보
  */
 export async function createUser(
     name: string,
     email: string,
     password: string,
-    role: 'admin' | 'editor' | 'viewer' = 'viewer'
+    role: UserRole = 'user' // 변경: 'viewer' -> 'user'
 ): Promise<User> {
     // 실제 구현에서는 API 호출하여 사용자 생성
     const now = new Date();
