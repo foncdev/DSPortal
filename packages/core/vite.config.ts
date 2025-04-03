@@ -16,7 +16,7 @@ export default defineConfig({
         },
         rollupOptions: {
             // 외부 라이브러리로 취급할 의존성
-            external: [],
+            external: ['**/setup_test-env.ts'],
             output: {
                 // 전역 변수로 사용될 외부 라이브러리 지정
                 globals: {},

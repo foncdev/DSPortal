@@ -1,4 +1,4 @@
-import { Document, ApiResponse, PaginationRequest, PaginationResponse } from '../../types';
+import { ApiResponse, Document, PaginationRequest, PaginationResponse } from '../../types';
 import { httpClient } from '../../api/client';
 import { documentEndpoints, replacePathParams } from '../../api/endpoints';
 

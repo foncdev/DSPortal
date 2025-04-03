@@ -1,4 +1,7 @@
-// packages/core/src/types.ts
+/**
+ * 사용자 권한 역할 타입
+ */
+export type UserRole = 'super_admin' | 'admin' | 'user' | 'vendor';
 
 /**
  * 사용자 정보 인터페이스
@@ -7,9 +10,10 @@ export interface User {
     id: string;
     name: string;
     email: string;
-    role: 'admin' | 'editor' | 'viewer';
+    role: UserRole;
     createdAt: Date;
     updatedAt: Date;
+    lastLoginAt?: Date;
 }
 
 /**

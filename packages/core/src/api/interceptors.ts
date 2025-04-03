@@ -1,5 +1,5 @@
 // packages/core/src/api/interceptors.ts
-import { RequestInterceptor, ResponseInterceptor, ErrorInterceptor, HttpRequestOptions, HttpResponse } from './types';
+import { ErrorInterceptor, HttpRequestOptions, HttpResponse, RequestInterceptor, ResponseInterceptor } from './types';
 import { authManager } from '../auth/auth';
 import { i18nManager } from '../i18n/i18n';
 
