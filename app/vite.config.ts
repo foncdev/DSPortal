@@ -9,7 +9,8 @@ export default defineConfig({
         alias: {
             '@': resolve(__dirname, './src'),
             '@ds/core': resolve(__dirname, '../packages/core/src'),
-            '@ds/utils': resolve(__dirname, '../packages/utils/src')
+            '@ds/utils': resolve(__dirname, '../packages/utils/src'),
+            '@styles': resolve(__dirname, './src/styles')
         },
     },
     // 개발 서버 설정
@@ -50,7 +51,14 @@ export default defineConfig({
     css: {
         devSourcemap: true,
         modules: {
-            localsConvention: 'camelCase'
+            localsConvention: 'camelCase',
+            scopeBehaviour: 'local'
+        },
+        preprocessorOptions: {
+            scss: {
+                quietDeps: true, // @import 경고 무시
+                // additionalData: `@import "src/styles/variables"; @import "src/styles/mixins";`
+            }
         }
     },
     // 정적 자산 처리
