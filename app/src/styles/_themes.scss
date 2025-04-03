@@ -1,0 +1,98 @@
+// app/src/styles/_themes.scss
+
+// Define theme variables with light mode defaults
+:root {
+  // Color scheme
+  --color-primary: #3b82f6;           // Primary blue
+  --color-primary-light: #60a5fa;     // Lighter primary
+  --color-primary-dark: #2563eb;      // Darker primary
+  --color-primary-contrast: #ffffff;  // Text on primary
+
+  --color-secondary: #64748b;         // Secondary slate
+  --color-secondary-light: #94a3b8;   // Lighter secondary
+  --color-secondary-dark: #475569;    // Darker secondary
+  --color-secondary-contrast: #ffffff; // Text on secondary
+
+  --color-success: #10b981;           // Success green
+  --color-warning: #f59e0b;           // Warning amber
+  --color-error: #ef4444;             // Error red
+  --color-info: #06b6d4;              // Info cyan
+
+  // Background colors
+  --color-bg-primary: #ffffff;        // Main background
+  --color-bg-secondary: #f9fafb;      // Secondary background
+  --color-bg-tertiary: #f3f4f6;       // Tertiary background
+  --color-bg-inset: #e5e7eb;          // Inset elements
+
+  // Text colors
+  --color-text-primary: #111827;      // Primary text
+  --color-text-secondary: #374151;    // Secondary text
+  --color-text-tertiary: #6b7280;     // Tertiary/muted text
+  --color-text-invert: #ffffff;       // Inverted text (on dark bg)
+
+  // Border colors
+  --color-border: #e5e7eb;            // Default border
+  --color-border-light: #f3f4f6;      // Lighter border
+  --color-border-dark: #d1d5db;       // Darker border
+
+  // Shadow values
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+  // Layout variables
+  --sidebar-width: 280px;             // Full sidebar width
+  --sidebar-collapsed-width: 80px;    // Collapsed sidebar width
+  --header-height: 64px;              // Header height
+  --footer-height: 60px;              // Footer height
+
+  // Animation speeds
+  --transition-fast: 150ms;
+  --transition-normal: 250ms;
+  --transition-slow: 350ms;
+}
+
+// Dark mode overrides
+.dark {
+  // Color scheme - adjusted for dark mode
+  --color-primary: #3b82f6;           // Keep primary colors consistent
+  --color-primary-light: #2563eb;     // Adjust for dark bg
+  --color-primary-dark: #60a5fa;      // Adjust for dark bg
+
+  // Background colors
+  --color-bg-primary: #111827;        // Main background (dark gray)
+  --color-bg-secondary: #1f2937;      // Secondary background
+  --color-bg-tertiary: #374151;       // Tertiary background
+  --color-bg-inset: #4b5563;          // Inset elements
+
+  // Text colors
+  --color-text-primary: #f9fafb;      // Primary text
+  --color-text-secondary: #e5e7eb;    // Secondary text
+  --color-text-tertiary: #9ca3af;     // Tertiary/muted text
+
+  // Border colors
+  --color-border: #374151;            // Default border
+  --color-border-light: #4b5563;      // Lighter border
+  --color-border-dark: #1f2937;       // Darker border
+
+  // Shadow values - adjusted to be more subtle in dark mode
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+}
+
+// Apply semantic color names based on theme variables
+:root {
+  // Semantic colors
+  --color-app-bg: var(--color-bg-primary);
+  --color-card-bg: var(--color-bg-secondary);
+  --color-input-bg: var(--color-bg-primary);
+  --color-header-bg: var(--color-bg-primary);
+  --color-sidebar-bg: var(--color-bg-secondary);
+  --color-footer-bg: var(--color-bg-primary);
+
+  // Semantic text
+  --color-heading: var(--color-text-primary);
+  --color-body: var(--color-text-secondary);
+  --color-placeholder: var(--color-text-tertiary);
+}

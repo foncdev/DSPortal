@@ -1,0 +1,148 @@
+// app/src/layouts/components/Sidebar/Navigation.module.scss
+@use '@/styles/variables' as vars;
+@use '@/styles/mixins' as mix;
+
+.navigation {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  &.collapsed {
+    align-items: center;
+
+    .navItem, .navGroupToggle {
+      justify-content: center;
+
+      .label, .arrow {
+        display: none;
+      }
+    }
+
+    .navGroup {
+      width: 100%;
+    }
+  }
+}
+
+.navItem, .navGroupToggle {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: 0.375rem;
+  margin: 0.25rem 0.75rem;
+  transition: all var(--transition-fast) ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: calc(100% - 1.5rem);
+  font-size: 0.875rem;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+  }
+
+  &.active {
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+
+    &:hover {
+      background-color: var(--color-primary-dark);
+    }
+  }
+}
+
+// Group toggle button
+.navGroupToggle {
+  font-weight: 500;
+  justify-content: space-between;
+  width: calc(100% - 1.5rem);
+  text-align: left;
+
+  .icon, .label {
+    flex-shrink: 0;
+  }
+
+  .arrow {
+    transition: transform var(--transition-fast) ease;
+    opacity: 0.7;
+  }
+}
+
+// Expanded group
+.navGroup.expanded {
+  .navGroupToggle {
+    font-weight: 600;
+
+    .arrow {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+// Icon styling
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+// Label styling
+.label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Submenu items container
+.subItems {
+  margin-left: 1rem;
+  border-left: 1px solid var(--color-border);
+
+  .subItem {
+    font-size: 0.8125rem;
+    padding: 0.625rem 1rem;
+  }
+}
+
+// Style adjustments for dark mode
+:global(.dark) {
+  .navItem, .navGroupToggle {
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    &.active {
+      background-color: var(--color-primary-dark);
+    }
+  }
+}
+
+// Collapsed sidebar hover effect for items
+.navigation.collapsed {
+  .navItem, .navGroupToggle {
+    position: relative;
+
+    &:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.25rem;
+      box-shadow: var(--shadow-md);
+      z-index: 10;
+      white-space: nowrap;
+      margin-left: 0.5rem;
+      border: 1px solid var(--color-border);
+    }
+  }
+}

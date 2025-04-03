@@ -1,0 +1,69 @@
+// app/src/layouts/AuthLayout.module.scss
+@use '@/styles/variables' as vars;
+@use '@/styles/mixins' as mix;
+
+.auth-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-app-bg);
+  color: var(--color-text-primary);
+}
+
+.layout-container {
+  display: flex;
+  flex: 1;
+  padding-top: var(--header-height);
+
+  // LEFT sidebar (default)
+  .sidebar-left & {
+    margin-left: var(--sidebar-width);
+
+    &.sidebar-collapsed {
+      margin-left: var(--sidebar-collapsed-width);
+    }
+  }
+
+  // RIGHT sidebar
+  .sidebar-right & {
+    margin-right: var(--sidebar-width);
+
+    &.sidebar-collapsed {
+      margin-right: var(--sidebar-collapsed-width);
+    }
+  }
+
+  // Mobile view
+  @include mix.mobile {
+    .sidebar-left &,
+    .sidebar-right & {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+
+  @include mix.mobile {
+    padding: 1rem;
+  }
+}
+
+// Transition for sidebar state changes
+.sidebar-collapsed,
+.sidebar-expanded {
+  transition: margin-left var(--transition-normal) ease, margin-right var(--transition-normal) ease;
+}

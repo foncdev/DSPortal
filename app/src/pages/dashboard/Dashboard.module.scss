@@ -1,0 +1,202 @@
+// app/src/pages/dashboard/Dashboard.module.scss
+@use '@/styles/variables' as vars;
+@use '@/styles/mixins' as mix;
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+
+  @include mix.tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mix.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statCard {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.statHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.statTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-primary);
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.statChange {
+  font-size: 0.75rem;
+
+  &.positive {
+    color: var(--color-success);
+  }
+
+  &.negative {
+    color: var(--color-error);
+  }
+}
+
+.documentSection {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.documentList {
+  padding: 0.75rem 0;
+}
+
+.documentItem {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  transition: background-color var(--transition-fast) ease;
+
+  &:hover {
+    background-color: var(--color-bg-secondary);
+  }
+}
+
+.documentIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-primary);
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.documentInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.documentTitle {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.documentMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
+}
+
+.documentTime {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.documentStatus {
+  padding: 0.125rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+
+  &.published {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+  }
+
+  &.draft {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--color-warning);
+  }
+}
+
+.documentActions {
+  margin-left: 1rem;
+
+  @include mix.mobile {
+    display: none;
+  }
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .statCard, .documentSection {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .documentStatus {
+    &.published {
+      background-color: rgba(16, 185, 129, 0.2);
+    }
+
+    &.draft {
+      background-color: rgba(245, 158, 11, 0.2);
+    }
+  }
+}

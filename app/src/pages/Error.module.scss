@@ -1,0 +1,56 @@
+// app/src/pages/Error.module.scss
+@use '@/styles/variables' as vars;
+@use '@/styles/mixins' as mix;
+
+.errorPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  min-height: 60vh;
+}
+
+.errorContent {
+  text-align: center;
+  max-width: 500px;
+}
+
+.errorCode {
+  font-size: 6rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+
+  @include mix.mobile {
+    font-size: 4rem;
+  }
+}
+
+.errorIcon {
+  color: var(--color-error);
+  margin-bottom: 1.5rem;
+}
+
+.errorTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--color-heading);
+
+  @include mix.mobile {
+    font-size: 1.5rem;
+  }
+}
+
+.errorMessage {
+  margin-bottom: 2rem;
+  color: var(--color-text-secondary);
+}
+
+.errorActions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}

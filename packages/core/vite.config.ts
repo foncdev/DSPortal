@@ -16,10 +16,20 @@ export default defineConfig({
         },
         rollupOptions: {
             // 외부 라이브러리로 취급할 의존성
-            external: ['**/setup_test-env.ts'],
+            external: [
+                'react',
+                'react-dom',
+                '**/setup_test-env.ts',
+                '**/**.test.ts'
+            ],
             output: {
                 // 전역 변수로 사용될 외부 라이브러리 지정
-                globals: {},
+                globals: {
+                    react: 'React',
+                    'react-dom': 'ReactDOM',
+                },
+                // 코드 분할 비활성화
+                inlineDynamicImports: true
             },
         },
         sourcemap: true,
