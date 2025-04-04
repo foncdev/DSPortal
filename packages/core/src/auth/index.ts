@@ -4,5 +4,6 @@ export * from './permission';
 export * from './session';
 export * from './menu-access';
 
-// import { authManager } from './auth';
-// export { authManager };
+// Explicitly re-export authManager for convenience
+import { authManager } from './auth';
+export { authManager };
