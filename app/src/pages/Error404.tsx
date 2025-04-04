@@ -1,4 +1,3 @@
-// app/src/pages/Error404.tsx
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -26,3 +25,4 @@ const Error404: React.FC = () => {
 };
 
 export default Error404;
+

@@ -1,7 +1,3 @@
-// app/src/pages/Error.module.scss
-@use '@/styles/variables' as vars;
-@use '@/styles/mixins' as mix;
-
 .errorPage {
   display: flex;
   flex-direction: column;
@@ -23,7 +19,7 @@
   color: var(--color-primary);
   margin-bottom: 1rem;
 
-  @include mix.mobile {
+  @media (max-width: 640px) {
     font-size: 4rem;
   }
 }
@@ -39,7 +35,7 @@
   margin-bottom: 1rem;
   color: var(--color-heading);
 
-  @include mix.mobile {
+  @media (max-width: 640px) {
     font-size: 1.5rem;
   }
 }

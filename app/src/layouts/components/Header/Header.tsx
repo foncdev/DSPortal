@@ -1,71 +1,33 @@
-// app/src/layouts/components/Header/Header.tsx
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLayout } from '../../context/LayoutContext';
-import UserMenu from './UserMenu';
-import NotificationCenter from './NotificationCenter';
-import LanguageSwitcher from './LanguageSwitcher';
-import ThemeToggle from './ThemeToggle';
+import { Menu, LogOut, User, Moon, Sun } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { authManager } from '@ds/core';
+import { useTheme } from '@/contexts/ThemeContext';
 import styles from './Header.module.scss';
-
-// Import icons
-import { Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Header: React.FC = () => {
     const { t } = useTranslation();
-    const {
-        sidebarCollapsed,
-        toggleSidebar,
-        sidebarPosition,
-        mobileSidebarOpen,
-        setMobileSidebarOpen
-    } = useLayout();
-
-    // 미사용 변수 제거 (isDarkMode)
-    // const { theme } = useTheme();
-
+    const navigate = useNavigate();
+    const { toggleTheme, isDarkMode } = useTheme();
     const user = authManager.getCurrentUser();
 
-    // Toggle mobile sidebar
-    const handleMobileMenuToggle = () => {
-        setMobileSidebarOpen(!mobileSidebarOpen);
-    };
-
-    // Icon for sidebar toggle based on state and position
-    const getSidebarToggleIcon = () => {
-        if (sidebarPosition === 'left') {
-            return sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />;
-        } else {
-            return sidebarCollapsed ? <ChevronLeft size={20} /> : <ChevronRight size={20} />;
+    const handleLogout = async () => {
+        try {
+            await authManager.logout();
+            navigate('/login');
+        } catch (error) {
+            console.error('Logout failed:', error);
         }
     };
 
     return (
         <header className={styles.header}>
             <div className={styles.headerContainer}>
-                {/* Mobile menu toggle - only visible on small screens */}
-                <button
-                    className={styles.mobileMenuToggle}
-                    onClick={handleMobileMenuToggle}
-                    aria-label={mobileSidebarOpen ? t('header.closeSidebar') : t('header.openSidebar')}
-                >
-                    {mobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
-
-                {/* Logo area */}
+                {/* Logo */}
                 <div className={styles.logo}>
                     <span className={styles.logoText}>DS 매니저</span>
                 </div>
-
-                {/* Desktop sidebar toggle - hidden on mobile */}
-                <button
-                    className={styles.sidebarToggle}
-                    onClick={toggleSidebar}
-                    aria-label={sidebarCollapsed ? t('header.expandSidebar') : t('header.collapseSidebar')}
-                >
-                    {getSidebarToggleIcon()}
-                </button>
 
                 {/* Spacer */}
                 <div className={styles.spacer}></div>
@@ -73,16 +35,46 @@ const Header: React.FC = () => {
                 {/* Right-side actions */}
                 <div className={styles.actions}>
                     {/* Theme toggle */}
-                    <ThemeToggle />
-
-                    {/* Language switcher */}
-                    <LanguageSwitcher />
-
-                    {/* Notification center */}
-                    <NotificationCenter />
+                    <button
+                        className={styles.actionButton}
+                        onClick={toggleTheme}
+                        aria-label={t('header.toggleTheme')}
+                    >
+                        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                    </button>
 
                     {/* User menu */}
-                    <UserMenu user={user} />
+                    <div className={styles.userMenu}>
+                        <div className={styles.userInfo}>
+                            <span className={styles.userName}>{user?.name || t('common.guest')}</span>
+                            <button className={styles.userAvatar}>
+                                <User size={20} />
+                            </button>
+                        </div>
+                        <div className={styles.dropdown}>
+                            <div className={styles.dropdownHeader}>
+                                <div className={styles.userDetails}>
+                                    <span className={styles.userFullName}>{user?.name}</span>
+                                    <span className={styles.userEmail}>{user?.email}</span>
+                                </div>
+                            </div>
+                            <div className={styles.dropdownDivider}></div>
+                            <ul className={styles.dropdownMenu}>
+                                <li>
+                                    <button className={styles.dropdownItem} onClick={() => navigate('/profile')}>
+                                        <User size={16} />
+                                        <span>{t('header.profile')}</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className={styles.dropdownItem} onClick={handleLogout}>
+                                        <LogOut size={16} />
+                                        <span>{t('auth.logout')}</span>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>

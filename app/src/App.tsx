@@ -1,17 +1,24 @@
-import ErrorBoundary from "./layouts/components/common/ErrorBoundary";
-import AppProviders from "./providers/AppProviders";
-import AppRoutes from "./routes";
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import AppRoutes from './routes';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
+import ErrorBoundary from './layouts/components/common/ErrorBoundary';
+
+// Import styles
 import './styles/main.scss';
 
-function App(): JSX.Element {
-
-    return (
+const App: React.FC = () => (
         <ErrorBoundary>
-            <AppProviders>
-                <AppRoutes />
-            </AppProviders>
+            <I18nextProvider i18n={i18n}>
+                <ThemeProvider>
+                    <Router>
+                        <AppRoutes />
+                    </Router>
+                </ThemeProvider>
+            </I18nextProvider>
         </ErrorBoundary>
     );
-}
 
 export default App;

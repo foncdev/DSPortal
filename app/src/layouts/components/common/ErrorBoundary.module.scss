@@ -1,7 +1,3 @@
-// app/src/layouts/components/common/ErrorBoundary.module.scss
-@use '@/styles/variables' as vars;
-@use '@/styles/mixins' as mix;
-
 .errorContainer {
   display: flex;
   align-items: center;
@@ -48,12 +44,5 @@
 
   &:hover {
     background-color: var(--color-primary-dark);
-  }
-}
-
-// Dark mode adjustments
-:global(.dark) {
-  .errorContent {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   }
 }

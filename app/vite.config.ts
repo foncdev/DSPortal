@@ -7,8 +7,9 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
-            '@': resolve(__dirname, './src'),
+            '@': resolve(__dirname, 'src'),
             '@ds/core': resolve(__dirname, '../packages/core/src'),
+            '@ds/core/*': resolve(__dirname, '../packages/core/src/**'),
             '@ds/utils': resolve(__dirname, '../packages/utils/src'),
             '@styles': resolve(__dirname, './src/styles')
         },
@@ -38,10 +39,10 @@ export default defineConfig({
         minify: 'terser',
     },
     // 최적화 설정
-    optimizeDeps: {
-        include: ['react', 'react-dom'],
-        exclude: ['@ds/core', '@ds/utils']
-    },
+    // optimizeDeps: {
+    //     include: ['react', 'react-dom'],
+    //     exclude: ['@ds/core', '@ds/utils']
+    // },
     // 환경 변수 설정
     define: {
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),

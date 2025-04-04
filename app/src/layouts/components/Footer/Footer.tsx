@@ -1,7 +1,6 @@
-// app/src/layouts/components/Footer/Footer.tsx
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import styles from './Footer.module.scss';
 
 const Footer: React.FC = () => {
