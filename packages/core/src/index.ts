@@ -1,13 +1,14 @@
+// Export individual modules
 export * from './user';
 export * from './document';
 export * from './types';
 
-// 새로운 모듈 내보내기
-// export * from './auth';
+// Export auth module and its contents
+export * from './auth';
 export * from './i18n';
 export * from './api';
 export * from './services';
 
-// authManager 명시적으로 다시 내보내기
+// Explicitly re-export authManager
 import { authManager } from './auth/auth';
 export { authManager };
