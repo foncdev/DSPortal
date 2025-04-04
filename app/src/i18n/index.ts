@@ -1,3 +1,4 @@
+// app/src/i18n/index.ts
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
@@ -17,7 +18,8 @@ const resources = {
 };
 
 // Initialize i18next
-i18n
+// Mark as void to fix no-floating-promises warning
+void i18n
     // Detect user language
     .use(LanguageDetector)
     // Pass the i18n instance to react-i18next

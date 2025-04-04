@@ -1,4 +1,5 @@
-import React, { ReactNode, useEffect } from 'react';
+// app/src/layouts/AuthLayout.tsx
+import React, { ReactNode, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BaseLayout from './BaseLayout';
 import Header from './components/Header/Header';
@@ -23,10 +24,20 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                                                }) => {
     const navigate = useNavigate();
 
+    // Handle navigation with useCallback to avoid re-creation
+    const navigateToLogin = useCallback(() => {
+        void navigate('/login', { replace: true });
+    }, [navigate]);
+
+    const navigateToUnauthorized = useCallback(() => {
+        void navigate('/unauthorized', { replace: true });
+    }, [navigate]);
+
     // Check authentication and permissions
     useEffect(() => {
+        // Check if authentication is required but user is not authenticated
         if (requireAuth && !authManager.isAuthenticated()) {
-            navigate('/login', { replace: true });
+            navigateToLogin();
             return;
         }
 
@@ -34,10 +45,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         if (requireAuth && authManager.isAuthenticated() && requiredRole) {
             const hasPermission = authManager.hasRole(requiredRole);
             if (!hasPermission) {
-                navigate('/unauthorized', { replace: true });
+                navigateToUnauthorized();
             }
         }
-    }, [requireAuth, requiredRole, navigate]);
+    }, [requireAuth, requiredRole, navigateToLogin, navigateToUnauthorized]);
 
     return (
         <BaseLayout className={styles.authLayout}>

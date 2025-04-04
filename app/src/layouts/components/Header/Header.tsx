@@ -1,9 +1,10 @@
-import React from 'react';
+// app/src/layouts/components/Header/Header.tsx
+import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Menu, LogOut, User, Moon, Sun } from 'lucide-react';
+import { LogOut, User, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authManager } from '@ds/core';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import styles from './Header.module.scss';
 
 const Header: React.FC = () => {
@@ -12,14 +13,14 @@ const Header: React.FC = () => {
     const { toggleTheme, isDarkMode } = useTheme();
     const user = authManager.getCurrentUser();
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         try {
             await authManager.logout();
-            navigate('/login');
+            void navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
         }
-    };
+    }, [navigate]);
 
     return (
         <header className={styles.header}>

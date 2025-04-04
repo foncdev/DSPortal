@@ -1,14 +1,14 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+// app/src/layouts/components/Sidebar/Sidebar.tsx
+import React, { useCallback } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
     Home,
-    User,
-    Settings,
     LogOut,
-    Menu
+    Menu,
+    Settings,
+    User
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { authManager } from '@ds/core';
 import styles from './Sidebar.module.scss';
 
@@ -25,15 +25,15 @@ const Sidebar: React.FC = () => {
     const navigate = useNavigate();
     const [isMobileOpen, setIsMobileOpen] = React.useState(false);
 
-    // Handle logout
-    const handleLogout = async () => {
+    // Handle logout with useCallback to avoid recreating the function on each render
+    const handleLogout = useCallback(async () => {
         try {
             await authManager.logout();
-            navigate('/login');
+            void navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
         }
-    };
+    }, [navigate]);
 
     // Navigation items
     const navItems: NavItem[] = [
@@ -59,6 +59,13 @@ const Sidebar: React.FC = () => {
         setIsMobileOpen(!isMobileOpen);
     };
 
+    // Handle backdrop keydown for accessibility
+    const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            setIsMobileOpen(false);
+        }
+    };
+
     return (
         <>
             {/* Mobile toggle button */}
@@ -75,6 +82,10 @@ const Sidebar: React.FC = () => {
                 <div
                     className={styles.backdrop}
                     onClick={() => setIsMobileOpen(false)}
+                    onKeyDown={handleBackdropKeyDown}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Close sidebar"
                 ></div>
             )}
 
