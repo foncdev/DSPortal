@@ -1,24 +1,25 @@
 // app/src/styles/main.scss
-// Import variables and mixins
-@use 'variables';
-@use 'mixins';
-@use 'themes';
-
-// Import Tailwind directives
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'themes';
 
 // Base styles
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  'Helvetica Neue', Arial, sans-serif;
   background-color: var(--color-app-bg);
   color: var(--color-text-primary);
   line-height: 1.5;
-  transition:
-          color var(--transition-normal) ease,
-          background-color var(--transition-normal) ease;
   min-height: 100vh;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: color var(--transition-normal) ease,
+  background-color var(--transition-normal) ease;
 }
 
 // Typography
@@ -159,7 +160,7 @@ a {
   }
 }
 
-// Dark mode specific styles
+// Dark mode specific adjustments
 .dark {
   .card {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);

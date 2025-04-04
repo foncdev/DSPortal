@@ -1,8 +1,4 @@
-// app/src/layouts/SingleLayout.module.scss
-@use '@/styles/variables' as vars;
-@use '@/styles/mixins' as mix;
-
-.single-layout {
+.singleLayout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -10,7 +6,7 @@
   color: var(--color-text-primary);
 }
 
-.single-layout-header {
+.singleLayoutHeader {
   height: 64px;
   display: flex;
   align-items: center;
@@ -25,20 +21,20 @@
   }
 }
 
-.single-layout-content {
+.singleLayoutContent {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
 
-  @include mix.mobile {
+  @media (max-width: 640px) {
     padding: 1.5rem 1rem;
     align-items: flex-start;
   }
 }
 
-.single-layout-container {
+.singleLayoutContainer {
   width: 100%;
   background-color: var(--color-bg-secondary);
   border-radius: 0.5rem;
@@ -49,14 +45,14 @@
     margin: auto;
   }
 
-  @include mix.mobile {
+  @media (max-width: 640px) {
     padding: 1.5rem;
     box-shadow: none;
     background-color: transparent;
   }
 }
 
-.single-layout-footer {
+.singleLayoutFooter {
   padding: 1.5rem;
   text-align: center;
   font-size: 0.875rem;
@@ -64,9 +60,8 @@
   border-top: 1px solid var(--color-border);
 }
 
-// Dark mode adjustments
 :global(.dark) {
-  .single-layout-container {
+  .singleLayoutContainer {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   }
 }

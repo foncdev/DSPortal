@@ -20,12 +20,12 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
-      "@ds/core": ["packages/core/src"],
-      "@ds/utils": ["packages/utils/src"]
+      "@/*": ["src/*"],"@ds/core": ["../packages/core/src"],
+      "@ds/core/*": ["../packages/core/src/*"],
+      "@ds/utils": ["../packages/utils/src"],
     },
-    "rootDir": "./src",
     "outDir": "./dist"
   },
   "exclude": ["node_modules", "dist", "**/*.test.ts", "src/**/*.scss", "**/*.test.tsx", "**/setup_test-env.ts"],

@@ -1,0 +1,86 @@
+{
+  "app": {
+    "name": "DS Manager",
+    "description": "Document Management System"
+  },
+  "common": {
+    "user": "User",
+    "guest": "Guest",
+    "email": "Email",
+    "name": "Name",
+    "role": "Role",
+    "date": "Date",
+    "time": "Time",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "signup": "Sign Up",
+    "forgotPassword": "Forgot Password",
+    "resetPassword": "Reset Password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "loginDescription": "Sign in to your account",
+    "loginFailed": "Login failed. Please check your email and password."
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}",
+    "userInfo": "User Information",
+    "dateTime": "Date & Time",
+    "quickLinks": "Quick Links",
+    "calendar": "Calendar",
+    "calendarEmpty": "No events scheduled",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "logout": "Log Out"
+  },
+  "errors": {
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundMessage": "The page you are looking for does not exist. Check the URL or return to the home page.",
+    "serverError": "Server Error",
+    "serverErrorMessage": "Something went wrong on our servers. Please try again later.",
+    "unauthorized": "Unauthorized Access",
+    "unauthorizedMessage": "You do not have permission to view this page. Please log in or contact an administrator.",
+    "backToHome": "Back to Home"
+  },
+  "header": {
+    "search": "Search...",
+    "notifications": "Notifications",
+    "toggleTheme": "Toggle Theme",
+    "profile": "Profile"
+  },
+  "sidebar": {
+    "open": "Open Menu",
+    "close": "Close Menu"
+  },
+  "footer": {
+    "allRightsReserved": "All Rights Reserved",
+    "version": "Version",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "help": "Help Center"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "system": "System Theme"
+  }
+}

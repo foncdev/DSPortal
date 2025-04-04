@@ -1,4 +1,3 @@
-// app/src/layouts/context/ThemeContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type ThemeMode = 'light' | 'dark' | 'system';
@@ -32,7 +31,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     // Toggle between light and dark
     const toggleTheme = () => {
         setTheme(current => {
-            if (current === 'system') return 'light';
+            if (current === 'system') {return 'light';}
             return current === 'light' ? 'dark' : 'light';
         });
     };
@@ -42,7 +41,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         localStorage.setItem(THEME_PREFERENCE_KEY, theme);
     }, [theme]);
 
-    // Effect to apply theme to document - 수정된 부분 (모든 경로에서 return 보장)
+    // Effect to apply theme to document
     useEffect(() => {
         const applyTheme = (dark: boolean) => {
             if (dark) {
@@ -63,12 +62,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             // Listen for changes
             const listener = (e: MediaQueryListEvent) => applyTheme(e.matches);
             mediaQuery.addEventListener('change', listener);
-
             return () => mediaQuery.removeEventListener('change', listener);
         } else {
             // Explicit theme preference
             applyTheme(theme === 'dark');
-            // 여기에도 return 추가
             return () => {}; // Empty cleanup function
         }
     }, [theme]);

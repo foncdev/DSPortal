@@ -1,7 +1,6 @@
-// app/src/layouts/SingleLayout.tsx
 import React, { ReactNode } from 'react';
 import BaseLayout from './BaseLayout';
-import './SingleLayout.module.scss';
+import styles from './SingleLayout.module.scss';
 
 interface SingleLayoutProps {
     children: ReactNode;
@@ -22,32 +21,29 @@ const SingleLayout: React.FC<SingleLayoutProps> = ({
                                                        withFooter = false
                                                    }) => {
     const containerStyle = {
-        maxWidth: maxWidth
+        maxWidth
     };
 
-    const containerClasses = [
-        'single-layout-container',
-        centered ? 'centered' : '',
-    ].join(' ');
-
     return (
-        <BaseLayout className="single-layout">
+        <BaseLayout className={styles.singleLayout}>
             {withHeader && (
-                <div className="single-layout-header">
-                    <div className="logo">
-                        {/* Add your logo here */}
+                <div className={styles.singleLayoutHeader}>
+                    <div className={styles.logo}>
                         <span>DS 매니저</span>
                     </div>
                 </div>
             )}
-            <div className="single-layout-content">
-                <div className={containerClasses} style={containerStyle}>
+            <div className={styles.singleLayoutContent}>
+                <div
+                    className={`${styles.singleLayoutContainer} ${centered ? styles.centered : ''}`}
+                    style={containerStyle}
+                >
                     {children}
                 </div>
             </div>
             {withFooter && (
-                <div className="single-layout-footer">
-                    <div className="copyright">
+                <div className={styles.singleLayoutFooter}>
+                    <div className={styles.copyright}>
                         © {new Date().getFullYear()} DS Manager. All rights reserved.
                     </div>
                 </div>

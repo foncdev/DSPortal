@@ -1,6 +1,6 @@
 {
   "name": "@ds/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Core functionality for the project",
   "type": "module",
   "main": "dist/core.umd.js",

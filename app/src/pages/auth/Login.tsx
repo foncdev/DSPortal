@@ -1,4 +1,3 @@
-// app/src/pages/auth/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -114,13 +113,13 @@ const Login: React.FC = () => {
                         onChange={(e) => setRememberMe(e.target.checked)}
                     />
                     <label htmlFor="remember-me" className={styles.formCheckLabel}>
-                        {t('auth.remember')}
+                        {t('auth.rememberMe')}
                     </label>
                 </div>
 
                 <button
                     type="submit"
-                    className={`btn btn-primary ${styles.submitButton} ${isLoading ? styles.loading : ''}`}
+                    className={`${styles.submitButton} ${isLoading ? styles.loading : ''}`}
                     disabled={isLoading}
                 >
                     {isLoading ? (
