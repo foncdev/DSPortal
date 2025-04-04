@@ -8,15 +8,20 @@ import ErrorBoundary from './layouts/components/common/ErrorBoundary';
 
 // Import styles
 import './styles/main.scss';
+import {I18nProvider} from "./contexts/I18nContext";
+import SessionExpiryAlert from "./components/SessionExpiryAlert";
 
 const App: React.FC = () => (
         <ErrorBoundary>
             <I18nextProvider i18n={i18n}>
-                <ThemeProvider>
-                    <Router>
-                        <AppRoutes />
-                    </Router>
-                </ThemeProvider>
+                <I18nProvider>
+                    <ThemeProvider>
+                        <Router>
+                            <SessionExpiryAlert />
+                            <AppRoutes />
+                        </Router>
+                    </ThemeProvider>
+                </I18nProvider>
             </I18nextProvider>
         </ErrorBoundary>
     );

@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import {
     Home,
     LogOut,
-    Menu,
     Settings,
-    User
+    User,
+    X
 } from 'lucide-react';
 import { authManager } from '@ds/core';
 import styles from './Sidebar.module.scss';
@@ -20,10 +20,15 @@ interface NavItem {
     requiredRole?: string;
 }
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+    const user = authManager.getCurrentUser();
 
     // Handle logout with useCallback to avoid recreating the function on each render
     const handleLogout = useCallback(async () => {
@@ -54,46 +59,46 @@ const Sidebar: React.FC = () => {
         }
     ];
 
-    // Toggle mobile sidebar
-    const toggleMobileSidebar = () => {
-        setIsMobileOpen(!isMobileOpen);
-    };
-
-    // Handle backdrop keydown for accessibility
-    const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            setIsMobileOpen(false);
-        }
-    };
-
     return (
         <>
-            {/* Mobile toggle button */}
-            <button
-                className={styles.mobileToggle}
-                onClick={toggleMobileSidebar}
-                aria-label={isMobileOpen ? t('sidebar.close') : t('sidebar.open')}
-            >
-                <Menu size={24} />
-            </button>
-
             {/* Mobile backdrop */}
-            {isMobileOpen && (
+            {isOpen && (
                 <div
                     className={styles.backdrop}
-                    onClick={() => setIsMobileOpen(false)}
-                    onKeyDown={handleBackdropKeyDown}
+                    onClick={onClose}
                     role="button"
                     tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            onClose();
+                        }
+                    }}
                     aria-label="Close sidebar"
                 ></div>
             )}
 
-            {/* Main sidebar */}
-            <aside className={`${styles.sidebar} ${isMobileOpen ? styles.open : ''}`}>
+            {/* Sidebar */}
+            <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
                 <div className={styles.sidebarHeader}>
-                    <div className={styles.logo}>
-                        <span className={styles.logoText}>DS 매니저</span>
+                    <div className={styles.headerContent}>
+                        {/* Logo - Mobile only */}
+                        <div className={styles.logo}>
+                            <span className={styles.logoText}>DS 매니저</span>
+                        </div>
+                        <button className={styles.closeButton} onClick={onClose} aria-label={t('sidebar.close')}>
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    {/* Mobile only: User info */}
+                    <div className={styles.userInfoMobile}>
+                        <div className={styles.userAvatar}>
+                            <User size={24} />
+                        </div>
+                        <div className={styles.userDetails}>
+                            <div className={styles.userName}>{user?.name || t('common.guest')}</div>
+                            <div className={styles.userEmail}>{user?.email}</div>
+                        </div>
                     </div>
                 </div>
 
@@ -106,7 +111,7 @@ const Sidebar: React.FC = () => {
                                     className={({ isActive }) =>
                                         `${styles.navLink} ${isActive ? styles.active : ''}`
                                     }
-                                    onClick={() => setIsMobileOpen(false)}
+                                    onClick={onClose}
                                 >
                                     <span className={styles.navIcon}>{item.icon}</span>
                                     <span className={styles.navLabel}>{item.label}</span>

@@ -1,0 +1,53 @@
+.extendButton {
+  background: transparent;
+  border: none;
+  color: inherit;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color var(--transition-fast) ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .sessionTimer {
+    padding: 0.25rem;
+    margin-right: 0.25rem;
+
+    .time {
+      display: none; // 모바일에서는 시간 숨기기
+    }
+
+    // 모바일에서는 색상만으로 상태 표시
+    &.warning .icon,
+    &.expiring .icon {
+      animation: pulse 2s infinite;
+    }
+  }
+}

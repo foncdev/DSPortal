@@ -82,5 +82,14 @@
     "light": "라이트 모드",
     "dark": "다크 모드",
     "system": "시스템 테마"
+  },
+  "session": {
+    "remainingTime": "세션 남은 시간",
+    "expired": "세션 만료됨",
+    "extending": "세션 연장 중...",
+    "extended": "세션이 연장되었습니다",
+    "extendSession": "세션 연장하기",
+    "expiring": "세션이 곧 만료됩니다",
+    "expiringMessage": "세션이 {time} 후에 만료됩니다. 연장하시겠습니까?"
   }
 }

@@ -29,6 +29,11 @@
   font-weight: 700;
   font-size: 1.25rem;
   color: var(--color-primary);
+
+  // 모바일에서는 로고 숨기기
+  @media (max-width: 767px) {
+    display: none;
+  }
 }
 
 .logoText {
@@ -181,6 +186,53 @@
   }
 }
 
+.languageMenu {
+  position: relative;
+  display: inline-block;
+
+  &:hover .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.languageButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: background-color var(--transition-fast) ease;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+  }
+}
+
+.currentLang {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+// .dropdown 클래스는 이미 정의되어 있지만, 다음 스타일도 추가합니다.
+
+.dropdownItem {
+  &.active {
+    background-color: var(--color-bg-tertiary);
+    font-weight: 500;
+
+    &::before {
+      content: '✓';
+      margin-right: 0.5rem;
+      color: var(--color-primary);
+    }
+  }
+}
+
 // Dark mode adjustments
 :global(.dark) {
   .header {
@@ -189,5 +241,74 @@
 
   .dropdown {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}
+
+
+.mobileToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast) ease;
+  margin-right: 0.5rem;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+  }
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.desktopOnly {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.logo {
+  @media (max-width: 640px) {
+    .logoText {
+      font-size: 1rem;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  // 작은 화면에서 간격 줄이기
+  @media (max-width: 640px) {
+    gap: 0.25rem;
+  }
+}
+
+// 세션 타이머, 언어 선택기, 다크모드 토글 버튼 크기 조정
+@media (max-width: 640px) {
+  .actionButton {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .languageButton {
+    padding: 0.25rem;
+
+    .currentLang {
+      // 모바일에서는 언어 코드 숨기기
+      display: none;
+    }
   }
 }
