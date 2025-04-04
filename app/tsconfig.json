@@ -1,17 +1,15 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "rootDir": "./src",
     "jsx": "react-jsx",
     "composite": true,
     "declaration": true,
-    "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],
-      "@ds/core": ["../packages/core"],
-      "@ds/utils": ["../packages/utils"]
-    },
-    "resolveJsonModule": true,  // JSON 모듈 지원 추가
-    "esModuleInterop": true     // JSON 모듈 임포트 지원을 위해 필요
+      "@ds/core": ["../packages/core/src"],
+      "@ds/utils": ["../packages/utils/src"]
+    }
   },
   "include": [
     "src",

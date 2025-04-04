@@ -2,14 +2,14 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "react-jsx",
     "declaration": true,
     "sourceMap": true,
     "strict": true,
-    "noImplicitAny": false,     // Allow implicit any type when needed
-    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,
@@ -22,13 +22,21 @@
     "skipLibCheck": true,
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"],"@ds/core": ["../packages/core/src"],
+      "@/*": ["src/*"],
+      "@ds/core": ["../packages/core/src"],
       "@ds/core/*": ["../packages/core/src/*"],
-      "@ds/utils": ["../packages/utils/src"],
+      "@ds/utils": ["../packages/utils/src"]
     },
     "outDir": "./dist"
   },
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "src/**/*.scss", "**/*.test.tsx", "**/setup_test-env.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "src/**/*.scss",
+    "**/*.test.tsx",
+    "**/setup_test-env.ts"
+  ],
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/utils" }

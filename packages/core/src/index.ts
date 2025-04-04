@@ -8,7 +8,3 @@ export * from './auth';
 export * from './i18n';
 export * from './api';
 export * from './services';
-
-// Explicitly re-export authManager
-import { authManager } from './auth/auth';
-export { authManager };

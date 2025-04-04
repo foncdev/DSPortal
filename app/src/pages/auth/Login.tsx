@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// app/src/pages/auth/Login.tsx
+import React, { useState, useCallback } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogIn, Mail, Lock } from 'lucide-react';
@@ -20,8 +21,8 @@ const Login: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Handle form submission
-    const handleSubmit = async (e: React.FormEvent) => {
+    // Handle form submission with useCallback to avoid recreating on each render
+    const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
@@ -35,14 +36,14 @@ const Login: React.FC = () => {
             });
 
             // Redirect to dashboard or previous page
-            navigate(from, { replace: true });
+            void navigate(from, { replace: true });
         } catch (err: any) {
             console.error('Login error:', err);
             setError(err.message || t('auth.loginFailed'));
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [email, password, rememberMe, navigate, from, t]);
 
     return (
         <div className={styles.authPage}>
@@ -74,7 +75,7 @@ const Login: React.FC = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="example@company.com"
                             required
-                            autoFocus
+                            // Removed autoFocus for accessibility compliance
                         />
                     </div>
                 </div>
