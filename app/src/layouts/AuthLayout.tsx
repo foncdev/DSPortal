@@ -1,5 +1,5 @@
 // app/src/layouts/AuthLayout.tsx
-import React, { ReactNode, useEffect, useCallback } from 'react';
+import React, { ReactNode, useEffect, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BaseLayout from './BaseLayout';
 import Header from './components/Header/Header';
@@ -14,15 +14,23 @@ interface AuthLayoutProps {
     requiredRole?: 'user' | 'vendor' | 'admin' | 'super_admin';
 }
 
-/**
- * Layout for authenticated pages with header, sidebar, content area, and footer
- */
 const AuthLayout: React.FC<AuthLayoutProps> = ({
                                                    children,
                                                    requireAuth = true,
                                                    requiredRole = 'user'
                                                }) => {
     const navigate = useNavigate();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Toggle sidebar
+    const toggleSidebar = useCallback(() => {
+        setIsSidebarOpen(prev => !prev);
+    }, []);
+
+    // Close sidebar
+    const closeSidebar = useCallback(() => {
+        setIsSidebarOpen(false);
+    }, []);
 
     // Handle navigation with useCallback to avoid re-creation
     const navigateToLogin = useCallback(() => {
@@ -52,9 +60,15 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
 
     return (
         <BaseLayout className={styles.authLayout}>
-            <Header />
+            <Header
+                toggleSidebar={toggleSidebar}
+                isSidebarOpen={isSidebarOpen}
+            />
             <div className={styles.layoutContainer}>
-                <Sidebar />
+                <Sidebar
+                    isOpen={isSidebarOpen}
+                    onClose={closeSidebar}
+                />
                 <main className={styles.contentArea}>
                     <div className={styles.contentWrapper}>
                         {children}

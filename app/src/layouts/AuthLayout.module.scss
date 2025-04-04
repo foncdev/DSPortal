@@ -40,3 +40,17 @@
     padding: 1rem;
   }
 }
+
+.layoutContainer {
+  display: flex;
+  flex: 1;
+  margin-top: var(--header-height);
+
+  // 모바일에서는 사이드바가 항상 오버레이로 표시되므로 마진 제거
+  margin-left: 0;
+
+  // 데스크톱에서만 사이드바 마진 적용
+  @media (min-width: 768px) {
+    margin-left: var(--sidebar-width);
+  }
+}

@@ -82,5 +82,14 @@
     "light": "Light Mode",
     "dark": "Dark Mode",
     "system": "System Theme"
+  },
+  "session": {
+    "remainingTime": "Session remaining time",
+    "expired": "Session expired",
+    "extending": "Extending session...",
+    "extended": "Session extended",
+    "extendSession": "Extend Session",
+    "expiring": "Session Expiring Soon",
+    "expiringMessage": "Your session will expire in {time}. Would you like to extend it?"
   }
 }

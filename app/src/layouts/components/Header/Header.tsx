@@ -1,31 +1,46 @@
-// app/src/layouts/components/Header/Header.tsx
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { LogOut, User, Moon, Sun } from 'lucide-react';
+import { LogOut, User, Moon, Sun, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authManager } from '@ds/core';
 import { useTheme } from '../../../contexts/ThemeContext';
+import SessionTimer from './SessionTimer';
+import LanguageSwitcher from './LanguageSwitcher';
 import styles from './Header.module.scss';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+    toggleSidebar: () => void;
+    isSidebarOpen: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { toggleTheme, isDarkMode } = useTheme();
     const user = authManager.getCurrentUser();
 
-    const handleLogout = useCallback(async () => {
+    const handleLogout = async () => {
         try {
             await authManager.logout();
             void navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
         }
-    }, [navigate]);
+    };
 
     return (
         <header className={styles.header}>
             <div className={styles.headerContainer}>
-                {/* Logo */}
+                {/* Mobile Sidebar Toggle Button - Now part of the header */}
+                <button
+                    className={styles.mobileToggle}
+                    onClick={toggleSidebar}
+                    aria-label={isSidebarOpen ? t('sidebar.close') : t('sidebar.open')}
+                >
+                    <Menu size={24} />
+                </button>
+
+                {/* Logo - Desktop only */}
                 <div className={styles.logo}>
                     <span className={styles.logoText}>DS 매니저</span>
                 </div>
@@ -35,7 +50,9 @@ const Header: React.FC = () => {
 
                 {/* Right-side actions */}
                 <div className={styles.actions}>
-                    {/* Theme toggle */}
+                    {/* Always visible items (mobile and desktop) */}
+                    <SessionTimer />
+                    <LanguageSwitcher />
                     <button
                         className={styles.actionButton}
                         onClick={toggleTheme}
@@ -44,36 +61,38 @@ const Header: React.FC = () => {
                         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
 
-                    {/* User menu */}
-                    <div className={styles.userMenu}>
-                        <div className={styles.userInfo}>
-                            <span className={styles.userName}>{user?.name || t('common.guest')}</span>
-                            <button className={styles.userAvatar}>
-                                <User size={20} />
-                            </button>
-                        </div>
-                        <div className={styles.dropdown}>
-                            <div className={styles.dropdownHeader}>
-                                <div className={styles.userDetails}>
-                                    <span className={styles.userFullName}>{user?.name}</span>
-                                    <span className={styles.userEmail}>{user?.email}</span>
-                                </div>
+                    {/* Only visible on desktop */}
+                    <div className={styles.desktopOnly}>
+                        <div className={styles.userMenu}>
+                            <div className={styles.userInfo}>
+                                <span className={styles.userName}>{user?.name || t('common.guest')}</span>
+                                <button className={styles.userAvatar}>
+                                    <User size={20} />
+                                </button>
                             </div>
-                            <div className={styles.dropdownDivider}></div>
-                            <ul className={styles.dropdownMenu}>
-                                <li>
-                                    <button className={styles.dropdownItem} onClick={() => navigate('/profile')}>
-                                        <User size={16} />
-                                        <span>{t('header.profile')}</span>
-                                    </button>
-                                </li>
-                                <li>
-                                    <button className={styles.dropdownItem} onClick={handleLogout}>
-                                        <LogOut size={16} />
-                                        <span>{t('auth.logout')}</span>
-                                    </button>
-                                </li>
-                            </ul>
+                            <div className={styles.dropdown}>
+                                <div className={styles.dropdownHeader}>
+                                    <div className={styles.userDetails}>
+                                        <span className={styles.userFullName}>{user?.name}</span>
+                                        <span className={styles.userEmail}>{user?.email}</span>
+                                    </div>
+                                </div>
+                                <div className={styles.dropdownDivider}></div>
+                                <ul className={styles.dropdownMenu}>
+                                    <li>
+                                        <button className={styles.dropdownItem} onClick={() => navigate('/profile')}>
+                                            <User size={16} />
+                                            <span>{t('header.profile')}</span>
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button className={styles.dropdownItem} onClick={handleLogout}>
+                                            <LogOut size={16} />
+                                            <span>{t('auth.logout')}</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
