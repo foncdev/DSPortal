@@ -11,21 +11,31 @@ interface MenuItemProps {
     isCollapsed: boolean;
     onNavigation?: () => void;
     currentPath?: string;
+    activeParent?: string | null;
+    onParentClick?: (parentId: string) => void;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
                                                item,
                                                isCollapsed,
                                                onNavigation,
-                                               currentPath = ''
+                                               currentPath = '',
+                                               activeParent,
+                                               onParentClick
                                            }) => {
     const { t } = useTranslation();
     const location = useLocation();
-    const [isOpen, setIsOpen] = useState(false);
     const path = currentPath || location.pathname;
 
+    // 비아이콘 모드에서는 내부 상태를 사용하고, 아이콘 모드에서는 부모로부터 제어
+    const [isOpenInNormalMode, setIsOpenInNormalMode] = useState(false);
+
+    // 아이콘 모드와 일반 모드에 따라 isOpen 결정
+    const isOpen = isCollapsed
+        ? activeParent === item.id
+        : isOpenInNormalMode;
+
     // Check if user has access to this menu item
-    // Use optional chaining to safely access requiredRole
     const hasAccess = !item?.requiredRole || authManager.hasRole(item.requiredRole);
 
     // If user doesn't have access, don't render the item
@@ -48,29 +58,34 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
     // Open submenu if a child is active
     useEffect(() => {
-        if (isChildActive && !isOpen) {
-            setIsOpen(true);
+        if (isChildActive && !isCollapsed) {
+            setIsOpenInNormalMode(true);
         }
-    }, [isChildActive, path, isOpen]);
+    }, [isChildActive, isCollapsed]);
 
+    // Toggle submenu
     const toggleSubmenu = (e: React.MouseEvent) => {
         if (hasChildren) {
             e.preventDefault();
-            setIsOpen(!isOpen);
+            if (isCollapsed) {
+                // 아이콘 모드에서는 부모 컴포넌트의 상태를 업데이트
+                onParentClick?.(item.id);
+            } else {
+                // 일반 모드에서는 내부 상태를 토글
+                setIsOpenInNormalMode(!isOpenInNormalMode);
+            }
         }
     };
 
+    // Handle navigation for items without children
     const handleItemClick = () => {
         if (!hasChildren && onNavigation) {
             onNavigation();
         }
     };
 
-    // When in collapsed mode, we need to determine if the menu should show children on hover
-    const showSubMenuOnHover = isCollapsed && hasChildren;
-
     return (
-        <li className={`${styles.navItem} ${showSubMenuOnHover ? styles.hasSubmenu : ''}`}>
+        <li className={styles.navItem}>
             {hasChildren ? (
                 // Parent menu item with children
                 <>
@@ -104,57 +119,31 @@ const MenuItem: React.FC<MenuItemProps> = ({
                         )}
                     </div>
 
-                    {/* Submenu - different rendering based on collapsed state */}
-                    {isCollapsed ? (
-                        // When collapsed, show submenu on hover as a dropdown
-                        <div className={styles.submenuDropdown}>
-                            <div className={styles.submenuHeader}>
-                                {t(item.label)}
-                            </div>
-                            <ul className={styles.submenuList}>
-                                {accessibleChildren?.map(child => (
-                                    <li key={child.id} className={styles.submenuItem}>
-                                        <NavLink
-                                            to={child.path}
-                                            className={({ isActive }) =>
-                                                `${styles.submenuLink} ${isActive ? styles.active : ''}`
-                                            }
-                                            onClick={onNavigation}
-                                        >
-                                            <span
-                                                className={styles.submenuIcon}
-                                                dangerouslySetInnerHTML={{ __html: child.icon }}
-                                            />
+                    {/* Submenu - always use same style but conditional classes based on collapsed state */}
+                    <div className={`${styles.submenu} ${isCollapsed ? styles.iconModeSubmenu : ''} ${isOpen ? styles.open : ''}`}>
+                        <ul className={styles.submenuList}>
+                            {accessibleChildren?.map(child => (
+                                <li key={child.id} className={`${styles.submenuItem} ${isCollapsed ? styles.iconModeItem : ''}`}>
+                                    <NavLink
+                                        to={child.path}
+                                        className={({ isActive }) =>
+                                            `${styles.submenuLink} ${isActive ? styles.active : ''}`
+                                        }
+                                        onClick={onNavigation}
+                                        title={isCollapsed ? t(child.label) : undefined}
+                                    >
+                                        <span
+                                            className={styles.submenuIcon}
+                                            dangerouslySetInnerHTML={{ __html: child.icon }}
+                                        />
+                                        {!isCollapsed && (
                                             <span className={styles.submenuLabel}>{t(child.label)}</span>
-                                        </NavLink>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ) : (
-                        // When expanded, show submenu as collapsible
-                        <div className={`${styles.submenu} ${isOpen ? styles.open : ''}`}>
-                            <ul className={styles.submenuList}>
-                                {accessibleChildren?.map(child => (
-                                    <li key={child.id} className={styles.submenuItem}>
-                                        <NavLink
-                                            to={child.path}
-                                            className={({ isActive }) =>
-                                                `${styles.submenuLink} ${isActive ? styles.active : ''}`
-                                            }
-                                            onClick={onNavigation}
-                                        >
-                                            <span
-                                                className={styles.submenuIcon}
-                                                dangerouslySetInnerHTML={{ __html: child.icon }}
-                                            />
-                                            <span className={styles.submenuLabel}>{t(child.label)}</span>
-                                        </NavLink>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                                        )}
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </>
             ) : (
                 // Simple menu item without children
@@ -164,6 +153,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
                         `${styles.navLink} ${isActive ? styles.active : ''}`
                     }
                     onClick={handleItemClick}
+                    title={isCollapsed ? t(item.label) : undefined}
                 >
                     <span
                         className={styles.navIcon}

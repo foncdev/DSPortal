@@ -24,6 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     const navigate = useNavigate();
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(isIconMode);
+    const [activeParent, setActiveParent] = useState<string | null>(null);
 
     // Sync props with internal state
     useEffect(() => {
@@ -70,6 +71,15 @@ const Sidebar: React.FC<SidebarProps> = ({
     const handleNavigation = () => {
         if (isMobileOpen && setIsMobileOpen) {
             setIsMobileOpen(false);
+        }
+    };
+
+    // 활성화된 부모 메뉴 설정을 위한 함수
+    const handleParentClick = (parentId: string) => {
+        // 아이콘 모드에서만 다른 부모 메뉴를 닫음
+        if (collapsed) {
+            // 같은 메뉴를 클릭하면 토글, 다른 메뉴를 클릭하면 그 메뉴만 열기
+            setActiveParent(prev => prev === parentId ? null : parentId);
         }
     };
 
@@ -130,6 +140,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 isCollapsed={collapsed}
                                 onNavigation={handleNavigation}
                                 currentPath={location.pathname}
+                                activeParent={activeParent}
+                                onParentClick={handleParentClick}
                             />
                         ))}
                     </ul>

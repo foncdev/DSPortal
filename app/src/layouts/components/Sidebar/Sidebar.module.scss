@@ -84,6 +84,16 @@
   overflow-y: auto;
 }
 
+// 아이콘 모드에서 스크롤바 스타일 조정
+.collapsed .sidebarNav {
+  overflow-x: hidden;
+  padding: 0.5rem 0;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+}
+
 .navList {
   list-style: none;
   padding: 0;
@@ -188,7 +198,8 @@
   transition: max-height var(--transition-normal) ease;
 
   &.open {
-    max-height: 500px; // Arbitrary value, adjust as needed
+    max-height: 800px; // 값을 더 크게 설정
+    transition: max-height var(--transition-normal) ease;
   }
 }
 
@@ -261,13 +272,6 @@
   }
 }
 
-// When sidebar is collapsed, adjust submenu styles
-.collapsed {
-  .submenuLink {
-    padding: 0.5rem 1rem;
-  }
-}
-
 .submenuIcon {
   display: flex;
   align-items: center;
@@ -287,6 +291,52 @@
 
 .submenuLabel {
   font-weight: 400;
+}
+
+// Special styling for collapsed mode
+.collapsed {
+  // 아이콘 모드에서의 서브메뉴 스타일
+  .iconModeSubmenu {
+    .submenuLink {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      padding: 0;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      background-color: var(--color-bg-tertiary);
+
+      &:hover {
+        background-color: var(--color-bg-inset);
+      }
+
+      &.active {
+        background-color: var(--color-primary);
+
+        .submenuIcon {
+          color: var(--color-primary-contrast);
+        }
+      }
+
+      .submenuIcon {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+
+        svg {
+          width: 16px;
+          height: 16px;
+          color: var(--color-text-secondary);
+        }
+      }
+    }
+  }
 }
 
 .sidebarFooter {
