@@ -1,0 +1,43 @@
+// src/pages/BlankPage.module.scss
+.blankPage {
+  padding: 1rem;
+}
+
+.title {
+  margin-bottom: 1.5rem;
+  font-size: 1.75rem;
+  color: var(--color-heading);
+}
+
+.card {
+  background-color: var(--color-bg-primary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  padding: 2rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+
+  p {
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.pathInfo {
+  font-family: monospace;
+  padding: 0.5rem;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 0.25rem;
+  margin: 1rem 0;
+  color: var(--color-text-secondary);
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .card {
+    box-shadow: var(--shadow-sm);
+  }
+}

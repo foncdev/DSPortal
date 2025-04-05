@@ -18,7 +18,9 @@
     "edit": "편집",
     "view": "보기",
     "search": "검색",
-    "filter": "필터"
+    "filter": "필터",
+    "blankPage": "빈 페이지입니다",
+    "underConstruction": "이 페이지는 현재 개발 중입니다"
   },
   "auth": {
     "login": "로그인",
@@ -32,7 +34,9 @@
     "rememberMe": "로그인 상태 유지",
     "noAccount": "계정이 없으신가요?",
     "loginDescription": "계정에 로그인하세요",
-    "loginFailed": "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요."
+    "loginFailed": "로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.",
+    "testAccounts": "테스트 계정",
+    "loginAs": "로그인:"
   },
   "nav": {
     "home": "홈",
@@ -67,10 +71,6 @@
     "toggleTheme": "테마 전환",
     "profile": "프로필"
   },
-  "sidebar": {
-    "open": "메뉴 열기",
-    "close": "메뉴 닫기"
-  },
   "footer": {
     "allRightsReserved": "모든 권리 보유",
     "version": "버전",
@@ -91,5 +91,56 @@
     "extendSession": "세션 연장하기",
     "expiring": "세션이 곧 만료됩니다",
     "expiringMessage": "세션이 {time} 후에 만료됩니다. 연장하시겠습니까?"
+  },
+  "roles": {
+    "superAdmin": "최고 관리자",
+    "admin": "관리자",
+    "vendor": "업체",
+    "user": "사용자"
+  },
+  "menu": {
+    "dashboard": {
+      "title": "대시보드",
+      "all": "전체",
+      "dataUsage": "데이터 사용량",
+      "deviceStatus": "단말기 현황",
+      "logs": "로그 현황"
+    },
+    "users": {
+      "title": "회원 관리",
+      "adminInfo": "관리자 정보",
+      "vendorInfo": "업체 정보",
+      "userInfo": "사용자 정보",
+      "pendingWithdrawal": "탈퇴 예정자 정보",
+      "inactiveUsers": "회원 3개월 비접속자"
+    },
+    "groups": {
+      "title": "그룹 관리"
+    },
+    "devices": {
+      "title": "단말기 관리",
+      "new": "신규 단말기",
+      "management": "단말기 관리",
+      "list": "단말기 목록"
+    },
+    "files": {
+      "title": "파일 관리",
+      "list": "파일 목록",
+      "deleted": "파일 삭제 목록"
+    },
+    "layouts": {
+      "title": "레이아웃 관리",
+      "createTemplate": "템플릿 생성",
+      "list": "레이아웃 목록"
+    },
+    "deployment": {
+      "title": "배포 관리"
+    }
+  },
+  "sidebar": {
+    "open": "메뉴 열기",
+    "close": "메뉴 닫기",
+    "expand": "메뉴 확장",
+    "collapse": "메뉴 축소"
   }
 }

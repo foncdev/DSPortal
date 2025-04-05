@@ -1,34 +1,24 @@
-// app/src/layouts/components/Sidebar/Sidebar.tsx
-import React, { useCallback } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+// src/layouts/components/Sidebar/Sidebar.tsx
+import React, { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-    Home,
-    LogOut,
-    Settings,
-    User,
-    X
-} from 'lucide-react';
 import { authManager } from '@ds/core';
+import MenuItem from './MenuItem';
+import { menuItems } from '@/config/menuConfig';
 import styles from './Sidebar.module.scss';
 
-// Define navigation item structure
-interface NavItem {
-    path: string;
-    label: string;
-    icon: React.ReactNode;
-    requiredRole?: string;
+export interface SidebarProps {
+    isMobileOpen?: boolean;
+    setIsMobileOpen?: ((open: boolean) => void);
+    isIconMode?: boolean;
+    setIsIconMode?: ((iconMode: boolean) => void);
 }
 
-interface SidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const user = authManager.getCurrentUser();
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Handle logout with useCallback to avoid recreating the function on each render
     const handleLogout = useCallback(async () => {
@@ -40,83 +30,87 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         }
     }, [navigate]);
 
-    // Navigation items
-    const navItems: NavItem[] = [
-        {
-            path: '/',
-            label: t('nav.home'),
-            icon: <Home size={20} />
-        },
-        {
-            path: '/profile',
-            label: t('nav.profile'),
-            icon: <User size={20} />
-        },
-        {
-            path: '/settings',
-            label: t('nav.settings'),
-            icon: <Settings size={20} />
+    // Toggle mobile sidebar
+    const toggleMobileSidebar = () => {
+        setIsMobileOpen(!isMobileOpen);
+    };
+
+    // Toggle sidebar collapse state
+    const toggleSidebarCollapse = () => {
+        setIsCollapsed(!isCollapsed);
+    };
+
+    // Handle backdrop keydown for accessibility
+    const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            setIsMobileOpen(false);
         }
-    ];
+    };
+
+    // Close mobile sidebar after navigation
+    const handleNavigation = () => {
+        if (isMobileOpen) {
+            setIsMobileOpen(false);
+        }
+    };
+
+    // SVG Icons
+    const menuIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>';
+    const chevronLeft = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>';
+    const chevronRight = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>';
+    const logOutIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>';
 
     return (
         <>
+            {/* Mobile toggle button */}
+            <button
+                className={styles.mobileToggle}
+                onClick={toggleMobileSidebar}
+                aria-label={isMobileOpen ? t('sidebar.close') : t('sidebar.open')}
+                dangerouslySetInnerHTML={{ __html: menuIcon }}
+            />
+
             {/* Mobile backdrop */}
-            {isOpen && (
+            {isMobileOpen && (
                 <div
                     className={styles.backdrop}
-                    onClick={onClose}
+                    onClick={() => setIsMobileOpen(false)}
+                    onKeyDown={handleBackdropKeyDown}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            onClose();
-                        }
-                    }}
                     aria-label="Close sidebar"
                 ></div>
             )}
 
-            {/* Sidebar */}
-            <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+            {/* Main sidebar */}
+            <aside className={`
+        ${styles.sidebar} 
+        ${isMobileOpen ? styles.open : ''} 
+        ${isCollapsed ? styles.collapsed : ''}
+      `}>
                 <div className={styles.sidebarHeader}>
-                    <div className={styles.headerContent}>
-                        {/* Logo - Mobile only */}
-                        <div className={styles.logo}>
-                            <span className={styles.logoText}>DS 매니저</span>
-                        </div>
-                        <button className={styles.closeButton} onClick={onClose} aria-label={t('sidebar.close')}>
-                            <X size={20} />
-                        </button>
+                    <div className={styles.logo}>
+                        {!isCollapsed && <span className={styles.logoText}>DS 매니저</span>}
                     </div>
 
-                    {/* Mobile only: User info */}
-                    <div className={styles.userInfoMobile}>
-                        <div className={styles.userAvatar}>
-                            <User size={24} />
-                        </div>
-                        <div className={styles.userDetails}>
-                            <div className={styles.userName}>{user?.name || t('common.guest')}</div>
-                            <div className={styles.userEmail}>{user?.email}</div>
-                        </div>
-                    </div>
+                    {/* Collapse toggle button (desktop only) */}
+                    <button
+                        className={styles.collapseButton}
+                        onClick={toggleSidebarCollapse}
+                        aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+                        dangerouslySetInnerHTML={{ __html: isCollapsed ? chevronRight : chevronLeft }}
+                    />
                 </div>
 
                 <nav className={styles.sidebarNav}>
                     <ul className={styles.navList}>
-                        {navItems.map((item) => (
-                            <li key={item.path} className={styles.navItem}>
-                                <NavLink
-                                    to={item.path}
-                                    className={({ isActive }) =>
-                                        `${styles.navLink} ${isActive ? styles.active : ''}`
-                                    }
-                                    onClick={onClose}
-                                >
-                                    <span className={styles.navIcon}>{item.icon}</span>
-                                    <span className={styles.navLabel}>{item.label}</span>
-                                </NavLink>
-                            </li>
+                        {menuItems.map((item) => (
+                            <MenuItem
+                                key={item.id}
+                                item={item}
+                                isCollapsed={isCollapsed}
+                                onNavigation={handleNavigation}
+                            />
                         ))}
                     </ul>
                 </nav>
@@ -126,8 +120,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         className={styles.logoutButton}
                         onClick={handleLogout}
                     >
-                        <LogOut size={20} />
-                        <span>{t('auth.logout')}</span>
+            <span
+                className={styles.logoutIcon}
+                dangerouslySetInnerHTML={{ __html: logOutIcon }}
+            />
+                        {!isCollapsed && <span>{t('auth.logout')}</span>}
                     </button>
                 </div>
             </aside>

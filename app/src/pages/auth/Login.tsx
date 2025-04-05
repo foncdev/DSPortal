@@ -4,6 +4,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogIn, Mail, Lock } from 'lucide-react';
 import { authManager } from '@ds/core';
+import LoginTestButtons from './LoginTestButtons';
 import styles from './Auth.module.scss';
 
 const Login: React.FC = () => {
@@ -64,9 +65,9 @@ const Login: React.FC = () => {
                         {t('auth.email')}
                     </label>
                     <div className={styles.inputWrapper}>
-            <span className={styles.inputIcon}>
-              <Mail size={18} />
-            </span>
+                        <span className={styles.inputIcon}>
+                            <Mail size={18} />
+                        </span>
                         <input
                             id="email"
                             type="email"
@@ -75,7 +76,6 @@ const Login: React.FC = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="example@company.com"
                             required
-                            // Removed autoFocus for accessibility compliance
                         />
                     </div>
                 </div>
@@ -90,9 +90,9 @@ const Login: React.FC = () => {
                         </Link>
                     </div>
                     <div className={styles.inputWrapper}>
-            <span className={styles.inputIcon}>
-              <Lock size={18} />
-            </span>
+                        <span className={styles.inputIcon}>
+                            <Lock size={18} />
+                        </span>
                         <input
                             id="password"
                             type="password"
@@ -137,6 +137,9 @@ const Login: React.FC = () => {
                     {t('auth.noAccount')} <Link to="/signup">{t('auth.signup')}</Link>
                 </p>
             </div>
+
+            {/* Test Login Buttons for development environment */}
+            {process.env.NODE_ENV !== 'production' && <LoginTestButtons />}
         </div>
     );
 };

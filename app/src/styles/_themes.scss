@@ -40,16 +40,24 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 
-  // Layout variables
-  --sidebar-width: 280px;             // Full sidebar width
-  --sidebar-collapsed-width: 80px;    // Collapsed sidebar width
-  --header-height: 64px;              // Header height
-  --footer-height: 60px;              // Footer height
-
   // Animation speeds
   --transition-fast: 150ms;
   --transition-normal: 250ms;
   --transition-slow: 350ms;
+
+  // Semantic colors
+  --color-app-bg: var(--color-bg-primary);
+  --color-card-bg: var(--color-bg-secondary);
+  --color-input-bg: var(--color-bg-primary);
+  --color-header-bg: var(--color-bg-primary);
+  --color-sidebar-bg: var(--color-bg-secondary);
+  --color-footer-bg: var(--color-bg-primary);
+
+  // Layout variables
+  --sidebar-width: 280px;             // Increased width for sidebar
+  --sidebar-collapsed-width: 64px;    // Collapsed sidebar width
+  --header-height: 64px;              // Header height
+  --footer-height: 60px;              // Footer height
 }
 
 // Dark mode overrides
