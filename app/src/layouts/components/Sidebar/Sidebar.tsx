@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authManager } from '@ds/core';
 import MenuItem from './MenuItem';
-import { menuItems } from '../../../data/menuConfig';
+import { menuItems } from '@/config/menuConfig';
 import styles from './Sidebar.module.scss';
 
 export interface SidebarProps {

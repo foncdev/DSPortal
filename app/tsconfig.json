@@ -6,7 +6,10 @@
     "jsx": "react-jsx",
     "composite": true,
     "declaration": true,
+    "baseUrl": "./",
     "paths": {
+      "@": ["src"],
+      "@/*": ["src/*"],
       "@ds/core": ["../packages/core/src"],
       "@ds/utils": ["../packages/utils/src"]
     }

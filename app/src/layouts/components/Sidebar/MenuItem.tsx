@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MenuItem as MenuItemType } from '../../../data/menuConfig';
+import { MenuItem as MenuItemType } from '@/config/menuConfig';
 import { authManager } from '@ds/core';
 import styles from './Sidebar.module.scss';
 
