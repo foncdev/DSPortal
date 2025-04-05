@@ -14,6 +14,9 @@ interface AuthLayoutProps {
     requiredRole?: 'user' | 'vendor' | 'admin' | 'super_admin';
 }
 
+/**
+ * Layout for authenticated pages with header, sidebar, content area, and footer
+ */
 const AuthLayout: React.FC<AuthLayoutProps> = ({
                                                    children,
                                                    requireAuth = true,
@@ -21,16 +24,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
                                                }) => {
     const navigate = useNavigate();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-    // Toggle sidebar
-    const toggleSidebar = useCallback(() => {
-        setIsSidebarOpen(prev => !prev);
-    }, []);
-
-    // Close sidebar
-    const closeSidebar = useCallback(() => {
-        setIsSidebarOpen(false);
-    }, []);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     // Handle navigation with useCallback to avoid re-creation
     const navigateToLogin = useCallback(() => {
@@ -40,6 +34,16 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
     const navigateToUnauthorized = useCallback(() => {
         void navigate('/unauthorized', { replace: true });
     }, [navigate]);
+
+    // Toggle sidebar for mobile view
+    const toggleSidebar = useCallback(() => {
+        setIsSidebarOpen(prev => !prev);
+    }, []);
+
+    // Toggle sidebar collapsed state for desktop view
+    // const toggleSidebarCollapsed = useCallback(() => {
+    //     setIsSidebarCollapsed(prev => !prev);
+    // }, []);
 
     // Check authentication and permissions
     useEffect(() => {
@@ -62,12 +66,14 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         <BaseLayout className={styles.authLayout}>
             <Header
                 toggleSidebar={toggleSidebar}
-                isSidebarOpen={isSidebarOpen}
+                isMobileSidebarOpen={isSidebarOpen}
             />
-            <div className={styles.layoutContainer}>
+            <div className={`${styles.layoutContainer} ${isSidebarCollapsed ? styles.sidebarCollapsed : ''}`}>
                 <Sidebar
-                    isOpen={isSidebarOpen}
-                    onClose={closeSidebar}
+                    isMobileOpen={isSidebarOpen}
+                    setIsMobileOpen={setIsSidebarOpen}
+                    isIconMode={isSidebarCollapsed}
+                    setIsIconMode={setIsSidebarCollapsed}
                 />
                 <main className={styles.contentArea}>
                     <div className={styles.contentWrapper}>

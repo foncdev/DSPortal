@@ -20,41 +20,43 @@ const Login = lazy(() => import('../pages/auth/Login'));
 const Error404 = lazy(() => import('../pages/Error404'));
 const Error500 = lazy(() => import('../pages/Error500'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
+const BlankPage = lazy(() => import('../pages/BlankPage'));
 
 const AppRoutes: React.FC = () => (
-        <Suspense fallback={<Loading />}>
-            <Routes>
-                {/* Auth Routes - Single Layout */}
-                <Route
-                    path="/login"
-                    element={
-                        <SingleLayout withHeader withFooter>
-                            <Login />
-                        </SingleLayout>
-                    }
-                />
+    <Suspense fallback={<Loading />}>
+        <Routes>
+            {/* Auth Routes - Single Layout */}
+            <Route
+                path="/login"
+                element={
+                    <SingleLayout withHeader withFooter>
+                        <Login />
+                    </SingleLayout>
+                }
+            />
 
-                {/* Error Pages - Single Layout */}
-                <Route
-                    path="/unauthorized"
-                    element={
-                        <SingleLayout>
-                            <Unauthorized />
-                        </SingleLayout>
-                    }
-                />
-                <Route
-                    path="/server-error"
-                    element={
-                        <SingleLayout>
-                            <Error500 />
-                        </SingleLayout>
-                    }
-                />
+            {/* Error Pages - Single Layout */}
+            <Route
+                path="/unauthorized"
+                element={
+                    <SingleLayout>
+                        <Unauthorized />
+                    </SingleLayout>
+                }
+            />
+            <Route
+                path="/server-error"
+                element={
+                    <SingleLayout>
+                        <Error500 />
+                    </SingleLayout>
+                }
+            />
 
-                {/* Auth Protected Routes - Auth Layout */}
+            {/* Auth Protected Routes - Auth Layout */}
+            <Route path="/dashboard">
                 <Route
-                    path="/"
+                    index
                     element={
                         <AuthLayout requireAuth>
                             <Dashboard />
@@ -62,28 +64,219 @@ const AppRoutes: React.FC = () => (
                     }
                 />
                 <Route
-                    path="/dashboard"
+                    path="all"
                     element={
-                        <AuthLayout requireAuth>
-                            <Dashboard />
+                        <AuthLayout requireAuth requiredRole="admin">
+                            <BlankPage />
                         </AuthLayout>
                     }
                 />
-
-                {/* Redirect Routes */}
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-
-                {/* Catch-all route - 404 */}
                 <Route
-                    path="*"
+                    path="data-usage"
                     element={
-                        <SingleLayout>
-                            <Error404 />
-                        </SingleLayout>
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
                     }
                 />
-            </Routes>
-        </Suspense>
-    );
+                <Route
+                    path="device-status"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="logs"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+            </Route>
+
+            {/* Users routes */}
+            <Route path="/users">
+                <Route
+                    index
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="admin"
+                    element={
+                        <AuthLayout requireAuth requiredRole="admin">
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="vendors"
+                    element={
+                        <AuthLayout requireAuth requiredRole="admin">
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="regular"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="pending-withdrawal"
+                    element={
+                        <AuthLayout requireAuth requiredRole="admin">
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="inactive"
+                    element={
+                        <AuthLayout requireAuth requiredRole="admin">
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+            </Route>
+
+            {/* Groups routes */}
+            <Route path="/groups">
+                <Route
+                    index
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+            </Route>
+
+            {/* Devices routes */}
+            <Route path="/devices">
+                <Route
+                    index
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="new"
+                    element={
+                        <AuthLayout requireAuth requiredRole="admin">
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="management"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="list"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+            </Route>
+
+            {/* Files routes */}
+            <Route path="/files">
+                <Route
+                    index
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="list"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="deleted"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+            </Route>
+
+            {/* Layouts routes */}
+            <Route path="/layouts">
+                <Route
+                    index
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="template"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+                <Route
+                    path="list"
+                    element={
+                        <AuthLayout requireAuth>
+                            <BlankPage />
+                        </AuthLayout>
+                    }
+                />
+            </Route>
+
+            {/* Deployment route */}
+            <Route
+                path="/deployment"
+                element={
+                    <AuthLayout requireAuth>
+                        <BlankPage />
+                    </AuthLayout>
+                }
+            />
+
+            {/* Redirect from root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+
+            {/* Catch-all route - 404 */}
+            <Route
+                path="*"
+                element={
+                    <SingleLayout>
+                        <Error404 />
+                    </SingleLayout>
+                }
+            />
+        </Routes>
+    </Suspense>
+);
 
 export default AppRoutes;

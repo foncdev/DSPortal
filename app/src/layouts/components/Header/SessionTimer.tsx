@@ -31,7 +31,7 @@ const SessionTimer: React.FC = () => {
 
     // 세션 연장 처리
     const extendSession = async () => {
-        if (extending) return;
+        if (extending) {return;}
 
         setExtending(true);
         try {

@@ -1,46 +1,77 @@
-import React from 'react';
+// app/src/layouts/components/Header/Header.tsx
+import React, { useCallback, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LogOut, User, Moon, Sun, Menu } from 'lucide-react';
+import { LogOut, User, Moon, Sun, Menu, Globe, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authManager } from '@ds/core';
 import { useTheme } from '../../../contexts/ThemeContext';
-import SessionTimer from './SessionTimer';
-import LanguageSwitcher from './LanguageSwitcher';
 import styles from './Header.module.scss';
 
 interface HeaderProps {
     toggleSidebar: () => void;
-    isSidebarOpen: boolean;
+    isMobileSidebarOpen: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
-    const { t } = useTranslation();
+const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) => {
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { toggleTheme, isDarkMode } = useTheme();
     const user = authManager.getCurrentUser();
+    const [sessionTime, setSessionTime] = useState<string>('');
+    const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 
-    const handleLogout = async () => {
+    console.log('isMobileSidebarOpen', isMobileSidebarOpen)
+
+    // Update session time every second
+    useEffect(() => {
+        const updateSessionTime = () => {
+            const timeRemaining = authManager.getFormattedSessionTimeRemaining();
+            setSessionTime(timeRemaining);
+        };
+
+        updateSessionTime(); // Initial update
+        const timer = setInterval(updateSessionTime, 1000);
+
+        return () => clearInterval(timer);
+    }, []);
+
+    // Toggle language
+    const changeLanguage = (lng: string) => {
+        void i18n.changeLanguage(lng);
+        setLanguageMenuOpen(false);
+    };
+
+    const handleLogout = useCallback(async () => {
         try {
             await authManager.logout();
             void navigate('/login');
         } catch (error) {
             console.error('Logout failed:', error);
         }
-    };
+    }, [navigate]);
 
     return (
         <header className={styles.header}>
             <div className={styles.headerContainer}>
-                {/* Mobile Sidebar Toggle Button - Now part of the header */}
+                {/* Desktop menu toggle */}
                 <button
-                    className={styles.mobileToggle}
+                    className={styles.desktopMenuToggle}
                     onClick={toggleSidebar}
-                    aria-label={isSidebarOpen ? t('sidebar.close') : t('sidebar.open')}
+                    aria-label={t('menu.toggleSidebar')}
                 >
-                    <Menu size={24} />
+                    <Menu size={20} />
                 </button>
 
-                {/* Logo - Desktop only */}
+                {/* Mobile menu toggle */}
+                <button
+                    className={styles.mobileMenuToggle}
+                    onClick={toggleSidebar}
+                    aria-label={t('menu.toggleSidebar')}
+                >
+                    <Menu size={20} />
+                </button>
+
+                {/* Logo */}
                 <div className={styles.logo}>
                     <span className={styles.logoText}>DS 매니저</span>
                 </div>
@@ -50,9 +81,41 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
                 {/* Right-side actions */}
                 <div className={styles.actions}>
-                    {/* Always visible items (mobile and desktop) */}
-                    <SessionTimer />
-                    <LanguageSwitcher />
+                    {/* Session timer */}
+                    <div className={styles.sessionTimer}>
+                        <Clock size={16} />
+                        <span>{sessionTime}</span>
+                    </div>
+
+                    {/* Language switcher */}
+                    <div className={styles.languageSwitcher}>
+                        <button
+                            className={styles.actionButton}
+                            onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
+                            aria-label="Change language"
+                        >
+                            <Globe size={20} />
+                        </button>
+
+                        {languageMenuOpen && (
+                            <div className={styles.languageDropdown}>
+                                <button
+                                    onClick={() => changeLanguage('ko')}
+                                    className={i18n.language === 'ko' ? styles.active : ''}
+                                >
+                                    한국어
+                                </button>
+                                <button
+                                    onClick={() => changeLanguage('en')}
+                                    className={i18n.language === 'en' ? styles.active : ''}
+                                >
+                                    English
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Theme toggle */}
                     <button
                         className={styles.actionButton}
                         onClick={toggleTheme}
@@ -61,38 +124,36 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
 
-                    {/* Only visible on desktop */}
-                    <div className={styles.desktopOnly}>
-                        <div className={styles.userMenu}>
-                            <div className={styles.userInfo}>
-                                <span className={styles.userName}>{user?.name || t('common.guest')}</span>
-                                <button className={styles.userAvatar}>
-                                    <User size={20} />
-                                </button>
-                            </div>
-                            <div className={styles.dropdown}>
-                                <div className={styles.dropdownHeader}>
-                                    <div className={styles.userDetails}>
-                                        <span className={styles.userFullName}>{user?.name}</span>
-                                        <span className={styles.userEmail}>{user?.email}</span>
-                                    </div>
+                    {/* User menu */}
+                    <div className={styles.userMenu}>
+                        <div className={styles.userInfo}>
+                            <span className={styles.userName}>{user?.name || t('common.guest')}</span>
+                            <button className={styles.userAvatar}>
+                                <User size={20} />
+                            </button>
+                        </div>
+                        <div className={styles.dropdown}>
+                            <div className={styles.dropdownHeader}>
+                                <div className={styles.userDetails}>
+                                    <span className={styles.userFullName}>{user?.name}</span>
+                                    <span className={styles.userEmail}>{user?.email}</span>
                                 </div>
-                                <div className={styles.dropdownDivider}></div>
-                                <ul className={styles.dropdownMenu}>
-                                    <li>
-                                        <button className={styles.dropdownItem} onClick={() => navigate('/profile')}>
-                                            <User size={16} />
-                                            <span>{t('header.profile')}</span>
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button className={styles.dropdownItem} onClick={handleLogout}>
-                                            <LogOut size={16} />
-                                            <span>{t('auth.logout')}</span>
-                                        </button>
-                                    </li>
-                                </ul>
                             </div>
+                            <div className={styles.dropdownDivider}></div>
+                            <ul className={styles.dropdownMenu}>
+                                <li>
+                                    <button className={styles.dropdownItem} onClick={() => navigate('/profile')}>
+                                        <User size={16} />
+                                        <span>{t('header.profile')}</span>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button className={styles.dropdownItem} onClick={handleLogout}>
+                                        <LogOut size={16} />
+                                        <span>{t('auth.logout')}</span>
+                                    </button>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

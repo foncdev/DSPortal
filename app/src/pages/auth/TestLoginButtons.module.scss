@@ -1,0 +1,102 @@
+// src/pages/auth/TestLoginButtons.module.scss
+.testLoginContainer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.testLoginTitle {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.testLoginButtonsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.testLoginButton {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast) ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+  }
+}
+
+.testLoginIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  color: var(--color-text-tertiary);
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+  }
+}
+
+.testLoginLabel {
+  flex: 1;
+}
+
+// Role-specific styles
+.testLoginButton:nth-child(1) {
+  .testLoginIcon {
+    color: var(--color-primary);
+  }
+}
+
+.testLoginButton:nth-child(2) {
+  .testLoginIcon {
+    color: var(--color-info);
+  }
+}
+
+.testLoginButton:nth-child(3) {
+  .testLoginIcon {
+    color: var(--color-warning);
+  }
+}
+
+.testLoginButton:nth-child(4) {
+  .testLoginIcon {
+    color: var(--color-success);
+  }
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .testLoginButton {
+    background-color: var(--color-bg-tertiary);
+
+    &:hover {
+      background-color: var(--color-bg-inset);
+    }
+  }
+}

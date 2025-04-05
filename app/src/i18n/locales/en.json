@@ -18,7 +18,9 @@
     "edit": "Edit",
     "view": "View",
     "search": "Search",
-    "filter": "Filter"
+    "filter": "Filter",
+    "blankPage": "Blank Page",
+    "underConstruction": "This page is currently under construction"
   },
   "auth": {
     "login": "Log In",
@@ -32,7 +34,9 @@
     "rememberMe": "Remember me",
     "noAccount": "Don't have an account?",
     "loginDescription": "Sign in to your account",
-    "loginFailed": "Login failed. Please check your email and password."
+    "loginFailed": "Login failed. Please check your email and password.",
+    "testAccounts": "Test Accounts",
+    "loginAs": "Login as"
   },
   "nav": {
     "home": "Home",
@@ -67,10 +71,6 @@
     "toggleTheme": "Toggle Theme",
     "profile": "Profile"
   },
-  "sidebar": {
-    "open": "Open Menu",
-    "close": "Close Menu"
-  },
   "footer": {
     "allRightsReserved": "All Rights Reserved",
     "version": "Version",
@@ -91,5 +91,56 @@
     "extendSession": "Extend Session",
     "expiring": "Session Expiring Soon",
     "expiringMessage": "Your session will expire in {time}. Would you like to extend it?"
+  },
+  "roles": {
+    "superAdmin": "Super Admin",
+    "admin": "Administrator",
+    "vendor": "Vendor",
+    "user": "User"
+  },
+  "menu": {
+    "dashboard": {
+      "title": "Dashboard",
+      "all": "Overview",
+      "dataUsage": "Data Usage",
+      "deviceStatus": "Device Status",
+      "logs": "Log Status"
+    },
+    "users": {
+      "title": "User Management",
+      "adminInfo": "Admin Information",
+      "vendorInfo": "Vendor Information",
+      "userInfo": "User Information",
+      "pendingWithdrawal": "Pending Withdrawals",
+      "inactiveUsers": "Inactive Users (3+ months)"
+    },
+    "groups": {
+      "title": "Group Management"
+    },
+    "devices": {
+      "title": "Device Management",
+      "new": "New Devices",
+      "management": "Device Management",
+      "list": "Device List"
+    },
+    "files": {
+      "title": "File Management",
+      "list": "File List",
+      "deleted": "Deleted Files"
+    },
+    "layouts": {
+      "title": "Layout Management",
+      "createTemplate": "Create Template",
+      "list": "Layout List"
+    },
+    "deployment": {
+      "title": "Deployment Management"
+    }
+  },
+  "sidebar": {
+    "open": "Open Menu",
+    "close": "Close Menu",
+    "expand": "Expand Menu",
+    "collapse": "Collapse Menu"
   }
 }
