@@ -20,8 +20,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
     const [sessionTime, setSessionTime] = useState<string>('');
     const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 
-    console.log('isMobileSidebarOpen', isMobileSidebarOpen)
-
     // Update session time every second
     useEffect(() => {
         const updateSessionTime = () => {
@@ -57,7 +55,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
                 <button
                     className={styles.desktopMenuToggle}
                     onClick={toggleSidebar}
-                    aria-label={t('menu.toggleSidebar')}
+                    aria-label={t('sidebar.toggle', 'Toggle Sidebar')} // Default fallback
                 >
                     <Menu size={20} />
                 </button>
@@ -66,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
                 <button
                     className={styles.mobileMenuToggle}
                     onClick={toggleSidebar}
-                    aria-label={t('menu.toggleSidebar')}
+                    aria-label={t('sidebar.toggle', 'Toggle Sidebar')} // Default fallback
                 >
                     <Menu size={20} />
                 </button>
@@ -92,7 +90,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
                         <button
                             className={styles.actionButton}
                             onClick={() => setLanguageMenuOpen(!languageMenuOpen)}
-                            aria-label="Change language"
+                            aria-label={t('header.changeLanguage', 'Change Language')}
                         >
                             <Globe size={20} />
                         </button>
@@ -119,7 +117,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
                     <button
                         className={styles.actionButton}
                         onClick={toggleTheme}
-                        aria-label={t('header.toggleTheme')}
+                        aria-label={t('header.toggleTheme', 'Toggle Theme')}
                     >
                         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                     </button>
@@ -144,13 +142,13 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
                                 <li>
                                     <button className={styles.dropdownItem} onClick={() => navigate('/profile')}>
                                         <User size={16} />
-                                        <span>{t('header.profile')}</span>
+                                        <span>{t('header.profile', 'Profile')}</span>
                                     </button>
                                 </li>
                                 <li>
                                     <button className={styles.dropdownItem} onClick={handleLogout}>
                                         <LogOut size={16} />
-                                        <span>{t('auth.logout')}</span>
+                                        <span>{t('auth.logout', 'Logout')}</span>
                                     </button>
                                 </li>
                             </ul>

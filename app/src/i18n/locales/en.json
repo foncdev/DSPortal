@@ -135,12 +135,14 @@
     },
     "deployment": {
       "title": "Deployment Management"
-    }
+    },
+    "toggleSidebar": "Toggle Sidebar"
   },
   "sidebar": {
     "open": "Open Menu",
     "close": "Close Menu",
     "expand": "Expand Menu",
-    "collapse": "Collapse Menu"
+    "collapse": "Collapse Menu",
+    "toggle": "Toggle Sidebar"
   }
 }

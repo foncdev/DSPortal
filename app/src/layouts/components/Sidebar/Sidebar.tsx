@@ -1,6 +1,6 @@
 // src/layouts/components/Sidebar/Sidebar.tsx
-import React, { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { authManager } from '@ds/core';
 import MenuItem from './MenuItem';
@@ -14,11 +14,21 @@ export interface SidebarProps {
     setIsIconMode?: ((iconMode: boolean) => void);
 }
 
-const Sidebar: React.FC<SidebarProps> = () => {
+const Sidebar: React.FC<SidebarProps> = ({
+                                             isMobileOpen = false,
+                                             setIsMobileOpen,
+                                             isIconMode = false,
+                                             setIsIconMode
+                                         }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const location = useLocation();
+    const [collapsed, setCollapsed] = useState(isIconMode);
+
+    // Sync props with internal state
+    useEffect(() => {
+        setCollapsed(isIconMode);
+    }, [isIconMode]);
 
     // Handle logout with useCallback to avoid recreating the function on each render
     const handleLogout = useCallback(async () => {
@@ -32,24 +42,33 @@ const Sidebar: React.FC<SidebarProps> = () => {
 
     // Toggle mobile sidebar
     const toggleMobileSidebar = () => {
-        setIsMobileOpen(!isMobileOpen);
+        if (setIsMobileOpen) {
+            setIsMobileOpen(!isMobileOpen);
+        }
     };
 
     // Toggle sidebar collapse state
     const toggleSidebarCollapse = () => {
-        setIsCollapsed(!isCollapsed);
+        const newCollapsedState = !collapsed;
+        setCollapsed(newCollapsedState);
+
+        if (setIsIconMode) {
+            setIsIconMode(newCollapsedState);
+        }
     };
 
     // Handle backdrop keydown for accessibility
     const handleBackdropKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
-            setIsMobileOpen(false);
+            if (setIsMobileOpen) {
+                setIsMobileOpen(false);
+            }
         }
     };
 
     // Close mobile sidebar after navigation
     const handleNavigation = () => {
-        if (isMobileOpen) {
+        if (isMobileOpen && setIsMobileOpen) {
             setIsMobileOpen(false);
         }
     };
@@ -74,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
             {isMobileOpen && (
                 <div
                     className={styles.backdrop}
-                    onClick={() => setIsMobileOpen(false)}
+                    onClick={() => setIsMobileOpen && setIsMobileOpen(false)}
                     onKeyDown={handleBackdropKeyDown}
                     role="button"
                     tabIndex={0}
@@ -84,21 +103,21 @@ const Sidebar: React.FC<SidebarProps> = () => {
 
             {/* Main sidebar */}
             <aside className={`
-        ${styles.sidebar} 
-        ${isMobileOpen ? styles.open : ''} 
-        ${isCollapsed ? styles.collapsed : ''}
-      `}>
+                ${styles.sidebar} 
+                ${isMobileOpen ? styles.open : ''} 
+                ${collapsed ? styles.collapsed : ''}
+            `}>
                 <div className={styles.sidebarHeader}>
                     <div className={styles.logo}>
-                        {!isCollapsed && <span className={styles.logoText}>DS 매니저</span>}
+                        {!collapsed && <span className={styles.logoText}>DS 매니저</span>}
                     </div>
 
                     {/* Collapse toggle button (desktop only) */}
                     <button
                         className={styles.collapseButton}
                         onClick={toggleSidebarCollapse}
-                        aria-label={isCollapsed ? t('sidebar.expand') : t('sidebar.collapse')}
-                        dangerouslySetInnerHTML={{ __html: isCollapsed ? chevronRight : chevronLeft }}
+                        aria-label={collapsed ? t('sidebar.expand') : t('sidebar.collapse')}
+                        dangerouslySetInnerHTML={{ __html: collapsed ? chevronRight : chevronLeft }}
                     />
                 </div>
 
@@ -108,8 +127,9 @@ const Sidebar: React.FC<SidebarProps> = () => {
                             <MenuItem
                                 key={item.id}
                                 item={item}
-                                isCollapsed={isCollapsed}
+                                isCollapsed={collapsed}
                                 onNavigation={handleNavigation}
+                                currentPath={location.pathname}
                             />
                         ))}
                     </ul>
@@ -120,11 +140,11 @@ const Sidebar: React.FC<SidebarProps> = () => {
                         className={styles.logoutButton}
                         onClick={handleLogout}
                     >
-            <span
-                className={styles.logoutIcon}
-                dangerouslySetInnerHTML={{ __html: logOutIcon }}
-            />
-                        {!isCollapsed && <span>{t('auth.logout')}</span>}
+                        <span
+                            className={styles.logoutIcon}
+                            dangerouslySetInnerHTML={{ __html: logOutIcon }}
+                        />
+                        {!collapsed && <span>{t('auth.logout')}</span>}
                     </button>
                 </div>
             </aside>

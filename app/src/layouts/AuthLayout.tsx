@@ -35,15 +35,17 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
         void navigate('/unauthorized', { replace: true });
     }, [navigate]);
 
-    // Toggle sidebar for mobile view
+    // Toggle sidebar for mobile/desktop
     const toggleSidebar = useCallback(() => {
-        setIsSidebarOpen(prev => !prev);
+        // On desktop, toggle collapsed state
+        if (window.innerWidth >= 768) {
+            setIsSidebarCollapsed(prev => !prev);
+        }
+        // On mobile, toggle open state
+        else {
+            setIsSidebarOpen(prev => !prev);
+        }
     }, []);
-
-    // Toggle sidebar collapsed state for desktop view
-    // const toggleSidebarCollapsed = useCallback(() => {
-    //     setIsSidebarCollapsed(prev => !prev);
-    // }, []);
 
     // Check authentication and permissions
     useEffect(() => {

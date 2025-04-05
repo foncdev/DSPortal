@@ -135,12 +135,14 @@
     },
     "deployment": {
       "title": "배포 관리"
-    }
+    },
+    "toggleSidebar": "사이드바 토글"
   },
   "sidebar": {
     "open": "메뉴 열기",
     "close": "메뉴 닫기",
     "expand": "메뉴 확장",
-    "collapse": "메뉴 축소"
+    "collapse": "메뉴 축소",
+    "toggle": "사이드바 토글"
   }
 }

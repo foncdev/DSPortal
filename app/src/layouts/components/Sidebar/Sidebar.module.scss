@@ -29,32 +29,6 @@
     .collapseButton {
       justify-content: center;
     }
-
-    .submenu {
-      position: absolute;
-      left: 100%;
-      top: 0;
-      width: 220px;
-      background-color: var(--color-bg-primary);
-      border: 1px solid var(--color-border);
-      border-radius: 0.375rem;
-      box-shadow: var(--shadow-md);
-      z-index: 100;
-      display: none;
-      margin-left: 5px;
-
-      &.open {
-        display: block;
-      }
-    }
-
-    .navItem {
-      position: relative;
-
-      &:hover .submenu {
-        display: block;
-      }
-    }
   }
 }
 
@@ -118,6 +92,15 @@
 
 .navItem {
   margin: 0.125rem 0;
+  position: relative;
+
+  &.hasSubmenu {
+    &:hover .submenuDropdown {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
 }
 
 .navLink {
@@ -141,20 +124,23 @@
     }
   }
 
+  // Active style for directly active item
   &.active {
     background-color: var(--color-primary);
     color: var(--color-primary-contrast);
 
-    svg {
+    svg, .navArrow svg {
       color: var(--color-primary-contrast);
     }
+  }
 
-    .navArrow {
-      color: var(--color-primary-contrast);
+  // Style for parent when a child is active
+  &.childActive {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
 
-      svg {
-        color: var(--color-primary-contrast);
-      }
+    .navIcon svg {
+      color: var(--color-primary);
     }
   }
 }
@@ -195,6 +181,7 @@
   }
 }
 
+// Regular submenu (when sidebar is expanded)
 .submenu {
   max-height: 0;
   overflow: hidden;
@@ -203,6 +190,35 @@
   &.open {
     max-height: 500px; // Arbitrary value, adjust as needed
   }
+}
+
+// Dropdown submenu (when sidebar is collapsed)
+.submenuDropdown {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 220px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-fast) ease, visibility var(--transition-fast) ease;
+  margin-left: 5px;
+  margin-top: -5px;
+  padding: 0.5rem 0;
+}
+
+.submenuHeader {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.5rem;
 }
 
 .submenuList {
@@ -242,6 +258,13 @@
     svg {
       color: var(--color-primary-contrast);
     }
+  }
+}
+
+// When sidebar is collapsed, adjust submenu styles
+.collapsed {
+  .submenuLink {
+    padding: 0.5rem 1rem;
   }
 }
 
@@ -370,7 +393,8 @@
     background-color: var(--color-bg-tertiary);
   }
 
-  .submenu {
+  .submenuDropdown {
     background-color: var(--color-bg-secondary);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 }
