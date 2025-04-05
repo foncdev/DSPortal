@@ -69,7 +69,8 @@
     "search": "Search...",
     "notifications": "Notifications",
     "toggleTheme": "Toggle Theme",
-    "profile": "Profile"
+    "profile": "Profile",
+    "changeLanguage": "Change Language"
   },
   "footer": {
     "allRightsReserved": "All Rights Reserved",

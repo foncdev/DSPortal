@@ -69,7 +69,8 @@
     "search": "검색...",
     "notifications": "알림",
     "toggleTheme": "테마 전환",
-    "profile": "프로필"
+    "profile": "프로필",
+    "changeLanguage": "언어 선택"
   },
   "footer": {
     "allRightsReserved": "모든 권리 보유",
