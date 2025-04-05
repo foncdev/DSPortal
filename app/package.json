@@ -25,7 +25,8 @@
     "react-i18next": "^15.4.1",
     "react-router-dom": "^7.1.3",
     "tailwind-merge": "^3.0.2",
-    "@ds/core": "*"
+    "@ds/core": "*",
+    "@ds/utils": "*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.1",

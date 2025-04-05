@@ -1,0 +1,279 @@
+// app/src/pages/auth/SignUp.module.scss
+.userTypeSelector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.userTypeButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+  }
+
+  &.active {
+    background-color: var(--color-primary);
+    color: var(--color-primary-contrast);
+    border-color: var(--color-primary);
+
+    svg {
+      color: var(--color-primary-contrast);
+    }
+  }
+}
+
+.validationInput {
+  position: relative;
+}
+
+.checkButton {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--color-bg-tertiary);
+  border: none;
+  border-radius: 0.25rem;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast) ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-bg-inset);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.validationMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.validMessage {
+  color: var(--color-success);
+}
+
+.invalidMessage {
+  color: var(--color-error);
+}
+
+.validInput {
+  border-color: var(--color-success) !important;
+}
+
+.invalidInput {
+  border-color: var(--color-error) !important;
+}
+
+.verificationInput {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  input {
+    flex: 1;
+    text-align: center;
+    font-size: 1.125rem;
+    letter-spacing: 2px;
+  }
+}
+
+.verifyButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background-color var(--transition-fast) ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.passwordStrength {
+  margin-top: 0.5rem;
+}
+
+.strengthLabel {
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-secondary);
+}
+
+.strengthBar {
+  height: 4px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strengthFill {
+  height: 100%;
+  transition: width var(--transition-fast) ease;
+
+  &.weak {
+    background-color: var(--color-error);
+  }
+
+  &.medium {
+    background-color: var(--color-warning);
+  }
+
+  &.strong {
+    background-color: var(--color-success);
+  }
+}
+
+.termsContainer {
+  margin: 1.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.termsLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.termsCheckbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  accent-color: var(--color-primary);
+}
+
+.termsLink {
+  color: var(--color-primary);
+  font-size: 0.75rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.formNavigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.backButton, .nextButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-fast) ease;
+}
+
+.backButton {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-bg-tertiary);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.nextButton {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border: none;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+  }
+}
+
+.progressSteps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+
+  .step {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast) ease;
+
+    &.active {
+      background-color: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+  }
+
+  .stepLine {
+    flex: 0 0 60px;
+    height: 2px;
+    background-color: var(--color-border);
+    margin: 0 0.5rem;
+  }
+}
