@@ -75,6 +75,11 @@
   --ui-z-index-popover: 1060;
   --ui-z-index-tooltip: 1070;
   --ui-z-index-toast: 1080;
+
+  // Add dark variants for button hover states
+  --ui-color-success-dark: #0da870; /* 10% darker than success */
+  --ui-color-warning-dark: #db8e0a; /* 10% darker than warning */
+  --ui-color-error-dark: #d63d3d;   /* 10% darker than error */
 }
 
 // Dark mode overrides
