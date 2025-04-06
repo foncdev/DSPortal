@@ -1,16 +1,8 @@
+/* Updated CSS for packages/ui/src/components/TextField/TextField.scss */
 @use '../../styles/_variables' as *;
 @use '../../styles/_mixins' as *;
 
 .ds-textfield {
-
-  width: 100%;
-  height: 100%;
-  padding: 0 var(--ui-spacing-3);
-  border: none; /* Ensure no border on the input itself */
-  background: transparent;
-  color: var(--ui-color-text-primary);
-  font-family: var(--ui-font-family-sans);
-
   &-container {
     display: flex;
     flex-direction: column;
@@ -34,13 +26,14 @@
     display: flex;
     align-items: center;
     width: 100%;
-    border: 1px solid var(--ui-color-border);  /* Keep the border on the wrapper */
+    border: 1px solid var(--ui-color-border);
     border-radius: var(--ui-radius-md);
     background-color: var(--ui-color-bg-primary);
     transition: all var(--ui-transition-fast) ease;
+    overflow: hidden; /* Prevent content from overflowing */
   }
 
-  // Input sizing
+  /* Input sizing */
   &-sm {
     height: 32px;
     font-size: 0.875rem;
@@ -56,21 +49,22 @@
     font-size: 1rem;
   }
 
-  // Input field
-  /* Input element should have no border */
-  &-textfield {
+  /* Input field */
+  &-input {
     width: 100%;
     height: 100%;
     padding: 0 var(--ui-spacing-3);
-    border: none;  /* Explicit removal of border */
+    border: none; /* Remove border from input */
     background: transparent;
     color: var(--ui-color-text-primary);
     font-family: var(--ui-font-family-sans);
-    font-size: inherit;  /* Inherit font size from wrapper */
-    line-height: inherit;  /* Inherit line height from wrapper */
+    font-size: inherit;
+    line-height: inherit;
+    position: relative; /* Important for stacking context */
+    z-index: 1; /* Ensure input is above background elements */
 
     &:focus {
-      outline: none;  /* Remove outline on focus */
+      outline: none;
     }
 
     &::placeholder {
@@ -78,7 +72,21 @@
     }
   }
 
-  // Icon
+  /* Adjust padding when icon is present */
+  &-has-icon {
+    .ds-textfield-input {
+      padding-left: 2.5rem; /* Add padding to left for icon */
+    }
+  }
+
+  /* Adjust padding when password toggle is present */
+  &-has-action {
+    .ds-textfield-input {
+      padding-right: 2.5rem; /* Add padding to right for action button */
+    }
+  }
+
+  /* Icon */
   &-icon {
     position: absolute;
     left: var(--ui-spacing-3);
@@ -86,9 +94,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 2; /* Place above input */
   }
 
-  // Password toggle
+  /* Password toggle */
   &-password-toggle {
     position: absolute;
     right: var(--ui-spacing-3);
@@ -98,13 +107,20 @@
     justify-content: center;
     color: var(--ui-color-text-tertiary);
     transition: color var(--ui-transition-fast) ease;
+    z-index: 2; /* Place above input */
+    background-color: transparent;
+    cursor: pointer;
 
     &:hover {
       color: var(--ui-color-text-secondary);
     }
+
+    &:focus {
+      outline: none;
+    }
   }
 
-  // States
+  /* States */
   &-focused {
     border-color: var(--ui-color-primary);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
@@ -115,7 +131,7 @@
     cursor: not-allowed;
     background-color: var(--ui-color-bg-tertiary);
 
-    .ds-textfield {
+    .ds-textfield-input {
       cursor: not-allowed;
     }
   }
@@ -136,7 +152,7 @@
     }
   }
 
-  // Helper text
+  /* Helper text */
   &-helper {
     font-size: 0.75rem;
     color: var(--ui-color-text-tertiary);
@@ -149,7 +165,7 @@
   }
 }
 
-// Dark mode adjustments
+/* Dark mode adjustments */
 .dark {
   .ds-textfield-wrapper {
     background-color: var(--ui-color-bg-secondary);
