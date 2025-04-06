@@ -1,6 +1,12 @@
 // app/src/styles/main.scss
 @import 'themes';
 
+// Import UI variable mapping
+@import 'ui-variables-map';
+
+// Import UI component styles
+@import './ui-components';
+
 // Base styles
 * {
   box-sizing: border-box;

@@ -1,0 +1,75 @@
+// app/src/styles/_ui-variables-map.scss
+
+// This file maps app variables to UI library variables
+
+:root {
+  // Map your app variables to UI library variables
+  --ui-color-primary: var(--color-primary);
+  --ui-color-primary-light: var(--color-primary-light);
+  --ui-color-primary-dark: var(--color-primary-dark);
+  --ui-color-primary-contrast: var(--color-primary-contrast);
+
+  --ui-color-secondary: var(--color-secondary);
+  --ui-color-secondary-light: var(--color-secondary-light);
+  --ui-color-secondary-dark: var(--color-secondary-dark);
+  --ui-color-secondary-contrast: var(--color-secondary-contrast);
+
+  --ui-color-success: var(--color-success);
+  --ui-color-warning: var(--color-warning);
+  --ui-color-error: var(--color-error);
+  --ui-color-info: var(--color-info);
+
+  // Background colors
+  --ui-color-bg-primary: var(--color-bg-primary);
+  --ui-color-bg-secondary: var(--color-bg-secondary);
+  --ui-color-bg-tertiary: var(--color-bg-tertiary);
+  --ui-color-bg-inset: var(--color-bg-inset);
+
+  // Text colors
+  --ui-color-text-primary: var(--color-text-primary);
+  --ui-color-text-secondary: var(--color-text-secondary);
+  --ui-color-text-tertiary: var(--color-text-tertiary);
+  --ui-color-text-invert: var(--color-text-invert);
+
+  // Border colors
+  --ui-color-border: var(--color-border);
+  --ui-color-border-light: var(--color-border-light);
+  --ui-color-border-dark: var(--color-border-dark);
+
+  // Shadows
+  --ui-shadow-sm: var(--shadow-sm);
+  --ui-shadow-md: var(--shadow-md);
+  --ui-shadow-lg: var(--shadow-lg);
+
+  // Transitions
+  --ui-transition-fast: var(--transition-fast);
+  --ui-transition-normal: var(--transition-normal);
+  --ui-transition-slow: var(--transition-slow);
+
+  // Font family
+  --ui-font-family-sans: var(--font-family-sans, 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif);
+}
+
+// Dark mode adjustments
+.dark {
+  // Background colors
+  --ui-color-bg-primary: var(--color-bg-primary);
+  --ui-color-bg-secondary: var(--color-bg-secondary);
+  --ui-color-bg-tertiary: var(--color-bg-tertiary);
+  --ui-color-bg-inset: var(--color-bg-inset);
+
+  // Text colors
+  --ui-color-text-primary: var(--color-text-primary);
+  --ui-color-text-secondary: var(--color-text-secondary);
+  --ui-color-text-tertiary: var(--color-text-tertiary);
+
+  // Border colors
+  --ui-color-border: var(--color-border);
+  --ui-color-border-light: var(--color-border-light);
+  --ui-color-border-dark: var(--color-border-dark);
+
+  // Shadows
+  --ui-shadow-sm: var(--shadow-sm);
+  --ui-shadow-md: var(--shadow-md);
+  --ui-shadow-lg: var(--shadow-lg);
+}

@@ -28,6 +28,10 @@ export default defineConfig({
                     'react-dom': 'ReactDOM',
                     'react/jsx-runtime': 'jsxRuntime'
                 },
+                // Generate CSS files
+                assetFileNames: (assetInfo) => {
+                    return assetInfo.name === 'style.css' ? 'styles/index.css' : 'assets/[name]-[hash][extname]';
+                }
             },
         },
         sourcemap: true,
@@ -38,6 +42,18 @@ export default defineConfig({
                 drop_console: false,
             },
         },
+        // Extract CSS into separate files
+        cssCodeSplit: true,
+    },
+    css: {
+        // Generate CSS sourcemaps
+        devSourcemap: true,
+        // Process SCSS
+        preprocessorOptions: {
+            scss: {
+                quietDeps: true,
+            }
+        }
     },
     resolve: {
         alias: {

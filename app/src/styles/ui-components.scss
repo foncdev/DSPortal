@@ -1,0 +1,15 @@
+// Import UI component styles
+@import '../../../packages/ui/src/styles/index.scss';
+
+// Import individual component styles
+@import '../../../packages/ui/src/components/Button/Button.scss';
+@import '../../../packages/ui/src/components/TextField/TextField.scss';
+@import '../../../packages/ui/src/components/Select/Select.scss';
+@import '../../../packages/ui/src/components/Badge/Badge.scss';
+@import '../../../packages/ui/src/components/Modal/Modal.scss';
+@import '../../../packages/ui/src/components/Label/Label.scss';
+@import '../../../packages/ui/src/components/Tooltip/Tooltip.scss';
+@import '../../../packages/ui/src/components/Toast/Toast.scss';
+@import '../../../packages/ui/src/components/Card/Card.scss';
+@import '../../../packages/ui/src/components/Spinner/Spinner.scss';
+@import '../../../packages/ui/src/components/Tabs/Tabs.scss';
