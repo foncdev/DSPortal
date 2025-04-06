@@ -20,6 +20,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
     const [sessionTime, setSessionTime] = useState<string>('');
     const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 
+    console.log('isMobileSidebarOpen', isMobileSidebarOpen);
+
     // Update session time every second
     useEffect(() => {
         const updateSessionTime = () => {

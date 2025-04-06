@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { authManager } from '@ds/core';
 import {
-    isValidUsername,
     getUsernameValidationError,
     isValidEmail,
     validatePassword,

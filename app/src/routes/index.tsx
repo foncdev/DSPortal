@@ -130,9 +130,7 @@ const AppRoutes: React.FC = () => (
             <Route
                 path="/components"
                 element={
-                    <AuthLayout requireAuth={false}>
-                        <ComponentsDemo />
-                    </AuthLayout>
+                    <ComponentsDemo />
                 }
             />
 

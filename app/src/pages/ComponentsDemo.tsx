@@ -1,5 +1,5 @@
 // app/src/pages/ComponentsDemo.tsx
-import React, { useState } from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {
     Button,
     TextField,
@@ -19,7 +19,6 @@ import {
 import {
     Search,
     Bell,
-    Sun,
     Lock,
     Mail,
     User,
@@ -33,20 +32,31 @@ import {
     Copy,
     Home
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 import './ComponentsDemo.scss';
 
+
+const MemoTextField = memo(TextField);
+
 const ComponentsDemo: React.FC = () => {
-    const { t } = useTranslation();
+    // const { t } = useTranslation();
     const toast = useToast();
 
     // State for the interactive components
-    const [textValue, setTextValue] = useState('');
-    const [passwordValue, setPasswordValue] = useState('');
-    const [selectValue, setSelectValue] = useState('option2');
+    // const [textValue, setTextValue] = useState('');
+    // const [passwordValue, setPasswordValue] = useState('');
+    // const [selectValue, setSelectValue] = useState('option2');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+    // 이벤트 핸들러를 useCallback으로 메모이제이션
+    // const handleTextValueChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setTextValue(e.target.value);
+    // }, []);
+    //
+    // const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setPasswordValue(e.target.value);
+    // }, []);
 
     // Tab demos state
     const [activeTab, setActiveTab] = useState('tab1');
@@ -56,13 +66,39 @@ const ComponentsDemo: React.FC = () => {
     // Spinner demo state
     const [showSpinnerOverlay, setShowSpinnerOverlay] = useState(false);
 
+    const [formState, setFormState] = useState({
+        textValue: '',
+        passwordValue: '',
+        selectValue: 'option2',
+        searchValue: '',
+        emailValue: '',
+        codeValue: '',
+    });
+
+    const handleInputChange = useCallback((field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormState(prev => ({
+            ...prev,
+            [field]: e.target.value
+        }));
+    }, []);
+
+    // 셀렉트 핸들러
+    const handleSelectChange = useCallback((value: string | number) => {
+        setFormState(prev => ({
+            ...prev,
+            selectValue: value.toString()
+        }));
+    }, []);
+
     // Select options
-    const selectOptions: SelectOption[] = [
+    const selectOptions = useMemo<SelectOption[]>(() => [
         { value: 'option1', label: 'Option 1' },
         { value: 'option2', label: 'Option 2' },
         { value: 'option3', label: 'Option 3' },
         { value: 'option4', label: 'Option 4', disabled: true },
-    ];
+    ], []);
+
+
 
     // Component section renderer
     const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
@@ -73,6 +109,146 @@ const ComponentsDemo: React.FC = () => {
             </div>
         </div>
     );
+
+    // TextField 섹션 수정
+    const renderTextFieldsSection = useMemo(() => (
+        <Section title="Text Fields">
+            <div className="demo-grid">
+                <div className="demo-item">
+                    <h3>Basic</h3>
+                    <MemoTextField
+                        key="text-input-basic"
+                        id="text-input-basic"
+                        label="Text Input"
+                        placeholder="Enter some text..."
+                        value={formState.textValue}
+                        onChange={handleInputChange('textValue')}
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>With Icon</h3>
+                    <MemoTextField
+                        key="text-input-search"
+                        id="text-input-search"
+                        label="Search"
+                        placeholder="Search..."
+                        icon={<Search size={18} />}
+                        value={formState.searchValue}
+                        onChange={handleInputChange('searchValue')}
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>Password</h3>
+                    <MemoTextField
+                        key="text-input-password"
+                        id="text-input-password"
+                        type="password"
+                        label="Password"
+                        placeholder="Enter password"
+                        value={formState.passwordValue}
+                        onChange={handleInputChange('passwordValue')}
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>With Helper Text</h3>
+                    <MemoTextField
+                        key="text-input-email"
+                        id="text-input-email"
+                        label="Email"
+                        placeholder="Enter email"
+                        icon={<Mail size={18} />}
+                        helperText="We'll never share your email with anyone else."
+                        value={formState.emailValue}
+                        onChange={handleInputChange('emailValue')}
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>Error State</h3>
+                    <MemoTextField
+                        key="text-input-error"
+                        id="text-input-error"
+                        label="Username"
+                        placeholder="Enter username"
+                        error="Username is already taken"
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>Success State</h3>
+                    <MemoTextField
+                        key="text-input-success"
+                        id="text-input-success"
+                        label="Verification Code"
+                        placeholder="Enter code"
+                        success
+                        helperText="Verification code is valid"
+                        value={formState.codeValue}
+                        onChange={handleInputChange('codeValue')}
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>Disabled</h3>
+                    <MemoTextField
+                        key="text-input-disabled"
+                        id="text-input-disabled"
+                        label="Disabled Input"
+                        placeholder="You can't edit this"
+                        disabled
+                    />
+                </div>
+
+                <div className="demo-item">
+                    <h3>Sizes</h3>
+                    <div className="field-group">
+                        <MemoTextField
+                            key="text-input-sm"
+                            id="text-input-sm"
+                            label="Small"
+                            placeholder="Small input"
+                            size="sm"
+                        />
+                        <MemoTextField
+                            key="text-input-md"
+                            id="text-input-md"
+                            label="Medium (Default)"
+                            placeholder="Medium input"
+                        />
+                        <MemoTextField
+                            key="text-input-lg"
+                            id="text-input-lg"
+                            label="Large"
+                            placeholder="Large input"
+                            size="lg"
+                        />
+                    </div>
+                </div>
+            </div>
+        </Section>
+    ), [formState, handleInputChange]);
+
+    const renderSelectSection = useMemo(() => (
+        <Section title="Select">
+            <div className="demo-grid">
+                <div className="demo-item">
+                    <h3>Basic</h3>
+                    <Select
+                        id="select-basic"
+                        label="Select Option"
+                        options={selectOptions}
+                        value={formState.selectValue}
+                        onChange={handleSelectChange}
+                    />
+                </div>
+
+                {/* ...기존 Select 컴포넌트들... */}
+            </div>
+        </Section>
+    ), [formState.selectValue, handleSelectChange, selectOptions]);
 
     return (
         <div className="components-demo">
@@ -128,171 +304,83 @@ const ComponentsDemo: React.FC = () => {
             </Section>
 
             {/* Text Fields Section */}
-            <Section title="Text Fields">
-                <div className="demo-grid">
-                    <div className="demo-item">
-                        <h3>Basic</h3>
-                        <TextField
-                            label="Text Input"
-                            placeholder="Enter some text..."
-                            value={textValue}
-                            onChange={(e) => setTextValue(e.target.value)}
-                        />
-                    </div>
+            {renderTextFieldsSection}
+            {renderSelectSection}
 
-                    <div className="demo-item">
-                        <h3>With Icon</h3>
-                        <TextField
-                            label="Search"
-                            placeholder="Search..."
-                            icon={<Search size={18} />}
-                        />
-                    </div>
-
-                    <div className="demo-item">
-                        <h3>Password</h3>
-                        <TextField
-                            type="password"
-                            label="Password"
-                            placeholder="Enter password"
-                            value={passwordValue}
-                            onChange={(e) => setPasswordValue(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="demo-item">
-                        <h3>With Helper Text</h3>
-                        <TextField
-                            label="Email"
-                            placeholder="Enter email"
-                            icon={<Mail size={18} />}
-                            helperText="We'll never share your email with anyone else."
-                        />
-                    </div>
-
-                    <div className="demo-item">
-                        <h3>Error State</h3>
-                        <TextField
-                            label="Username"
-                            placeholder="Enter username"
-                            error="Username is already taken"
-                        />
-                    </div>
-
-                    <div className="demo-item">
-                        <h3>Success State</h3>
-                        <TextField
-                            label="Verification Code"
-                            placeholder="Enter code"
-                            success
-                            helperText="Verification code is valid"
-                        />
-                    </div>
-
-                    <div className="demo-item">
-                        <h3>Disabled</h3>
-                        <TextField
-                            label="Disabled Input"
-                            placeholder="You can't edit this"
-                            disabled
-                        />
-                    </div>
-
-                    <div className="demo-item">
-                        <h3>Sizes</h3>
-                        <div className="field-group">
-                            <TextField
-                                label="Small"
-                                placeholder="Small input"
-                                size="sm"
-                            />
-                            <TextField
-                                label="Medium (Default)"
-                                placeholder="Medium input"
-                            />
-                            <TextField
-                                label="Large"
-                                placeholder="Large input"
-                                size="lg"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </Section>
 
             {/* Select Section */}
-            <Section title="Select">
-                <div className="demo-grid">
-                    <div className="demo-item">
-                        <h3>Basic</h3>
-                        <Select
-                            label="Select Option"
-                            options={selectOptions}
-                            value={selectValue}
-                            onChange={(value) => setSelectValue(value.toString())}
-                        />
-                    </div>
+            {/*<Section title="Select">*/}
+            {/*    <div className="demo-grid">*/}
+            {/*        <div className="demo-item">*/}
+            {/*            <h3>Basic</h3>*/}
+            {/*            <Select*/}
+            {/*                label="Select Option"*/}
+            {/*                options={selectOptions}*/}
+            {/*                value={selectValue}*/}
+            {/*                onChange={(value) => setSelectValue(value.toString())}*/}
+            {/*            />*/}
+            {/*        </div>*/}
 
-                    <div className="demo-item">
-                        <h3>With Placeholder</h3>
-                        <Select
-                            label="Select Option"
-                            options={selectOptions}
-                            placeholder="Choose an option..."
-                        />
-                    </div>
+            {/*        <div className="demo-item">*/}
+            {/*            <h3>With Placeholder</h3>*/}
+            {/*            <Select*/}
+            {/*                label="Select Option"*/}
+            {/*                options={selectOptions}*/}
+            {/*                placeholder="Choose an option..."*/}
+            {/*            />*/}
+            {/*        </div>*/}
 
-                    <div className="demo-item">
-                        <h3>Error State</h3>
-                        <Select
-                            label="Select Option"
-                            options={selectOptions}
-                            error="Please select an option"
-                        />
-                    </div>
+            {/*        <div className="demo-item">*/}
+            {/*            <h3>Error State</h3>*/}
+            {/*            <Select*/}
+            {/*                label="Select Option"*/}
+            {/*                options={selectOptions}*/}
+            {/*                error="Please select an option"*/}
+            {/*            />*/}
+            {/*        </div>*/}
 
-                    <div className="demo-item">
-                        <h3>Success State</h3>
-                        <Select
-                            label="Select Option"
-                            options={selectOptions}
-                            value="option1"
-                            success
-                        />
-                    </div>
+            {/*        <div className="demo-item">*/}
+            {/*            <h3>Success State</h3>*/}
+            {/*            <Select*/}
+            {/*                label="Select Option"*/}
+            {/*                options={selectOptions}*/}
+            {/*                value="option1"*/}
+            {/*                success*/}
+            {/*            />*/}
+            {/*        </div>*/}
 
-                    <div className="demo-item">
-                        <h3>Disabled</h3>
-                        <Select
-                            label="Select Option"
-                            options={selectOptions}
-                            disabled
-                        />
-                    </div>
+            {/*        <div className="demo-item">*/}
+            {/*            <h3>Disabled</h3>*/}
+            {/*            <Select*/}
+            {/*                label="Select Option"*/}
+            {/*                options={selectOptions}*/}
+            {/*                disabled*/}
+            {/*            />*/}
+            {/*        </div>*/}
 
-                    <div className="demo-item">
-                        <h3>Sizes</h3>
-                        <div className="field-group">
-                            <Select
-                                label="Small"
-                                options={selectOptions}
-                                size="sm"
-                            />
-                            <Select
-                                label="Medium (Default)"
-                                options={selectOptions}
-                            />
-                            <Select
-                                label="Large"
-                                options={selectOptions}
-                                size="lg"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </Section>
+            {/*        <div className="demo-item">*/}
+            {/*            <h3>Sizes</h3>*/}
+            {/*            <div className="field-group">*/}
+            {/*                <Select*/}
+            {/*                    label="Small"*/}
+            {/*                    options={selectOptions}*/}
+            {/*                    size="sm"*/}
+            {/*                />*/}
+            {/*                <Select*/}
+            {/*                    label="Medium (Default)"*/}
+            {/*                    options={selectOptions}*/}
+            {/*                />*/}
+            {/*                <Select*/}
+            {/*                    label="Large"*/}
+            {/*                    options={selectOptions}*/}
+            {/*                    size="lg"*/}
+            {/*                />*/}
+            {/*            </div>*/}
+            {/*        </div>*/}
+            {/*    </div>*/}
+            {/*</Section>*/}
 
-            {/* Labels Section */}
+             Labels Section
             <Section title="Labels">
                 <div className="demo-grid">
                     <div className="demo-item">
@@ -315,7 +403,7 @@ const ComponentsDemo: React.FC = () => {
                 </div>
             </Section>
 
-            {/* Badges Section */}
+             Badges Section
             <Section title="Badges">
                 <div className="demo-grid">
                     <div className="demo-item">
@@ -370,7 +458,7 @@ const ComponentsDemo: React.FC = () => {
                 </div>
             </Section>
 
-            {/* Toast Notifications Section */}
+             Toast Notifications Section
             <Section title="Toast Notifications">
                 <div className="demo-grid">
                     <div className="demo-item">
@@ -435,10 +523,10 @@ const ComponentsDemo: React.FC = () => {
                     <div className="demo-item demo-item-wide">
                         <h3>Default Tabs</h3>
                         <Tabs value={activeTab} onChange={setActiveTab}>
-                            <TabItem value="tab1" label="Dashboard" />
-                            <TabItem value="tab2" label="Settings" />
-                            <TabItem value="tab3" label="Users" />
-                            <TabItem value="tab4" label="Reports" disabled />
+                            <TabItem value="tab1" label="Dashboard" key='Dashboard' />
+                            <TabItem value="tab2" label="Settings"  key='Settings'/>
+                            <TabItem value="tab3" label="Users" key='Users' />
+                            <TabItem value="tab4" label="Reports" key='Reports' disabled />
                         </Tabs>
                         <div className="tab-content">
                             {activeTab === "tab1" && <p>Dashboard content goes here</p>}
@@ -451,18 +539,18 @@ const ComponentsDemo: React.FC = () => {
                         <h3>Tab Variants</h3>
                         <div className="field-group">
                             <Tabs value={variantTab} onChange={setVariantTab} variant="default">
-                                <TabItem value="vtab1" label="Default Style" />
-                                <TabItem value="vtab2" label="Another Tab" />
+                                <TabItem value="vtab1" label="Default Style" key='vtab1' />
+                                <TabItem value="vtab2" label="Another Tab" key='vtab2' />
                             </Tabs>
 
                             <Tabs value={variantTab} onChange={setVariantTab} variant="bordered">
-                                <TabItem value="vtab1" label="Bordered Style" />
-                                <TabItem value="vtab2" label="Another Tab" />
+                                <TabItem value="vtab1" label="Bordered Style" key='vtab1' />
+                                <TabItem value="vtab2" label="Another Tab" key='vtab2' />
                             </Tabs>
 
                             <Tabs value={variantTab} onChange={setVariantTab} variant="pills">
-                                <TabItem value="vtab1" label="Pills Style" />
-                                <TabItem value="vtab2" label="Another Tab" />
+                                <TabItem value="vtab1" label="Pills Style" key='vtab1' />
+                                <TabItem value="vtab2" label="Another Tab" key='vtab2' />
                             </Tabs>
                         </div>
                     </div>
@@ -473,16 +561,19 @@ const ComponentsDemo: React.FC = () => {
                             <TabItem
                                 value="itab1"
                                 label="Home"
+                                key='itab1'
                                 icon={<Home size={16} />}
                             />
                             <TabItem
                                 value="itab2"
                                 label="Settings"
+                                key='itab2'
                                 icon={<Settings size={16} />}
                             />
                             <TabItem
                                 value="itab3"
                                 label="Users"
+                                key='itab3'
                                 icon={<User size={16} />}
                             />
                         </Tabs>
@@ -490,7 +581,7 @@ const ComponentsDemo: React.FC = () => {
                 </div>
             </Section>
 
-            {/* Spinners Section */}
+             Spinners Section
             <Section title="Spinners">
                 <div className="demo-grid">
                     <div className="demo-item">
@@ -622,7 +713,7 @@ const ComponentsDemo: React.FC = () => {
                 </div>
             </Section>
 
-            {/* Modals Section */}
+             {/*Modals Section */}
             <Section title="Modals">
                 <div className="demo-grid">
                     <div className="demo-item">

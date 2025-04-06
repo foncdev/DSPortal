@@ -1,6 +1,6 @@
 // app/src/pages/auth/ResetPassword.tsx
 import React, { useState, useCallback, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
 import styles from './Auth.module.scss';
@@ -8,7 +8,7 @@ import resetStyles from './ResetPassword.module.scss';
 
 const ResetPassword: React.FC = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
     // Get token from URL

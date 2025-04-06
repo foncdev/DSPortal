@@ -1,171 +1,154 @@
-/* Updated CSS for packages/ui/src/components/TextField/TextField.scss */
 @use '../../styles/_variables' as *;
 @use '../../styles/_mixins' as *;
 
+.ds-textfield-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-spacing-1);
+  width: auto;
+}
+
+.ds-textfield-full {
+  width: 100%;
+}
+
+.ds-textfield-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+  margin-bottom: var(--ui-spacing-1);
+}
+
+.ds-textfield-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background-color: var(--ui-color-bg-primary);
+  transition: all var(--ui-transition-fast) ease;
+}
+
+.ds-textfield-sm {
+  height: 32px;
+  font-size: 0.875rem;
+}
+
+.ds-textfield-md {
+  height: 40px;
+  font-size: 0.9375rem;
+}
+
+.ds-textfield-lg {
+  height: 48px;
+  font-size: 1rem;
+}
+
 .ds-textfield {
-  &-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-spacing-1);
-    width: auto;
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--ui-spacing-3);
+  border: none;
+  background: transparent;
+  color: var(--ui-color-text-primary);
+  font-family: var(--ui-font-family-sans);
+  font-size: inherit;
+
+  &:focus {
+    outline: none;
   }
 
-  &-full {
-    width: 100%;
-  }
-
-  &-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--ui-color-text-primary);
-    margin-bottom: var(--ui-spacing-1);
-  }
-
-  &-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    border: 1px solid var(--ui-color-border);
-    border-radius: var(--ui-radius-md);
-    background-color: var(--ui-color-bg-primary);
-    transition: all var(--ui-transition-fast) ease;
-    overflow: hidden; /* Prevent content from overflowing */
-  }
-
-  /* Input sizing */
-  &-sm {
-    height: 32px;
-    font-size: 0.875rem;
-  }
-
-  &-md {
-    height: 40px;
-    font-size: 0.9375rem;
-  }
-
-  &-lg {
-    height: 48px;
-    font-size: 1rem;
-  }
-
-  /* Input field */
-  &-input {
-    width: 100%;
-    height: 100%;
-    padding: 0 var(--ui-spacing-3);
-    border: none; /* Remove border from input */
-    background: transparent;
-    color: var(--ui-color-text-primary);
-    font-family: var(--ui-font-family-sans);
-    font-size: inherit;
-    line-height: inherit;
-    position: relative; /* Important for stacking context */
-    z-index: 1; /* Ensure input is above background elements */
-
-    &:focus {
-      outline: none;
-    }
-
-    &::placeholder {
-      color: var(--ui-color-text-tertiary);
-    }
-  }
-
-  /* Adjust padding when icon is present */
-  &-has-icon {
-    .ds-textfield-input {
-      padding-left: 2.5rem; /* Add padding to left for icon */
-    }
-  }
-
-  /* Adjust padding when password toggle is present */
-  &-has-action {
-    .ds-textfield-input {
-      padding-right: 2.5rem; /* Add padding to right for action button */
-    }
-  }
-
-  /* Icon */
-  &-icon {
-    position: absolute;
-    left: var(--ui-spacing-3);
+  &::placeholder {
     color: var(--ui-color-text-tertiary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2; /* Place above input */
-  }
-
-  /* Password toggle */
-  &-password-toggle {
-    position: absolute;
-    right: var(--ui-spacing-3);
-    @include button-reset;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ui-color-text-tertiary);
-    transition: color var(--ui-transition-fast) ease;
-    z-index: 2; /* Place above input */
-    background-color: transparent;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--ui-color-text-secondary);
-    }
-
-    &:focus {
-      outline: none;
-    }
-  }
-
-  /* States */
-  &-focused {
-    border-color: var(--ui-color-primary);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-  }
-
-  &-disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: var(--ui-color-bg-tertiary);
-
-    .ds-textfield-input {
-      cursor: not-allowed;
-    }
-  }
-
-  &-error {
-    border-color: var(--ui-color-error);
-
-    &.ds-textfield-focused {
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
-    }
-  }
-
-  &-success {
-    border-color: var(--ui-color-success);
-
-    &.ds-textfield-focused {
-      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
-    }
-  }
-
-  /* Helper text */
-  &-helper {
-    font-size: 0.75rem;
-    color: var(--ui-color-text-tertiary);
-    min-height: 1em;
-    margin-top: var(--ui-spacing-1);
-
-    &-error {
-      color: var(--ui-color-error);
-    }
   }
 }
 
-/* Dark mode adjustments */
+.ds-textfield-with-icon {
+  padding-left: 2.5rem;
+}
+
+.ds-textfield-with-action {
+  padding-right: 2.5rem;
+}
+
+.ds-textfield-icon {
+  position: absolute;
+  left: var(--ui-spacing-3);
+  color: var(--ui-color-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-textfield-password-toggle {
+  @include button-reset;
+  position: absolute;
+  right: var(--ui-spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-color-text-tertiary);
+  transition: color var(--ui-transition-fast) ease;
+  background-color: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ui-color-text-secondary);
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.ds-textfield-focused {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.ds-textfield-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--ui-color-bg-tertiary);
+
+  .ds-textfield {
+    cursor: not-allowed;
+  }
+}
+
+.ds-textfield-readonly {
+  background-color: var(--ui-color-bg-tertiary);
+}
+
+.ds-textfield-error {
+  border-color: var(--ui-color-error);
+
+  &.ds-textfield-focused {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+  }
+}
+
+.ds-textfield-success {
+  border-color: var(--ui-color-success);
+
+  &.ds-textfield-focused {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  }
+}
+
+.ds-textfield-helper {
+  font-size: 0.75rem;
+  color: var(--ui-color-text-tertiary);
+  min-height: 1em;
+  margin-top: var(--ui-spacing-1);
+}
+
+.ds-textfield-helper-error {
+  color: var(--ui-color-error);
+}
+
+// Dark mode adjustments
 .dark {
   .ds-textfield-wrapper {
     background-color: var(--ui-color-bg-secondary);
