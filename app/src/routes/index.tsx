@@ -26,6 +26,8 @@ const Error404 = lazy(() => import('../pages/Error404'));
 const Error500 = lazy(() => import('../pages/Error500'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
 const BlankPage = lazy(() => import('../pages/BlankPage'));
+const ComponentsDemo = lazy(() => import('../pages/ComponentsDemo')); // 추가: UI 컴포넌트 데모 페이지
+
 
 const AppRoutes: React.FC = () => (
     <Suspense fallback={<Loading />}>
@@ -124,6 +126,15 @@ const AppRoutes: React.FC = () => (
 
             {/* Redirect from root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" />} />
+
+            <Route
+                path="/components"
+                element={
+                    <AuthLayout requireAuth={false}>
+                        <ComponentsDemo />
+                    </AuthLayout>
+                }
+            />
 
             {/* Catch-all route - 404 */}
             <Route
