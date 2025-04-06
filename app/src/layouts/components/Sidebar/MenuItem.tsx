@@ -38,9 +38,6 @@ const MenuItem: React.FC<MenuItemProps> = ({
     // Check if user has access to this menu item
     const hasAccess = !item?.requiredRole || authManager.hasRole(item.requiredRole);
 
-    // If user doesn't have access, don't render the item
-    if (!hasAccess) {return null;}
-
     // Check if any children are accessible (for parent items)
     const accessibleChildren = item.children?.filter(
         child => !child?.requiredRole || authManager.hasRole(child.requiredRole)
@@ -48,20 +45,28 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
     // If parent has no accessible children, don't render it
     const hasChildren = item.children && accessibleChildren && accessibleChildren.length > 0;
-    if (item.children && (!accessibleChildren || accessibleChildren.length === 0)) {
-        return null;
-    }
 
+    // Always declare all hooks unconditionally at the top level
     // Check if current item or any of its children is active
     const isActive = item.path === path;
     const isChildActive = hasChildren && accessibleChildren?.some(child => child.path === path);
 
-    // Open submenu if a child is active
+    // Open submenu if a child is active - moved inside useEffect
     useEffect(() => {
         if (isChildActive && !isCollapsed) {
             setIsOpenInNormalMode(true);
         }
     }, [isChildActive, isCollapsed]);
+
+    // If user doesn't have access, don't render the item
+    if (!hasAccess) {
+        return null;
+    }
+
+    // If parent has no accessible children, don't render it
+    if (item.children && (!accessibleChildren || accessibleChildren.length === 0)) {
+        return null;
+    }
 
     // Toggle submenu
     const toggleSubmenu = (e: React.MouseEvent) => {

@@ -52,7 +52,7 @@ const ResetPassword: React.FC = () => {
             }
         };
 
-        validateToken();
+        void validateToken();
     }, [token]);
 
     // Check password strength

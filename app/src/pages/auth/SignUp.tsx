@@ -292,7 +292,7 @@ const SignUp: React.FC = () => {
             });
 
             // Redirect to success page
-            navigate('/signup/success');
+            void navigate('/signup/success');
         } catch (err: any) {
             console.error('Signup error:', err);
             setError(err.message || t('auth.signupFailed'));
