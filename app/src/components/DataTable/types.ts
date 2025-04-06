@@ -68,4 +68,51 @@ export type TableState<T> = {
   expandedRows: Record<string, boolean>;
   horizontalScroll: boolean;
   verticalScroll: boolean;
+  isMobile: boolean;
+};
+
+/**
+ * 테이블 데이터 상태를 위한 타입
+ */
+export type TableData<T> = {
+  filteredData: T[];
+  sortedData: T[];
+  paginatedData: T[];
+  visibleColumns: TableColumn<T>[];
+  totalPages: number;
+};
+
+/**
+ * 테이블 유틸리티 함수를 위한 타입
+ */
+export type TableUtils<T> = {
+  isSelected: (item: T) => boolean;
+  isRowExpanded: (item: T) => boolean;
+};
+
+/**
+ * 테이블 핸들러 함수를 위한 타입
+ */
+export type TableHandlers<T> = {
+  setItemsPerPageState: (value: number) => void;
+  toggleColumnVisibility: (columnKey: string) => void;
+  handleSort: (key: string) => void;
+  handleFilterChange: (key: string, value: string) => void;
+  handleRowSelect: (item: T, checked: boolean) => void;
+  handleSelectAll: (checked: boolean) => void;
+  handlePageChange: (page: number) => void;
+  handleMouseDown: (e: React.MouseEvent, columnKey: string) => void;
+  toggleRowExpansion: (item: T) => void;
+  toggleHorizontalScroll: () => void;
+  toggleVerticalScroll: () => void;
+};
+
+/**
+ * 테이블 훅 반환 타입
+ */
+export type UseTableReturn<T> = {
+  state: TableState<T>;
+  handlers: TableHandlers<T>;
+  data: TableData<T>;
+  utils: TableUtils<T>;
 };

@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { TableColumn, TableState } from './types';
 
 /**
  * 테이블 기본 로직을 처리하는 커스텀 훅
  */
 export function useTable<T>({
-  data,
-  initialColumns,
-  uniqueKey,
-  itemsPerPage,
-  expandableRows = false,
-  initialHorizontalScroll = true,
-  initialVerticalScroll = true,
-  mobileBreakpoint = 768, // 기본 모바일 중단점
-  onSelectionChange,
-}: {
+                              data,
+                              initialColumns,
+                              uniqueKey,
+                              itemsPerPage,
+                              expandableRows = false,
+                              initialHorizontalScroll = true,
+                              initialVerticalScroll = true,
+                              mobileBreakpoint = 768, // 기본 모바일 중단점
+                              onSelectionChange,
+                            }: {
   data: T[];
   initialColumns: TableColumn<T>[];
   uniqueKey: keyof T;
@@ -45,9 +45,10 @@ export function useTable<T>({
       window.removeEventListener('resize', checkIfMobile);
     };
   }, [mobileBreakpoint]);
+
   // 상태 관리
   const [columns, setColumns] = useState<TableColumn<T>[]>(
-    initialColumns.map((col) => ({ ...col, visible: col.visible ?? true })),
+      initialColumns.map((col) => ({ ...col, visible: col.visible ?? true })),
   );
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -71,7 +72,7 @@ export function useTable<T>({
       }
     });
     setColumnWidths(initialWidths);
-  }, []);
+  }, [columns]);
 
   // 페이지당 항목 수 변경 적용
   useEffect(() => {
@@ -103,6 +104,13 @@ export function useTable<T>({
         return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
       }
 
+      // 날짜 처리
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return sortOrder === 'asc'
+            ? aValue.getTime() - bValue.getTime()
+            : bValue.getTime() - aValue.getTime();
+      }
+
       // 문자열 변환 및 비교
       const aString = String(aValue || '').toLowerCase();
       const bString = String(bValue || '').toLowerCase();
@@ -123,59 +131,66 @@ export function useTable<T>({
 
   // 총 페이지 수 계산
   const totalPages = useMemo(() => {
-    return Math.ceil(sortedData.length / itemsPerPageState);
+    return Math.max(1, Math.ceil(sortedData.length / itemsPerPageState));
   }, [sortedData, itemsPerPageState]);
+
+  // 현재 페이지가 유효한지 확인하고 필요시 조정
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   // 행 선택 여부 확인
   const isSelected = useCallback(
-    (item: T) => {
-      const keyProp = uniqueKey as string;
-      return selectedItems.some(
-        (selected) => String(selected[keyProp as keyof T]) === String(item[keyProp as keyof T]),
-      );
-    },
-    [selectedItems, uniqueKey],
+      (item: T) => {
+        const keyProp = uniqueKey as string;
+        return selectedItems.some(
+            (selected) => String(selected[keyProp as keyof T]) === String(item[keyProp as keyof T]),
+        );
+      },
+      [selectedItems, uniqueKey],
   );
 
   // 행 확장 상태 토글
   const toggleRowExpansion = useCallback(
-    (item: T) => {
-      const key = String(item[uniqueKey as keyof T]);
-      setExpandedRows((prev) => ({
-        ...prev,
-        [key]: !prev[key],
-      }));
-    },
-    [uniqueKey],
+      (item: T) => {
+        const key = String(item[uniqueKey as keyof T]);
+        setExpandedRows((prev) => ({
+          ...prev,
+          [key]: !prev[key],
+        }));
+      },
+      [uniqueKey],
   );
 
   // 행 확장 상태 확인
   const isRowExpanded = useCallback(
-    (item: T) => {
-      const key = String(item[uniqueKey as keyof T]);
-      return expandedRows[key] || false;
-    },
-    [expandedRows, uniqueKey],
+      (item: T) => {
+        const key = String(item[uniqueKey as keyof T]);
+        return expandedRows[key] || false;
+      },
+      [expandedRows, uniqueKey],
   );
 
   // 컬럼 표시 여부 토글
   const toggleColumnVisibility = useCallback((columnKey: string) => {
     setColumns((prevColumns) =>
-      prevColumns.map((col) => (col.key === columnKey ? { ...col, visible: !col.visible } : col)),
+        prevColumns.map((col) => (col.key === columnKey ? { ...col, visible: !col.visible } : col)),
     );
   }, []);
 
   // 정렬 처리
   const handleSort = useCallback(
-    (key: string) => {
-      if (sortKey === key) {
-        setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
-      } else {
-        setSortKey(key);
-        setSortOrder('asc');
-      }
-    },
-    [sortKey],
+      (key: string) => {
+        if (sortKey === key) {
+          setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
+        } else {
+          setSortKey(key);
+          setSortOrder('asc');
+        }
+      },
+      [sortKey],
   );
 
   // 필터 변경 처리
@@ -189,43 +204,43 @@ export function useTable<T>({
 
   // 행 선택 처리
   const handleRowSelect = useCallback(
-    (item: T, checked: boolean) => {
-      setSelectedItems((prevSelected) => {
-        const keyProp = uniqueKey as string;
-        const newSelected = checked
-          ? [...prevSelected, item]
-          : prevSelected.filter(
-              (selected) =>
-                String(selected[keyProp as keyof T]) !== String(item[keyProp as keyof T]),
-            );
+      (item: T, checked: boolean) => {
+        setSelectedItems((prevSelected) => {
+          const keyProp = uniqueKey as string;
+          const newSelected = checked
+              ? [...prevSelected, item]
+              : prevSelected.filter(
+                  (selected) =>
+                      String(selected[keyProp as keyof T]) !== String(item[keyProp as keyof T]),
+              );
 
-        if (onSelectionChange) {
-          onSelectionChange(newSelected);
-        }
+          if (onSelectionChange) {
+            onSelectionChange(newSelected);
+          }
 
-        return newSelected;
-      });
-    },
-    [uniqueKey, onSelectionChange],
+          return newSelected;
+        });
+      },
+      [uniqueKey, onSelectionChange],
   );
 
   // 전체 선택 처리
   const handleSelectAll = useCallback(
-    (checked: boolean) => {
-      const newSelectedItems = checked ? filteredData : [];
-      setSelectedItems(newSelectedItems);
+      (checked: boolean) => {
+        const newSelectedItems = checked ? filteredData.slice() : [];
+        setSelectedItems(newSelectedItems);
 
-      if (onSelectionChange) {
-        onSelectionChange(newSelectedItems);
-      }
-    },
-    [filteredData, onSelectionChange],
+        if (onSelectionChange) {
+          onSelectionChange(newSelectedItems);
+        }
+      },
+      [filteredData, onSelectionChange],
   );
 
   // 페이지 변경 처리
   const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  }, [totalPages]);
 
   // 컬럼 리사이징 처리 (마우스 다운)
   const handleMouseDown = useCallback((e: React.MouseEvent, columnKey: string) => {
@@ -236,15 +251,17 @@ export function useTable<T>({
 
   // 컬럼 리사이징 처리 (마우스 이동/업)
   useEffect(() => {
+    if (!resizingColumnKey) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       if (resizingColumnKey) {
         const deltaX = e.clientX - initialX;
         setColumnWidths((prev) => {
           const currentWidth = prev[resizingColumnKey];
           const newWidth =
-            typeof currentWidth === 'number'
-              ? Math.max(80, currentWidth + deltaX)
-              : Math.max(80, parseInt(String(currentWidth || 100)) + deltaX);
+              typeof currentWidth === 'number'
+                  ? Math.max(80, currentWidth + deltaX)
+                  : Math.max(80, parseInt(String(currentWidth || 100)) + deltaX);
           return { ...prev, [resizingColumnKey]: newWidth };
         });
         setInitialX(e.clientX);
@@ -255,10 +272,8 @@ export function useTable<T>({
       setResizingColumnKey(null);
     };
 
-    if (resizingColumnKey) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
@@ -284,6 +299,7 @@ export function useTable<T>({
     setVerticalScroll((prev) => !prev);
   }, []);
 
+  // 상태와 핸들러 반환
   return {
     state: {
       columns,
