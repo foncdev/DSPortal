@@ -27,6 +27,7 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../packages/core" },
-    { "path": "../packages/utils" }
+    { "path": "../packages/utils" },
+    { "path": "../packages/ui" }
   ]
 }

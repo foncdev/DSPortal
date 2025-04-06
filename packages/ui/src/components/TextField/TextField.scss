@@ -2,6 +2,15 @@
 @use '../../styles/_mixins' as *;
 
 .ds-textfield {
+
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--ui-spacing-3);
+  border: none; /* Ensure no border on the input itself */
+  background: transparent;
+  color: var(--ui-color-text-primary);
+  font-family: var(--ui-font-family-sans);
+
   &-container {
     display: flex;
     flex-direction: column;
@@ -25,7 +34,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    border: 1px solid var(--ui-color-border);
+    border: 1px solid var(--ui-color-border);  /* Keep the border on the wrapper */
     border-radius: var(--ui-radius-md);
     background-color: var(--ui-color-bg-primary);
     transition: all var(--ui-transition-fast) ease;
@@ -48,29 +57,24 @@
   }
 
   // Input field
+  /* Input element should have no border */
   &-textfield {
     width: 100%;
     height: 100%;
     padding: 0 var(--ui-spacing-3);
-    border: none;
+    border: none;  /* Explicit removal of border */
     background: transparent;
     color: var(--ui-color-text-primary);
     font-family: var(--ui-font-family-sans);
+    font-size: inherit;  /* Inherit font size from wrapper */
+    line-height: inherit;  /* Inherit line height from wrapper */
 
     &:focus {
-      outline: none;
+      outline: none;  /* Remove outline on focus */
     }
 
     &::placeholder {
       color: var(--ui-color-text-tertiary);
-    }
-
-    &-with-icon {
-      padding-left: 2.5rem;
-    }
-
-    &-with-action {
-      padding-right: 2.5rem;
     }
   }
 

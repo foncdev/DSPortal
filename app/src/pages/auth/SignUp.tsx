@@ -29,10 +29,10 @@ import styles from './Auth.module.scss';
 import signupStyles from './SignUp.module.scss';
 
 // Form field validation type
-type ValidationState = {
+interface ValidationState {
     valid: boolean;
     message: string;
-};
+}
 
 // Main SignUp component
 const SignUp: React.FC = () => {
@@ -69,7 +69,7 @@ const SignUp: React.FC = () => {
 
     // Check if username is available
     const checkUsername = useCallback(async () => {
-        if (!username) return;
+        if (!username) {return;}
 
         // 사용자 아이디 유효성 검사
         const error = getUsernameValidationError(username);
@@ -101,7 +101,7 @@ const SignUp: React.FC = () => {
 
     // Check if email is available
     const checkEmail = useCallback(async () => {
-        if (!email) return;
+        if (!email) {return;}
 
         // 이메일 유효성 검사
         if (!isValidEmail(email)) {
@@ -159,7 +159,7 @@ const SignUp: React.FC = () => {
 
     // Verify the code
     const verifyCode = useCallback(async () => {
-        if (!verificationCode) return;
+        if (!verificationCode) {return;}
 
         setIsVerifyingCode(true);
 
@@ -208,7 +208,7 @@ const SignUp: React.FC = () => {
 
     // Check if passwords match
     const checkPasswordsMatch = useCallback(() => {
-        if (!password || !confirmPassword) return;
+        if (!password || !confirmPassword) {return;}
         setPasswordMatch(doPasswordsMatch(password, confirmPassword));
     }, [password, confirmPassword]);
 

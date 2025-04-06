@@ -71,9 +71,9 @@ const ResetPassword: React.FC = () => {
 
         const score = [hasLowerCase, hasUpperCase, hasNumber, hasSpecialChar, isLongEnough].filter(Boolean).length;
 
-        if (score <= 2) setPasswordStrength('weak');
-        else if (score <= 4) setPasswordStrength('medium');
-        else setPasswordStrength('strong');
+        if (score <= 2) {setPasswordStrength('weak');}
+        else if (score <= 4) {setPasswordStrength('medium');}
+        else {setPasswordStrength('strong');}
 
         // Also check if passwords match
         if (confirmPassword) {
@@ -83,7 +83,7 @@ const ResetPassword: React.FC = () => {
 
     // Check if passwords match
     const checkPasswordsMatch = useCallback(() => {
-        if (!password || !confirmPassword) return;
+        if (!password || !confirmPassword) {return;}
         setPasswordMatch(password === confirmPassword);
     }, [password, confirmPassword]);
 

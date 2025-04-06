@@ -8,7 +8,13 @@ import {
     ModalFooter,
     Badge,
     Label,
-    SelectOption
+    SelectOption,
+    Tabs,
+    TabItem,
+    Spinner,
+    SpinnerOverlay,
+    Tooltip,
+    useToast
 } from '@ds/ui';
 import {
     Search,
@@ -24,7 +30,8 @@ import {
     Calendar,
     Check,
     X,
-    Copy
+    Copy,
+    Home
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -32,6 +39,7 @@ import './ComponentsDemo.scss';
 
 const ComponentsDemo: React.FC = () => {
     const { t } = useTranslation();
+    const toast = useToast();
 
     // State for the interactive components
     const [textValue, setTextValue] = useState('');
@@ -39,6 +47,14 @@ const ComponentsDemo: React.FC = () => {
     const [selectValue, setSelectValue] = useState('option2');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+    // Tab demos state
+    const [activeTab, setActiveTab] = useState('tab1');
+    const [variantTab, setVariantTab] = useState('vtab1');
+    const [iconTab, setIconTab] = useState('itab1');
+
+    // Spinner demo state
+    const [showSpinnerOverlay, setShowSpinnerOverlay] = useState(false);
 
     // Select options
     const selectOptions: SelectOption[] = [
@@ -350,6 +366,258 @@ const ComponentsDemo: React.FC = () => {
                             <Badge variant="danger" dot>Offline</Badge>
                             <Badge variant="warning" dot>Away</Badge>
                         </div>
+                    </div>
+                </div>
+            </Section>
+
+            {/* Toast Notifications Section */}
+            <Section title="Toast Notifications">
+                <div className="demo-grid">
+                    <div className="demo-item">
+                        <h3>Toast Types</h3>
+                        <div className="demo-buttons">
+                            <Button onClick={() => toast.info("This is an info toast message")}>
+                                Show Info Toast
+                            </Button>
+                            <Button
+                                variant="success"
+                                onClick={() => toast.success("Your changes have been saved successfully")}
+                            >
+                                Show Success Toast
+                            </Button>
+                            <Button
+                                variant="warning"
+                                onClick={() => toast.warning("Your session will expire soon")}
+                            >
+                                Show Warning Toast
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={() => toast.error("An error occurred while processing your request")}
+                            >
+                                Show Error Toast
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Toast with Title</h3>
+                        <Button
+                            onClick={() =>
+                                toast.info("All systems are operational.", {
+                                    title: "System Status",
+                                    duration: 5000
+                                })
+                            }
+                        >
+                            Toast with Title
+                        </Button>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Custom Duration</h3>
+                        <Button
+                            onClick={() =>
+                                toast.info("This toast will stay for 10 seconds", {
+                                    duration: 10000
+                                })
+                            }
+                        >
+                            Long Duration (10s)
+                        </Button>
+                    </div>
+                </div>
+            </Section>
+
+            {/* Tabs Section */}
+            <Section title="Tabs">
+                <div className="demo-grid">
+                    <div className="demo-item demo-item-wide">
+                        <h3>Default Tabs</h3>
+                        <Tabs value={activeTab} onChange={setActiveTab}>
+                            <TabItem value="tab1" label="Dashboard" />
+                            <TabItem value="tab2" label="Settings" />
+                            <TabItem value="tab3" label="Users" />
+                            <TabItem value="tab4" label="Reports" disabled />
+                        </Tabs>
+                        <div className="tab-content">
+                            {activeTab === "tab1" && <p>Dashboard content goes here</p>}
+                            {activeTab === "tab2" && <p>Settings content goes here</p>}
+                            {activeTab === "tab3" && <p>Users content goes here</p>}
+                        </div>
+                    </div>
+
+                    <div className="demo-item demo-item-wide">
+                        <h3>Tab Variants</h3>
+                        <div className="field-group">
+                            <Tabs value={variantTab} onChange={setVariantTab} variant="default">
+                                <TabItem value="vtab1" label="Default Style" />
+                                <TabItem value="vtab2" label="Another Tab" />
+                            </Tabs>
+
+                            <Tabs value={variantTab} onChange={setVariantTab} variant="bordered">
+                                <TabItem value="vtab1" label="Bordered Style" />
+                                <TabItem value="vtab2" label="Another Tab" />
+                            </Tabs>
+
+                            <Tabs value={variantTab} onChange={setVariantTab} variant="pills">
+                                <TabItem value="vtab1" label="Pills Style" />
+                                <TabItem value="vtab2" label="Another Tab" />
+                            </Tabs>
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Tabs with Icons</h3>
+                        <Tabs value={iconTab} onChange={setIconTab}>
+                            <TabItem
+                                value="itab1"
+                                label="Home"
+                                icon={<Home size={16} />}
+                            />
+                            <TabItem
+                                value="itab2"
+                                label="Settings"
+                                icon={<Settings size={16} />}
+                            />
+                            <TabItem
+                                value="itab3"
+                                label="Users"
+                                icon={<User size={16} />}
+                            />
+                        </Tabs>
+                    </div>
+                </div>
+            </Section>
+
+            {/* Spinners Section */}
+            <Section title="Spinners">
+                <div className="demo-grid">
+                    <div className="demo-item">
+                        <h3>Sizes</h3>
+                        <div className="demo-spinners">
+                            <Spinner size="xs" />
+                            <Spinner size="sm" />
+                            <Spinner size="md" />
+                            <Spinner size="lg" />
+                            <Spinner size="xl" />
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Colors</h3>
+                        <div className="demo-spinners">
+                            <Spinner variant="primary" />
+                            <Spinner variant="secondary" />
+                            <Spinner variant="success" />
+                            <Spinner variant="warning" />
+                            <Spinner variant="error" />
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Thickness</h3>
+                        <div className="demo-spinners">
+                            <Spinner thickness="thin" />
+                            <Spinner thickness="regular" />
+                            <Spinner thickness="thick" />
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>With Label</h3>
+                        <Spinner size="lg" showLabel label="Loading data..." />
+                    </div>
+
+                    <div className="demo-item demo-item-wide">
+                        <h3>Spinner Overlay</h3>
+                        <div className="overlay-container">
+                            <p>Content is blocked when overlay is active</p>
+                            <Button
+                                onClick={() =>
+                                    setShowSpinnerOverlay(prev => !prev)
+                                }
+                            >
+                                {showSpinnerOverlay ? "Hide Overlay" : "Show Overlay"}
+                            </Button>
+                            <SpinnerOverlay
+                                visible={showSpinnerOverlay}
+                                blur
+                                label="Processing..."
+                                showLabel
+                            />
+                        </div>
+                    </div>
+                </div>
+            </Section>
+
+            {/* Tooltips Section */}
+            <Section title="Tooltips">
+                <div className="demo-grid">
+                    <div className="demo-item">
+                        <h3>Positions</h3>
+                        <div className="tooltip-demo-container">
+                            <Tooltip content="Top tooltip" position="top">
+                                <Button variant="outline">Top</Button>
+                            </Tooltip>
+
+                            <Tooltip content="Right tooltip" position="right">
+                                <Button variant="outline">Right</Button>
+                            </Tooltip>
+
+                            <Tooltip content="Bottom tooltip" position="bottom">
+                                <Button variant="outline">Bottom</Button>
+                            </Tooltip>
+
+                            <Tooltip content="Left tooltip" position="left">
+                                <Button variant="outline">Left</Button>
+                            </Tooltip>
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Delay</h3>
+                        <div className="tooltip-demo-container">
+                            <Tooltip
+                                content="Immediate tooltip (no delay)"
+                                delay={0}
+                            >
+                                <Button variant="outline">No Delay</Button>
+                            </Tooltip>
+
+                            <Tooltip
+                                content="Delayed tooltip (1 second)"
+                                delay={1000}
+                            >
+                                <Button variant="outline">1s Delay</Button>
+                            </Tooltip>
+                        </div>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>Without Arrow</h3>
+                        <Tooltip
+                            content="Tooltip without arrow"
+                            arrow={false}
+                        >
+                            <Button variant="outline">No Arrow</Button>
+                        </Tooltip>
+                    </div>
+
+                    <div className="demo-item">
+                        <h3>With HTML Content</h3>
+                        <Tooltip
+                            content={
+                                <div>
+                                    <strong>Rich Tooltip</strong>
+                                    <p>With multiple lines of content</p>
+                                    <em>And formatting</em>
+                                </div>
+                            }
+                            maxWidth={250}
+                        >
+                            <Button variant="outline">Rich Content</Button>
+                        </Tooltip>
                     </div>
                 </div>
             </Section>

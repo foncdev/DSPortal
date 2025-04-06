@@ -10,6 +10,7 @@ export default defineConfig({
             '@': resolve(__dirname, 'src'),
             '@ds/core': resolve(__dirname, '../packages/core'),
             '@ds/utils': resolve(__dirname, '../packages/utils'),
+            '@ds/ui': resolve(__dirname, '../packages/ui'),
             '@styles': resolve(__dirname, './src/styles')
         },
     },
@@ -30,7 +31,7 @@ export default defineConfig({
             output: {
                 manualChunks: {
                     react: ['react', 'react-dom'],
-                    vendor: ['@ds/core', '@ds/utils']
+                    vendor: ['@ds/core', '@ds/utils', '@ds/ui']
                 }
             }
         },
@@ -40,7 +41,7 @@ export default defineConfig({
     // 최적화 설정
     optimizeDeps: {
         include: ['react', 'react-dom'],
-        exclude: ['@ds/core', '@ds/utils']
+        exclude: ['@ds/core', '@ds/utils', '@ds/ui']
     },
     // 환경 변수 설정
     define: {
