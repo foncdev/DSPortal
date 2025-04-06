@@ -1,0 +1,14 @@
+// Import all style files
+@import './_variables';
+@import './_mixins';
+
+// Reset and base styles
+.ds-ui-component {
+  box-sizing: border-box;
+  font-family: var(--ui-font-family-sans);
+  line-height: var(--ui-line-height-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Core component styles will be imported by each individual component

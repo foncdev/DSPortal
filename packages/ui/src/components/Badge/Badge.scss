@@ -1,0 +1,105 @@
+@import '../../styles/_variables';
+@import '../../styles/_mixins';
+
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: var(--ui-radius-md);
+  white-space: nowrap;
+
+  // Sizes
+  &-sm {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+    line-height: 1.2;
+  }
+
+  &-md {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.2;
+  }
+
+  &-lg {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    line-height: 1.2;
+  }
+
+  // Variants
+  &-primary {
+    background-color: var(--ui-color-primary);
+    color: var(--ui-color-primary-contrast);
+  }
+
+  &-secondary {
+    background-color: var(--ui-color-secondary);
+    color: var(--ui-color-secondary-contrast);
+  }
+
+  &-success {
+    background-color: var(--ui-color-success);
+    color: var(--ui-color-text-invert);
+  }
+
+  &-warning {
+    background-color: var(--ui-color-warning);
+    color: var(--ui-color-text-invert);
+  }
+
+  &-danger {
+    background-color: var(--ui-color-error);
+    color: var(--ui-color-text-invert);
+  }
+
+  &-outline {
+    background-color: transparent;
+
+    &.ds-badge-primary {
+      border: 1px solid var(--ui-color-primary);
+      color: var(--ui-color-primary);
+    }
+
+    &.ds-badge-secondary {
+      border: 1px solid var(--ui-color-secondary);
+      color: var(--ui-color-secondary);
+    }
+
+    &.ds-badge-success {
+      border: 1px solid var(--ui-color-success);
+      color: var(--ui-color-success);
+    }
+
+    &.ds-badge-warning {
+      border: 1px solid var(--ui-color-warning);
+      color: var(--ui-color-warning);
+    }
+
+    &.ds-badge-danger {
+      border: 1px solid var(--ui-color-error);
+      color: var(--ui-color-error);
+    }
+  }
+
+  // Rounded (pill-shaped)
+  &-rounded {
+    border-radius: var(--ui-radius-full);
+  }
+
+  // Dot style
+  &-dot {
+    padding-left: 0.5rem;
+
+    .ds-badge-dot-indicator {
+      display: inline-block;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      margin-right: 0.375rem;
+
+      background-color: currentColor;
+    }
+  }
+}

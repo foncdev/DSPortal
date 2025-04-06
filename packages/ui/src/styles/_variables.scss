@@ -1,0 +1,98 @@
+// Variables file with defaults that can be overridden by the main app
+
+:root {
+  // General
+  --ui-font-family-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ui-font-size-base: 16px;
+  --ui-line-height-base: 1.5;
+
+  // Colors
+  --ui-color-primary: var(--color-primary, #3b82f6);
+  --ui-color-primary-light: var(--color-primary-light, #60a5fa);
+  --ui-color-primary-dark: var(--color-primary-dark, #2563eb);
+  --ui-color-primary-contrast: var(--color-primary-contrast, #ffffff);
+
+  --ui-color-secondary: var(--color-secondary, #64748b);
+  --ui-color-secondary-light: var(--color-secondary-light, #94a3b8);
+  --ui-color-secondary-dark: var(--color-secondary-dark, #475569);
+  --ui-color-secondary-contrast: var(--color-secondary-contrast, #ffffff);
+
+  --ui-color-success: var(--color-success, #10b981);
+  --ui-color-warning: var(--color-warning, #f59e0b);
+  --ui-color-error: var(--color-error, #ef4444);
+  --ui-color-info: var(--color-info, #06b6d4);
+
+  // Background colors
+  --ui-color-bg-primary: var(--color-bg-primary, #ffffff);
+  --ui-color-bg-secondary: var(--color-bg-secondary, #f9fafb);
+  --ui-color-bg-tertiary: var(--color-bg-tertiary, #f3f4f6);
+  --ui-color-bg-inset: var(--color-bg-inset, #e5e7eb);
+
+  // Text colors
+  --ui-color-text-primary: var(--color-text-primary, #111827);
+  --ui-color-text-secondary: var(--color-text-secondary, #374151);
+  --ui-color-text-tertiary: var(--color-text-tertiary, #6b7280);
+  --ui-color-text-invert: var(--color-text-invert, #ffffff);
+
+  // Border colors
+  --ui-color-border: var(--color-border, #e5e7eb);
+  --ui-color-border-light: var(--color-border-light, #f3f4f6);
+  --ui-color-border-dark: var(--color-border-dark, #d1d5db);
+
+  // Shadows
+  --ui-shadow-sm: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  --ui-shadow-md: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1));
+  --ui-shadow-lg: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1));
+
+  // Spacing
+  --ui-spacing-1: 0.25rem;
+  --ui-spacing-2: 0.5rem;
+  --ui-spacing-3: 0.75rem;
+  --ui-spacing-4: 1rem;
+  --ui-spacing-5: 1.25rem;
+  --ui-spacing-6: 1.5rem;
+  --ui-spacing-8: 2rem;
+  --ui-spacing-10: 2.5rem;
+  --ui-spacing-12: 3rem;
+
+  // Border radius
+  --ui-radius-sm: 0.25rem;
+  --ui-radius-md: 0.375rem;
+  --ui-radius-lg: 0.5rem;
+  --ui-radius-full: 9999px;
+
+  // Transitions
+  --ui-transition-fast: var(--transition-fast, 150ms);
+  --ui-transition-normal: var(--transition-normal, 250ms);
+  --ui-transition-slow: var(--transition-slow, 350ms);
+
+  // Z-index layers
+  --ui-z-index-dropdown: 1000;
+  --ui-z-index-sticky: 1020;
+  --ui-z-index-fixed: 1030;
+  --ui-z-index-modal-backdrop: 1040;
+  --ui-z-index-modal: 1050;
+  --ui-z-index-popover: 1060;
+  --ui-z-index-tooltip: 1070;
+  --ui-z-index-toast: 1080;
+}
+
+// Dark mode overrides
+.dark {
+  --ui-color-bg-primary: var(--color-bg-primary, #111827);
+  --ui-color-bg-secondary: var(--color-bg-secondary, #1f2937);
+  --ui-color-bg-tertiary: var(--color-bg-tertiary, #374151);
+  --ui-color-bg-inset: var(--color-bg-inset, #4b5563);
+
+  --ui-color-text-primary: var(--color-text-primary, #f9fafb);
+  --ui-color-text-secondary: var(--color-text-secondary, #e5e7eb);
+  --ui-color-text-tertiary: var(--color-text-tertiary, #9ca3af);
+
+  --ui-color-border: var(--color-border, #374151);
+  --ui-color-border-light: var(--color-border-light, #4b5563);
+  --ui-color-border-dark: var(--color-border-dark, #1f2937);
+
+  --ui-shadow-sm: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.1));
+  --ui-shadow-md: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2));
+  --ui-shadow-lg: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2));
+}

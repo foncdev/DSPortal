@@ -1,0 +1,22 @@
+@import '../../styles/_variables';
+@import '../../styles/_mixins';
+
+.ds-label {
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+  margin-bottom: var(--ui-spacing-2);
+
+  &-required {
+    &-indicator {
+      margin-left: var(--ui-spacing-1);
+      color: var(--ui-color-error);
+    }
+  }
+
+  &-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}

@@ -1,0 +1,224 @@
+@import '../../styles/_variables';
+@import '../../styles/_mixins';
+
+.ds-select {
+  &-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-spacing-1);
+    width: auto;
+  }
+
+  &-full {
+    width: 100%;
+  }
+
+  &-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ui-color-text-primary);
+    margin-bottom: var(--ui-spacing-1);
+
+    .ds-select-required {
+      margin-left: var(--ui-spacing-1);
+      color: var(--ui-color-error);
+    }
+  }
+
+  &-wrapper {
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--ui-color-border);
+    border-radius: var(--ui-radius-md);
+    background-color: var(--ui-color-bg-primary);
+    transition: all var(--ui-transition-fast) ease;
+  }
+
+  // Trigger sizing
+  &-sm {
+    .ds-select-trigger {
+      height: 32px;
+      font-size: 0.875rem;
+    }
+  }
+
+  &-md {
+    .ds-select-trigger {
+      height: 40px;
+      font-size: 0.9375rem;
+    }
+  }
+
+  &-lg {
+    .ds-select-trigger {
+      height: 48px;
+      font-size: 1rem;
+    }
+  }
+
+  // Trigger element
+  &-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--ui-spacing-3);
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    user-select: none;
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  &-value {
+    flex: 1;
+    @include text-truncate;
+  }
+
+  &-placeholder {
+    color: var(--ui-color-text-tertiary);
+  }
+
+  // Dropdown icon
+  &-icon {
+    color: var(--ui-color-text-tertiary);
+    margin-left: var(--ui-spacing-2);
+    transition: transform var(--ui-transition-fast) ease;
+
+    &-open {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Dropdown
+  &-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    background-color: var(--ui-color-bg-primary);
+    border: 1px solid var(--ui-color-border);
+    border-radius: var(--ui-radius-md);
+    box-shadow: var(--ui-shadow-md);
+    z-index: var(--ui-z-index-dropdown);
+    max-height: 200px;
+    overflow-y: auto;
+    @include custom-scrollbar;
+    @include fade-in(0.2s);
+  }
+
+  // Options
+  &-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem var(--ui-spacing-3);
+    cursor: pointer;
+    transition: background-color var(--ui-transition-fast) ease;
+
+    &:hover:not(.ds-select-option-disabled) {
+      background-color: var(--ui-color-bg-tertiary);
+    }
+
+    &-selected {
+      background-color: var(--ui-color-primary);
+      color: var(--ui-color-primary-contrast);
+
+      &:hover {
+        background-color: var(--ui-color-primary-dark);
+      }
+
+      .ds-select-option-check {
+        color: var(--ui-color-primary-contrast);
+      }
+    }
+
+    &-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &-label {
+      flex: 1;
+      @include text-truncate;
+    }
+
+    &-check {
+      margin-left: var(--ui-spacing-2);
+    }
+  }
+
+  // States
+  &-focused {
+    border-color: var(--ui-color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+
+  &-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--ui-color-bg-tertiary);
+
+    .ds-select-trigger {
+      cursor: not-allowed;
+    }
+  }
+
+  &-error {
+    border-color: var(--ui-color-error);
+
+    &.ds-select-focused {
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    }
+  }
+
+  &-success {
+    border-color: var(--ui-color-success);
+
+    &.ds-select-focused {
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+    }
+  }
+
+  // Helper text
+  &-helper {
+    font-size: 0.75rem;
+    color: var(--ui-color-text-tertiary);
+    min-height: 1em;
+    margin-top: var(--ui-spacing-1);
+
+    &-error {
+      color: var(--ui-color-error);
+    }
+  }
+}
+
+// Dark mode adjustments
+.dark {
+  .ds-select {
+    &-wrapper {
+      background-color: var(--ui-color-bg-secondary);
+    }
+
+    &-dropdown {
+      background-color: var(--ui-color-bg-secondary);
+      border-color: var(--ui-color-border-dark);
+    }
+
+    &-option {
+      &:hover:not(.ds-select-option-disabled) {
+        background-color: var(--ui-color-bg-tertiary);
+      }
+
+      &-selected {
+        background-color: var(--ui-color-primary);
+
+        &:hover {
+          background-color: var(--ui-color-primary-dark);
+        }
+      }
+    }
+  }
+}
