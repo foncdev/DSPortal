@@ -1,0 +1,136 @@
+@use '../../styles/_variables' as *;
+@use '../../styles/_mixins' as *;
+
+.ds-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--ui-color-bg-primary);
+  border-radius: var(--ui-radius-lg);
+  overflow: hidden;
+  width: 100%;
+
+  // Sizes
+  &-sm {
+    font-size: 0.875rem;
+  }
+
+  &-md {
+    font-size: 1rem;
+  }
+
+  &-lg {
+    font-size: 1.125rem;
+  }
+
+  // Bordered variation
+  &-bordered {
+    border: 1px solid var(--ui-color-border);
+  }
+
+  // Hover effect
+  &-hoverable {
+    transition: transform var(--ui-transition-normal) ease,
+    box-shadow var(--ui-transition-normal) ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--ui-shadow-md);
+    }
+  }
+
+  // Card image
+  &-image-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  &-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  // Card header
+  &-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+  }
+
+  &-title {
+    font-weight: 600;
+    font-size: 1.25em;
+    color: var(--ui-color-text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  &-subtitle {
+    font-size: 0.875em;
+    color: var(--ui-color-text-tertiary);
+  }
+
+  // Card body
+  &-body {
+    padding: 1.25rem;
+    flex: 1;
+    color: var(--ui-color-text-secondary);
+  }
+
+  // Card footer
+  &-footer {
+    padding: 0.75rem 1.25rem 1.25rem;
+    border-top: 1px solid var(--ui-color-border);
+
+    // If there's content in the footer, add proper padding
+    &:not(:empty) {
+      padding-top: 1.25rem;
+    }
+  }
+}
+
+// Card component variations
+.ds-card-horizontal {
+  flex-direction: row;
+
+  .ds-card-image-wrapper {
+    flex: 0 0 33%;
+    max-width: 300px;
+
+    .ds-card-image {
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .ds-card-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+}
+
+// Responsive adjustments
+@include mobile {
+  .ds-card-horizontal {
+    flex-direction: column;
+
+    .ds-card-image-wrapper {
+      max-width: 100%;
+    }
+  }
+}
+
+// Dark mode adjustments
+.dark {
+  .ds-card {
+    background-color: var(--ui-color-bg-secondary);
+
+    &-bordered {
+      border-color: var(--ui-color-border-dark);
+    }
+
+    &-footer {
+      border-top-color: var(--ui-color-border-dark);
+    }
+  }
+}

@@ -35,7 +35,9 @@ export const Modal: React.FC<ModalProps> = ({
 
     // Handle escape key press
     useEffect(() => {
-        if (!isOpen || !closeOnEsc) {return;}
+        if (!isOpen || !closeOnEsc) {
+            return undefined; // Fixed: explicit return value
+        }
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -51,7 +53,9 @@ export const Modal: React.FC<ModalProps> = ({
 
     // Handle focus trap and body scroll
     useEffect(() => {
-        if (!isOpen) {return;}
+        if (!isOpen) {
+            return undefined; // Fixed: explicit return value
+        }
 
         // Save current active element to restore focus later
         previousActiveElement.current = document.activeElement;
@@ -81,14 +85,18 @@ export const Modal: React.FC<ModalProps> = ({
 
     // Handle overlay click
     const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-        if (!closeOnOverlayClick) {return;}
+        if (!closeOnOverlayClick) {
+            return;
+        }
 
         if (event.target === event.currentTarget) {
             onClose();
         }
     };
 
-    if (!isOpen) {return null;}
+    if (!isOpen) {
+        return null;
+    }
 
     // Create portal
     return createPortal(
@@ -102,7 +110,7 @@ export const Modal: React.FC<ModalProps> = ({
             <div
                 ref={modalRef}
                 className={cn(
-                    'ds-modal',
+                    'ds-modal-modal',
                     `ds-modal-${size}`,
                     className
                 )}
@@ -137,10 +145,10 @@ export const Modal: React.FC<ModalProps> = ({
 export interface ModalFooterProps extends BaseProps {}
 
 export const ModalFooter: React.FC<ModalFooterProps> = ({ children, className, ...props }) => (
-        <div className={cn('ds-modal-footer', className)} {...props}>
-            {children}
-        </div>
-    );
+    <div className={cn('ds-modal-footer', className)} {...props}>
+        {children}
+    </div>
+);
 
 Modal.displayName = 'Modal';
 ModalFooter.displayName = 'ModalFooter';

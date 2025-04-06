@@ -1,0 +1,181 @@
+@use '../../styles/_variables' as *;
+@use '../../styles/_mixins' as *;
+
+.ds-tabs {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  // Sizes
+  &-sm {
+    font-size: 0.875rem;
+  }
+
+  &-md {
+    font-size: 0.9375rem;
+  }
+
+  &-lg {
+    font-size: 1rem;
+  }
+
+  // Full width
+  &-full {
+    .ds-tabs-list {
+      width: 100%;
+    }
+
+    .ds-tab-item {
+      flex: 1;
+    }
+  }
+
+  // Tabs list container
+  &-list {
+    display: flex;
+    position: relative;
+    border-bottom: 1px solid var(--ui-color-border);
+    margin-bottom: 1rem;
+  }
+
+  // Variants
+  &-default {
+    .ds-tab-item {
+      color: var(--ui-color-text-tertiary);
+      border-bottom: 2px solid transparent;
+
+      &-active {
+        color: var(--ui-color-primary);
+        font-weight: 500;
+      }
+    }
+
+    .ds-tabs-indicator {
+      position: absolute;
+      bottom: -1px;
+      height: 2px;
+      background-color: var(--ui-color-primary);
+      transition: left var(--ui-transition-normal) ease,
+      width var(--ui-transition-normal) ease;
+    }
+  }
+
+  &-bordered {
+    .ds-tabs-list {
+      border-bottom: none;
+    }
+
+    .ds-tab-item {
+      border: 1px solid var(--ui-color-border);
+      border-bottom: none;
+      border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
+      background-color: var(--ui-color-bg-tertiary);
+      color: var(--ui-color-text-tertiary);
+      margin-right: 0.25rem;
+
+      &-active {
+        background-color: var(--ui-color-bg-primary);
+        color: var(--ui-color-text-primary);
+        border-bottom: 1px solid var(--ui-color-bg-primary);
+        margin-bottom: -1px;
+      }
+
+      &:hover:not(.ds-tab-item-active):not(.ds-tab-item-disabled) {
+        background-color: var(--ui-color-bg-secondary);
+      }
+    }
+
+    .ds-tabs-indicator {
+      display: none;
+    }
+  }
+
+  &-pills {
+    .ds-tabs-list {
+      border-bottom: none;
+      gap: 0.5rem;
+    }
+
+    .ds-tab-item {
+      border-radius: var(--ui-radius-full);
+      background-color: var(--ui-color-bg-tertiary);
+      color: var(--ui-color-text-tertiary);
+
+      &-active {
+        background-color: var(--ui-color-primary);
+        color: var(--ui-color-primary-contrast);
+      }
+
+      &:hover:not(.ds-tab-item-active):not(.ds-tab-item-disabled) {
+        background-color: var(--ui-color-bg-secondary);
+      }
+    }
+
+    .ds-tabs-indicator {
+      display: none;
+    }
+  }
+}
+
+// Tab items
+.ds-tab-item {
+  @include button-reset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: color var(--ui-transition-fast) ease,
+  background-color var(--ui-transition-fast) ease;
+  @include focus-ring;
+
+  // Sizes
+  &-sm {
+    padding: 0.5rem 0.75rem;
+    height: 32px;
+  }
+
+  &-md {
+    padding: 0.625rem 1rem;
+    height: 40px;
+  }
+
+  &-lg {
+    padding: 0.75rem 1.25rem;
+    height: 48px;
+  }
+
+  // States
+  &-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // Icon
+  &-icon {
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// Dark mode adjustments
+.dark {
+  .ds-tabs-list {
+    border-bottom-color: var(--ui-color-border-dark);
+  }
+
+  .ds-tabs-bordered {
+    .ds-tab-item {
+      border-color: var(--ui-color-border-dark);
+      background-color: var(--ui-color-bg-tertiary);
+
+      &-active {
+        background-color: var(--ui-color-bg-secondary);
+        border-bottom-color: var(--ui-color-bg-secondary);
+      }
+    }
+  }
+}

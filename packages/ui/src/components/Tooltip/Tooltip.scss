@@ -1,0 +1,64 @@
+@use '../../styles/_variables' as *;
+@use '../../styles/_mixins' as *;
+
+.ds-tooltip {
+  position: absolute;
+  z-index: var(--ui-z-index-tooltip);
+  padding: 0.5rem 0.75rem;
+  background-color: var(--ui-color-bg-secondary);
+  color: var(--ui-color-text-primary);
+  border-radius: var(--ui-radius-md);
+  font-size: 0.875rem;
+  box-shadow: var(--ui-shadow-md);
+  pointer-events: none;
+  word-wrap: break-word;
+  @include fade-in(0.2s);
+
+  &-trigger {
+    display: inline-flex;
+  }
+
+  // Arrow styles
+  &-arrow {
+    &:before {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: inherit;
+      transform: rotate(45deg);
+    }
+
+    &.ds-tooltip-top:before {
+      bottom: -4px;
+      left: 50%;
+      margin-left: -4px;
+    }
+
+    &.ds-tooltip-right:before {
+      left: -4px;
+      top: 50%;
+      margin-top: -4px;
+    }
+
+    &.ds-tooltip-bottom:before {
+      top: -4px;
+      left: 50%;
+      margin-left: -4px;
+    }
+
+    &.ds-tooltip-left:before {
+      right: -4px;
+      top: 50%;
+      margin-top: -4px;
+    }
+  }
+}
+
+// Dark mode adjustments
+.dark {
+  .ds-tooltip {
+    background-color: var(--ui-color-bg-tertiary);
+    color: var(--ui-color-text-primary);
+  }
+}

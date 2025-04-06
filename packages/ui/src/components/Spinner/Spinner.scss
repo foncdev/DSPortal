@@ -1,0 +1,184 @@
+@use '../../styles/_variables' as *;
+@use '../../styles/_mixins' as *;
+
+// Spinner container
+.ds-spinner {
+  &-container {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &-centered {
+    margin: 0 auto;
+  }
+
+  // Spinner sizes
+  &-xs {
+    width: 16px;
+    height: 16px;
+  }
+
+  &-sm {
+    width: 24px;
+    height: 24px;
+  }
+
+  &-md {
+    width: 36px;
+    height: 36px;
+  }
+
+  &-lg {
+    width: 48px;
+    height: 48px;
+  }
+
+  &-xl {
+    width: 64px;
+    height: 64px;
+  }
+
+  // Spinner element
+  &-svg {
+    animation: rotate 1.4s linear infinite;
+    width: 100%;
+    height: 100%;
+  }
+
+  &-track {
+    stroke: var(--ui-color-bg-tertiary);
+    stroke-linecap: round;
+  }
+
+  &-progress {
+    stroke-linecap: round;
+    stroke-dasharray: 126;
+    stroke-dashoffset: 75;
+    transform-origin: center;
+    animation: dash 1.4s ease-in-out infinite;
+  }
+
+  // Thickness variants
+  &-thin .ds-spinner-track,
+  &-thin .ds-spinner-progress {
+    stroke-width: 3;
+  }
+
+  &-regular .ds-spinner-track,
+  &-regular .ds-spinner-progress {
+    stroke-width: 5;
+  }
+
+  &-thick .ds-spinner-track,
+  &-thick .ds-spinner-progress {
+    stroke-width: 7;
+  }
+
+  // Color variants
+  &-primary .ds-spinner-progress {
+    stroke: var(--ui-color-primary);
+  }
+
+  &-secondary .ds-spinner-progress {
+    stroke: var(--ui-color-secondary);
+  }
+
+  &-success .ds-spinner-progress {
+    stroke: var(--ui-color-success);
+  }
+
+  &-warning .ds-spinner-progress {
+    stroke: var(--ui-color-warning);
+  }
+
+  &-error .ds-spinner-progress {
+    stroke: var(--ui-color-error);
+  }
+
+  &-light .ds-spinner-progress {
+    stroke: var(--ui-color-bg-primary);
+  }
+
+  // Label
+  &-label {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--ui-color-text-secondary);
+  }
+
+  // Screen reader only text
+  &-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+// Spinner overlay
+.ds-spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: var(--ui-z-index-modal);
+
+  &-blur {
+    backdrop-filter: blur(2px);
+  }
+
+  &-fixed {
+    position: fixed;
+  }
+}
+
+// Animations
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 126;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 126;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 126;
+    stroke-dashoffset: -124;
+  }
+}
+
+// Dark mode adjustments
+.dark {
+  .ds-spinner {
+    &-track {
+      stroke: var(--ui-color-bg-tertiary);
+    }
+
+    &-label {
+      color: var(--ui-color-text-secondary);
+    }
+  }
+
+  .ds-spinner-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+}
