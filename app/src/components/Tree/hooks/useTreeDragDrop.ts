@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { TreeNode, DropPosition, TreeDragDropState, TreeProps } from '../types';
 import { DROP_THRESHOLD, DROP_CLASSES } from '../constants';
 import { moveNode } from '../utils/treeOperations';
@@ -18,6 +18,9 @@ export const useTreeDragDrop = (
     const [draggedNode, setDraggedNode] = useState<TreeNode | null>(null);
     const [dropTargetId, setDropTargetId] = useState<string | null>(null);
     const [dropPosition, setDropPosition] = useState<DropPosition | null>(null);
+
+    // Prevent excessive state updates
+    const lastDropEventRef = useRef<number>(0);
 
     // 드롭 위치 계산
     const getDropPosition = useCallback((y: number, rect: DOMRect): DropPosition => {
@@ -73,6 +76,13 @@ export const useTreeDragDrop = (
         e.stopPropagation();
 
         if (!draggable || !draggedNode || node.isDisabled) return;
+
+        // Throttle drag over updates to prevent excessive state updates
+        const now = Date.now();
+        if (now - lastDropEventRef.current < 50) { // 50ms throttling
+            return;
+        }
+        lastDropEventRef.current = now;
 
         // 자기 자신이나 자손에게 드롭 방지
         if (node.id === draggedNode.id || isDescendantOf(node.id, draggedNode.id, treeData)) {

@@ -59,9 +59,15 @@ export const useTreeState = (props: TreeProps): TreeState & {
 
     // 확장된 노드 ID 추적 (렌더링 사이에 유지)
     const expandedNodesRef = useRef<Set<string>>(new Set(expandedIds));
+    const processedDataRef = useRef<boolean>(false);
 
     // 데이터 변경 시 내부 상태 업데이트
     useEffect(() => {
+        // 무한 루프 방지: 이미 처리된 데이터인지 확인
+        if (processedDataRef.current) {
+            return;
+        }
+
         // 노드 처리 함수 (확장 및 선택 상태 설정)
         const processNodes = (nodes: TreeNode[]): TreeNode[] =>
             nodes.map(node => {
@@ -78,7 +84,9 @@ export const useTreeState = (props: TreeProps): TreeState & {
                 };
             });
 
-        setTreeData(processNodes(data));
+        const processedData = processNodes(data);
+        setTreeData(processedData);
+        processedDataRef.current = true;
     }, [data, selectedIds]);
 
     // expandedIds prop 변경 시 참조 업데이트

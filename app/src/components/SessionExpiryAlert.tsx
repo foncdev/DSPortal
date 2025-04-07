@@ -1,5 +1,5 @@
-// app/src/components/SessionExpiryAlert.tsx 수정
-import React, { useEffect, useState } from 'react';
+// app/src/components/SessionExpiryAlert.tsx - Fixed version
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { authManager, SessionState } from '@ds/core';
@@ -11,29 +11,42 @@ const SessionExpiryAlert: React.FC = () => {
     const [extending, setExtending] = useState<boolean>(false);
     const [formattedTime, setFormattedTime] = useState<string>('');
 
+    // Prevent infinite loops
+    const lastUpdateTimeRef = useRef<number>(0);
+
+    // Extract the handler to prevent recreating on each render
+    const handleSessionUpdate = useCallback((time: number) => {
+        // Skip if the last update was less than 500ms ago to prevent potential issues
+        const now = Date.now();
+        if (now - lastUpdateTimeRef.current < 500) {
+            return;
+        }
+        lastUpdateTimeRef.current = now;
+
+        // Get formatted time from auth manager
+        const currentFormattedTime = authManager.getFormattedSessionTimeRemaining();
+        setFormattedTime(currentFormattedTime);
+
+        // 세션 상태에 따라 알림 표시 설정
+        const state = time <= 60 ? SessionState.EXPIRING :
+            time <= 300 ? SessionState.WARNING :
+                SessionState.ACTIVE;
+
+        // EXPIRING 상태일 때만 알림 표시
+        setVisible(state === SessionState.EXPIRING);
+    }, []);
+
     useEffect(() => {
-        const handleSessionUpdate = (time: number) => {
-            setFormattedTime(authManager.getFormattedSessionTimeRemaining());
-
-            // 세션 상태에 따라 알림 표시 설정
-            const state = time <= 60 ? SessionState.EXPIRING :
-                time <= 300 ? SessionState.WARNING :
-                    SessionState.ACTIVE;
-
-            // EXPIRING 상태일 때만 알림 표시
-            setVisible(state === SessionState.EXPIRING);
-        };
-
         // 세션 업데이트 구독
         const unsubscribe = authManager.subscribeToSessionUpdates(handleSessionUpdate);
 
         return () => {
             unsubscribe();
         };
-    }, []);
+    }, [handleSessionUpdate]);
 
     const extendSession = async () => {
-        if (extending) {return;}
+        if (extending) return;
 
         setExtending(true);
         try {
