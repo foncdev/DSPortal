@@ -1,41 +1,13 @@
-// English translations
-export const treeEnTranslations = {
-    tree: {
-        addRoot: "Add Root Folder",
-        create: "Create",
-        edit: "Edit",
-        delete: "Delete",
-        deleteConfirmTitle: "Confirm Deletion",
-        deleteConfirmMessage: "Are you sure you want to delete '{{name}}'? This action cannot be undone.",
-        newNodeNamePlaceholder: "Enter name...",
-        move: "Move",
-        copy: "Copy",
-        confirmButton: "Confirm",
-        cancelButton: "Cancel"
-    }
-};
+import en from './en';
+import ko from './ko';
 
-// Korean translations
-export const treeKoTranslations = {
-    tree: {
-        addRoot: "루트 폴더 추가",
-        create: "생성",
-        edit: "편집",
-        delete: "삭제",
-        deleteConfirmTitle: "삭제 확인",
-        deleteConfirmMessage: "'{{name}}'을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
-        newNodeNamePlaceholder: "이름 입력...",
-        move: "이동",
-        copy: "복사",
-        confirmButton: "확인",
-        cancelButton: "취소"
-    }
-};
-
-// Export combined translations
+/**
+ * 트리 컴포넌트 다국어 리소스
+ */
 export const treeTranslations = {
-    en: treeEnTranslations,
-    ko: treeKoTranslations
+    en,
+    ko
 };
 
+export { en, ko };
 export default treeTranslations;

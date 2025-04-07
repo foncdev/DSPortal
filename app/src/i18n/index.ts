@@ -4,6 +4,8 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { dataTableEnTranslations, dataTableKoTranslations } from '../components/DataTable/i18n';
 
+import { treeTranslations } from '../components/Tree/i18n';
+
 
 // Import translations
 import baseEnTranslations from './locales/en.json';
@@ -11,12 +13,14 @@ import baseKoTranslations from './locales/ko.json';
 
 const enTranslations = {
     ...baseEnTranslations,
-    ...dataTableEnTranslations
+    ...dataTableEnTranslations,
+    ...treeTranslations.en
 };
 
 const koTranslations = {
     ...baseKoTranslations,
-    ...dataTableKoTranslations
+    ...dataTableKoTranslations,
+    ...treeTranslations.ko
 };
 
 void i18n

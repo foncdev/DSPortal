@@ -1,38 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import './Dialog.scss';
-
-interface DialogProps {
-    /** Dialog title */
-    title: string;
-    /** Dialog content or message */
-    children?: React.ReactNode;
-    /** Is dialog open */
-    isOpen: boolean;
-    /** Callback when dialog closes */
-    onClose: () => void;
-    /** Width of the dialog */
-    width?: string;
-}
-
-interface ConfirmDialogProps {
-    /** Dialog title */
-    title: string;
-    /** Dialog message */
-    message: string;
-    /** Is dialog open */
-    isOpen: boolean;
-    /** Callback when confirmed */
-    onConfirm: () => void;
-    /** Callback when canceled */
-    onCancel: () => void;
-    /** Confirm button text */
-    confirmText?: string;
-    /** Cancel button text */
-    cancelText?: string;
-}
+import { DialogProps, ConfirmDialogProps } from './types';
 
 /**
- * Basic Dialog Component
+ * 기본 다이얼로그 컴포넌트
  */
 export const Dialog: React.FC<DialogProps> = ({
                                                   title,
@@ -52,7 +24,7 @@ export const Dialog: React.FC<DialogProps> = ({
             >
                 <div className="dialog-header">
                     <h2 className="dialog-title">{title}</h2>
-                    <button className="dialog-close" onClick={onClose}>
+                    <button className="dialog-close" onClick={onClose} aria-label="Close">
                         &times;
                     </button>
                 </div>
@@ -65,7 +37,7 @@ export const Dialog: React.FC<DialogProps> = ({
 };
 
 /**
- * Confirmation Dialog Component
+ * 확인 다이얼로그 컴포넌트
  */
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                                                                 title,
@@ -73,21 +45,29 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
                                                                 isOpen,
                                                                 onConfirm,
                                                                 onCancel,
-                                                                confirmText = 'Confirm',
-                                                                cancelText = 'Cancel'
+                                                                confirmText,
+                                                                cancelText
                                                             }) => {
+    const { t } = useTranslation();
+
     if (!isOpen) {return null;}
 
+    // 다국어 처리
+    const translatedTitle = t(title);
+    const translatedMessage = t(message, { name: message.includes('{{name}}') ? '' : '' });
+    const translatedConfirmText = confirmText ? t(confirmText) : t('tree.confirmButton');
+    const translatedCancelText = cancelText ? t(cancelText) : t('tree.cancelButton');
+
     return (
-        <Dialog title={title} isOpen={isOpen} onClose={onCancel}>
+        <Dialog title={translatedTitle} isOpen={isOpen} onClose={onCancel}>
             <div className="confirm-dialog">
-                <p className="confirm-message">{message}</p>
+                <p className="confirm-message">{translatedMessage}</p>
                 <div className="confirm-actions">
                     <button className="cancel-button" onClick={onCancel}>
-                        {cancelText}
+                        {translatedCancelText}
                     </button>
                     <button className="confirm-button" onClick={onConfirm}>
-                        {confirmText}
+                        {translatedConfirmText}
                     </button>
                 </div>
             </div>
