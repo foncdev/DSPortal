@@ -30,7 +30,8 @@ export interface TreeNode {
     parentId?: string;
     data?: Record<string, any>; // 추가 노드 데이터
     isExpanded?: boolean;
-    isSelected?: boolean;
+    isSelected?: boolean;     // Used for checkbox state
+    isHighlighted?: boolean;  // Used for node highlighting
     isDisabled?: boolean;
     customIcon?: React.ReactNode;
 }
@@ -53,6 +54,8 @@ export interface TreeProps {
 
     /** 노드 생성 허용 */
     allowCreate?: boolean;
+
+    showCheckbox?: boolean;
 
     /** 노드 편집 허용 */
     allowEdit?: boolean;
@@ -151,6 +154,9 @@ export interface TreeNodeProps {
 
     /** 다중 선택 모드 */
     multiSelect: boolean;
+
+    /** 체크박스 모드 */
+    showCheckbox?: boolean;
 
     /** 드래그 가능 여부 */
     draggable: boolean;

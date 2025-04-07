@@ -5,10 +5,6 @@ import TreeNodeContent from './TreeNodeContent';
 import NodeForm from './NodeForm';
 import { useTranslation } from 'react-i18next';
 
-/**
- * 트리 노드 컴포넌트
- * 단일 트리 노드와 그 자식 노드들을 재귀적으로 렌더링
- */
 const TreeNode: React.FC<TreeNodeProps> = ({
                                                node,
                                                renderTreeNode,
@@ -26,6 +22,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                                                onDelete,
                                                onCreate,
                                                multiSelect,
+                                               showCheckbox, // New prop
                                                draggable,
                                                allowCreate,
                                                allowEdit,
@@ -45,14 +42,12 @@ const TreeNode: React.FC<TreeNodeProps> = ({
     const isCreatingChild = creatingNode?.parentId === node.id;
     const isCurrentDropTarget = dropTargetId === node.id;
 
-    // 노드 클래스 계산 - multiSelect 모드에서 선택 표시 로직 변경
+    // Updated node classes with highlight selection separate from checkbox state
     const nodeClasses = [
         'tree-node',
         node.isExpanded ? NODE_CLASSES.EXPANDED : '',
-        // 체크박스 모드라면 isSelected는 체크박스 토글 상태로 사용
-        // 노드 선택 표시는 부가적인 선택 클래스로 대체
-        node.isSelected ? NODE_CLASSES.SELECTED : '',
-        !multiSelect && node.isSelected ? NODE_CLASSES.SINGLE_SELECTED : '',
+        node.isHighlighted ? NODE_CLASSES.SELECTED : '', // Highlight state
+        !multiSelect && node.isHighlighted ? NODE_CLASSES.SINGLE_SELECTED : '',
         node.isDisabled ? NODE_CLASSES.DISABLED : '',
         isCurrentDropTarget ? 'drop-target' : '',
         dropTargetId === node.id && dropPosition ? `drop-target-${dropPosition}` : '',
@@ -81,6 +76,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                 isEditing={isEditing}
                 level={level}
                 multiSelect={multiSelect}
+                showCheckbox={showCheckbox} // Pass the prop
                 allowCreate={allowCreate}
                 allowEdit={allowEdit}
                 allowDelete={allowDelete}
@@ -95,7 +91,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                 onEditSubmit={onEditSubmit}
             />
 
-            {/* 자식 노드 렌더링 */}
+            {/* Children rendering */}
             {node.isExpanded && node.children && (
                 <div className="tree-children">
                     {node.children.map((child) => (
@@ -104,22 +100,18 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                         </div>
                     ))}
 
-                    {/* 새 노드 생성 폼 */}
+                    {/* New node creation form */}
                     {isCreatingChild && (
                         <div className="tree-node-wrapper">
                             <div className="tree-node creating">
                                 <div className="tree-node-content" style={{ paddingLeft: `${((level + 1) * 8) + 8}px` }}>
                                     <div className="toggle-spacer" />
-                                    {/* 생성 중인 노드 타입에 맞는 아이콘 */}
-                                    {React.createElement(
-                                        'div',
-                                        { className: `tree-node-icon ${creatingNode.type}-icon` }
-                                    )}
+                                    <div className={`tree-node-icon ${creatingNode.type}-icon`} />
                                     <NodeForm
                                         initialValue=""
                                         placeholder={t('tree.newNodeNamePlaceholder')}
                                         onSubmit={onCreateSubmit}
-                                        onCancel={() => onCreateSubmit('')} // 빈 문자열 전달하여 취소
+                                        onCancel={() => onCreateSubmit('')}
                                     />
                                 </div>
                             </div>

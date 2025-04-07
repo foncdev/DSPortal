@@ -17,6 +17,7 @@ const Tree: React.FC<TreeProps> = (props) => {
     const {
         draggable = false,
         multiSelect = false,
+        showCheckbox = multiSelect, // Default to multiSelect value
         allowCreate = false,
         allowEdit = false,
         allowDelete = false,
@@ -91,6 +92,7 @@ const Tree: React.FC<TreeProps> = (props) => {
                 onDelete={deleteNode}
                 onCreate={createNode}
                 multiSelect={multiSelect}
+                showCheckbox={showCheckbox}
                 draggable={draggable}
                 allowCreate={allowCreate}
                 allowEdit={allowEdit}
@@ -121,6 +123,7 @@ const Tree: React.FC<TreeProps> = (props) => {
         deleteNode,
         createNode,
         multiSelect,
+        showCheckbox,
         draggable,
         allowCreate,
         allowEdit,

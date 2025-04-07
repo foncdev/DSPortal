@@ -171,6 +171,7 @@ const TreeDemo: React.FC = () => {
                         allowCreate={true}
                         allowEdit={true}
                         allowDelete={true}
+                        showCheckbox={true}
                         expandedIds={expandedIds}
                         showNodePath={true}
                     />

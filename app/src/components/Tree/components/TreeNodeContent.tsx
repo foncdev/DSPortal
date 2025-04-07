@@ -13,6 +13,7 @@ interface TreeNodeContentProps {
     isEditing: boolean;
     level: number;
     multiSelect: boolean;
+    showCheckbox: boolean; // New prop to control checkbox visibility
     allowCreate: boolean;
     allowEdit: boolean;
     allowDelete: boolean;
@@ -27,16 +28,13 @@ interface TreeNodeContentProps {
     onEditSubmit: (id: string, name: string) => void;
 }
 
-/**
- * 트리 노드 컨텐츠 컴포넌트
- * 노드의 토글 버튼, 아이콘, 이름, 체크박스 및 액션 버튼 렌더링
- */
 const TreeNodeContent: React.FC<TreeNodeContentProps> = ({
                                                              node,
                                                              hasChildren,
                                                              isEditing,
                                                              level,
                                                              multiSelect,
+                                                             showCheckbox, // New prop
                                                              allowCreate,
                                                              allowEdit,
                                                              allowDelete,
@@ -52,26 +50,21 @@ const TreeNodeContent: React.FC<TreeNodeContentProps> = ({
                                                          }) => {
     const { t } = useTranslation();
 
-    // 토글 아이콘 컴포넌트
+    // Toggle icon components
     const ExpandedIcon = TOGGLE_ICONS.expanded;
     const CollapsedIcon = TOGGLE_ICONS.collapsed;
-
-    // 체크박스 토글 핸들러 - 이벤트 전파 중지
-    const handleCheckboxToggle = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onCheckboxToggle(node.id);
-    };
 
     return (
         <div
             className="tree-node-content"
             onClick={(e) => {
                 e.stopPropagation();
+                // Only handle node selection here, not checkbox toggling
                 onSelect(node.id, e.ctrlKey && multiSelect);
             }}
-            style={{ paddingLeft: `${(level * 8) + 8}px` }} // 레벨에 따른 들여쓰기
+            style={{ paddingLeft: `${(level * 8) + 8}px` }}
         >
-            {/* 토글 버튼 또는 공백 */}
+            {/* Toggle button or spacer */}
             {hasChildren ? (
                 <button
                     type="button"
@@ -92,35 +85,35 @@ const TreeNodeContent: React.FC<TreeNodeContentProps> = ({
                 <div className="toggle-spacer" />
             )}
 
-            {/* 체크박스 (다중 선택 모드) */}
-            {multiSelect && (
+            {/* Checkbox - only show if configured */}
+            {showCheckbox && (
                 <TreeNodeCheckbox
                     id={node.id}
                     checked={!!node.isSelected}
                     disabled={node.isDisabled}
                     onChange={() => {
-                        // 체크박스 토글 이벤트가 발생했을 때 노드 선택이 아닌 체크박스 값만 변경
+                        // This callback is now isolated from node selection
                         onCheckboxToggle(node.id);
                     }}
                 />
             )}
 
-            {/* 노드 아이콘 */}
+            {/* Node icon */}
             <TreeNodeIcon node={node} />
 
-            {/* 노드 이름 또는 편집 폼 */}
+            {/* Node name or edit form */}
             {isEditing && editingNode ? (
                 <NodeForm
                     initialValue={editingNode.name}
                     placeholder={t('tree.newNodeNamePlaceholder')}
                     onSubmit={(name) => onEditSubmit(node.id, name)}
-                    onCancel={() => onEditSubmit(node.id, node.name)} // 취소 시 원래 이름으로 되돌림
+                    onCancel={() => onEditSubmit(node.id, node.name)}
                 />
             ) : (
                 <span className="node-name">{node.name}</span>
             )}
 
-            {/* 노드 액션 */}
+            {/* Node actions */}
             {!node.isDisabled && (
                 <NodeActions
                     node={node}
