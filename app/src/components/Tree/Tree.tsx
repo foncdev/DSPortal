@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     FolderIcon,
@@ -25,6 +25,15 @@ export enum NodeType {
     Device = 'device',
     Layout = 'layout',
     Custom = 'custom'
+}
+
+/**
+ * Drop position type
+ */
+export enum DropPosition {
+    Above = 'above',
+    Inside = 'inside',
+    Below = 'below'
 }
 
 /**
@@ -93,7 +102,7 @@ export interface TreeProps {
     onNodeDelete?: (node: TreeNode) => void;
 
     /** Callback after node move (drag-drop) */
-    onNodeMove?: (node: TreeNode, targetNode: TreeNode) => void;
+    onNodeMove?: (node: TreeNode, targetNode: TreeNode, position: DropPosition) => void;
 
     /** Custom node renderer */
     renderNode?: (node: TreeNode, defaultRenderer: React.ReactNode) => React.ReactNode;
@@ -111,32 +120,33 @@ export interface TreeProps {
 /**
  * Tree Component
  */
-export const Tree: React.FC<TreeProps> = ({
-                                              data,
-                                              onChange,
-                                              draggable = false,
-                                              multiSelect = false,
-                                              allowCreate = false,
-                                              allowEdit = false,
-                                              allowDelete = false,
-                                              onNodeSelect,
-                                              onNodeDoubleClick,
-                                              onBeforeCreate,
-                                              onNodeCreate,
-                                              onBeforeEdit,
-                                              onNodeEdit,
-                                              onBeforeDelete,
-                                              onNodeDelete,
-                                              onNodeMove,
-                                              renderNode,
-                                              expandedIds = [],
-                                              selectedIds = [],
-                                              showNodePath = false
-                                          }) => {
+const Tree: React.FC<TreeProps> = ({
+                                       data,
+                                       onChange,
+                                       draggable = false,
+                                       multiSelect = false,
+                                       allowCreate = false,
+                                       allowEdit = false,
+                                       allowDelete = false,
+                                       onNodeSelect,
+                                       onNodeDoubleClick,
+                                       onBeforeCreate,
+                                       onNodeCreate,
+                                       onBeforeEdit,
+                                       onNodeEdit,
+                                       onBeforeDelete,
+                                       onNodeDelete,
+                                       onNodeMove,
+                                       renderNode,
+                                       expandedIds = [],
+                                       selectedIds = [],
+                                       showNodePath = false
+                                   }) => {
     const { t } = useTranslation();
     const [treeData, setTreeData] = useState<TreeNode[]>([]);
     const [draggedNode, setDraggedNode] = useState<TreeNode | null>(null);
     const [dropTargetId, setDropTargetId] = useState<string | null>(null);
+    const [dropPosition, setDropPosition] = useState<DropPosition | null>(null);
     const [confirmDialog, setConfirmDialog] = useState<{
         isOpen: boolean;
         title: string;
@@ -157,27 +167,36 @@ export const Tree: React.FC<TreeProps> = ({
         type: NodeType;
     } | null>(null);
 
+    // Ref to store expanded state separately to prevent collapsing issues
+    const expandedNodesRef = useRef<Set<string>>(new Set(expandedIds));
+
     // Update internal tree data when props change
     useEffect(() => {
-        // Mark nodes as expanded based on expandedIds
-        const processExpandedNodes = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => ({
+        // Mark nodes as expanded and selected based on props
+        const processNodes = (nodes: TreeNode[]): TreeNode[] =>
+            nodes.map(node => ({
                 ...node,
-                isExpanded: expandedIds.includes(node.id),
+                isExpanded: expandedNodesRef.current.has(node.id),
                 isSelected: selectedIds.includes(node.id),
-                children: node.children ? processExpandedNodes(node.children) : undefined
+                children: node.children ? processNodes(node.children) : undefined
             }));
 
-        setTreeData(processExpandedNodes(data));
-    }, [data, expandedIds, selectedIds]);
+        setTreeData(processNodes(data));
+    }, [data, selectedIds]);
+
+    // Update expanded nodes ref when expandedIds prop changes
+    useEffect(() => {
+        expandedNodesRef.current = new Set(expandedIds);
+    }, [expandedIds]);
 
     // Helper function to find a node by ID
     const findNodeById = useCallback(
         (id: string, nodes: TreeNode[] = treeData): TreeNode | null => {
             for (const node of nodes) {
-                if (node.id === id) {return node;}
+                if (node.id === id) return node;
                 if (node.children) {
                     const found = findNodeById(id, node.children);
-                    if (found) {return found;}
+                    if (found) return found;
                 }
             }
             return null;
@@ -190,10 +209,10 @@ export const Tree: React.FC<TreeProps> = ({
         (nodeId: string, nodes: TreeNode[] = treeData, path: string[] = []): string[] => {
             for (const node of nodes) {
                 const currentPath = [...path, node.name];
-                if (node.id === nodeId) {return currentPath;}
+                if (node.id === nodeId) return currentPath;
                 if (node.children) {
                     const found = getNodePath(nodeId, node.children, currentPath);
-                    if (found.length) {return found;}
+                    if (found.length) return found;
                 }
             }
             return [];
@@ -204,9 +223,20 @@ export const Tree: React.FC<TreeProps> = ({
     // Toggle node expanded state
     const toggleNode = useCallback(
         (id: string) => {
-            const updateNodes = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => {
+            // Use the ref to track expanded state to prevent collapse issues
+            if (expandedNodesRef.current.has(id)) {
+                expandedNodesRef.current.delete(id);
+            } else {
+                expandedNodesRef.current.add(id);
+            }
+
+            const updateNodes = (nodes: TreeNode[]): TreeNode[] =>
+                nodes.map(node => {
                     if (node.id === id) {
-                        return { ...node, isExpanded: !node.isExpanded };
+                        return {
+                            ...node,
+                            isExpanded: expandedNodesRef.current.has(id)
+                        };
                     }
                     if (node.children) {
                         return { ...node, children: updateNodes(node.children) };
@@ -224,7 +254,9 @@ export const Tree: React.FC<TreeProps> = ({
     // Select a node
     const selectNode = useCallback(
         (id: string, multiSelection = false) => {
-            const updateNodes = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => {
+            const updateNodes = (nodes: TreeNode[]): TreeNode[] =>
+                nodes.map(node => {
+                    // Only update selection if multi-select is enabled or this is the clicked node
                     const isSelected = node.id === id
                         ? true
                         : multiSelection ? node.isSelected : false;
@@ -252,7 +284,8 @@ export const Tree: React.FC<TreeProps> = ({
     // Handle node checkbox toggle (for multi-select)
     const toggleNodeCheckbox = useCallback(
         (id: string) => {
-            const updateNodes = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => {
+            const updateNodes = (nodes: TreeNode[]): TreeNode[] =>
+                nodes.map(node => {
                     if (node.id === id) {
                         return { ...node, isSelected: !node.isSelected };
                     }
@@ -294,7 +327,7 @@ export const Tree: React.FC<TreeProps> = ({
             // Check if creation is allowed
             if (onBeforeCreate) {
                 const canCreate = await onBeforeCreate(parentNode, type);
-                if (!canCreate) {return;}
+                if (!canCreate) return;
             }
 
             // Set creating state for UI
@@ -306,7 +339,7 @@ export const Tree: React.FC<TreeProps> = ({
     // Handle new node submission
     const handleCreateNodeSubmit = useCallback(
         (name: string) => {
-            if (!creatingNode) {return;}
+            if (!creatingNode) return;
 
             // Create new node
             const newNode: TreeNode = {
@@ -320,13 +353,16 @@ export const Tree: React.FC<TreeProps> = ({
             };
 
             // Update tree data
-            const updateNodes = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => {
+            const updateNodes = (nodes: TreeNode[]): TreeNode[] =>
+                nodes.map(node => {
                     if (node.id === creatingNode.parentId) {
                         const children = node.children || [];
+                        // Also expand the parent node
+                        expandedNodesRef.current.add(node.id);
                         return {
                             ...node,
                             children: [...children, newNode],
-                            isExpanded: true // Expand parent
+                            isExpanded: true
                         };
                     }
                     if (node.children) {
@@ -375,12 +411,12 @@ export const Tree: React.FC<TreeProps> = ({
     const editNode = useCallback(
         async (id: string) => {
             const node = findNodeById(id);
-            if (!node) {return;}
+            if (!node) return;
 
             // Check if editing is allowed
             if (onBeforeEdit) {
                 const canEdit = await onBeforeEdit(node);
-                if (!canEdit) {return;}
+                if (!canEdit) return;
             }
 
             // Set editing state for UI
@@ -393,12 +429,13 @@ export const Tree: React.FC<TreeProps> = ({
     const handleEditNodeSubmit = useCallback(
         (id: string, name: string) => {
             const node = findNodeById(id);
-            if (!node) {return;}
+            if (!node) return;
 
             const previousName = node.name;
 
             // Update tree data
-            const updateNodes = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => {
+            const updateNodes = (nodes: TreeNode[]): TreeNode[] =>
+                nodes.map(node => {
                     if (node.id === id) {
                         return { ...node, name };
                     }
@@ -426,12 +463,12 @@ export const Tree: React.FC<TreeProps> = ({
     const deleteNode = useCallback(
         async (id: string) => {
             const node = findNodeById(id);
-            if (!node) {return;}
+            if (!node) return;
 
             // Check if deletion is allowed
             if (onBeforeDelete) {
                 const canDelete = await onBeforeDelete(node);
-                if (!canDelete) {return;}
+                if (!canDelete) return;
             }
 
             // Show confirmation dialog
@@ -441,7 +478,8 @@ export const Tree: React.FC<TreeProps> = ({
                 message: t('tree.deleteConfirmMessage', { name: node.name }),
                 onConfirm: () => {
                     // Update tree data
-                    const deleteFromNodes = (nodes: TreeNode[]): TreeNode[] => nodes
+                    const deleteFromNodes = (nodes: TreeNode[]): TreeNode[] =>
+                        nodes
                             .filter(node => node.id !== id)
                             .map(node => {
                                 if (node.children) {
@@ -462,12 +500,40 @@ export const Tree: React.FC<TreeProps> = ({
         [treeData, onChange, findNodeById, onBeforeDelete, onNodeDelete, t]
     );
 
+    // Helper function to determine drop position
+    const getDropPosition = useCallback((y: number, rect: DOMRect): DropPosition => {
+        const relativeY = y - rect.top;
+        const height = rect.height;
+
+        if (relativeY < height * 0.25) return DropPosition.Above;
+        if (relativeY > height * 0.75) return DropPosition.Below;
+        return DropPosition.Inside;
+    }, []);
+
+    // Get the drop target indicator class based on position
+    const getDropIndicatorClass = useCallback((nodeId: string, position: DropPosition | null) => {
+        if (nodeId !== dropTargetId || !position) return '';
+
+        switch (position) {
+            case DropPosition.Above:
+                return 'drop-target-above';
+            case DropPosition.Below:
+                return 'drop-target-below';
+            case DropPosition.Inside:
+                return 'drop-target-inside';
+            default:
+                return '';
+        }
+    }, [dropTargetId]);
+
     // Drag-and-drop handlers
     const handleDragStart = useCallback(
         (e: React.DragEvent, node: TreeNode) => {
-            if (!draggable || node.isDisabled) {return;}
+            if (!draggable || node.isDisabled) return;
 
+            e.stopPropagation();
             e.dataTransfer.setData('text/plain', node.id);
+            e.dataTransfer.effectAllowed = 'move';
             setDraggedNode(node);
 
             // Set drag image (optional)
@@ -490,7 +556,7 @@ export const Tree: React.FC<TreeProps> = ({
             e.preventDefault();
             e.stopPropagation();
 
-            if (!draggable || !draggedNode || node.isDisabled) {return;}
+            if (!draggable || !draggedNode || node.isDisabled) return;
 
             // Don't allow drop on itself or its children
             if (
@@ -501,18 +567,31 @@ export const Tree: React.FC<TreeProps> = ({
                 return;
             }
 
-            // Only allow drop on folders or root
-            if (node.type !== NodeType.Folder && node.type !== NodeType.Default) {
+            // Set the drop effect
+            e.dataTransfer.dropEffect = 'move';
+
+            // Get the drop position
+            const rect = e.currentTarget.getBoundingClientRect();
+            const position = getDropPosition(e.clientY, rect);
+
+            // Only allow inside drop for folders
+            if (position === DropPosition.Inside &&
+                node.type !== NodeType.Folder &&
+                node.type !== NodeType.Default) {
                 return;
             }
 
             setDropTargetId(node.id);
+            setDropPosition(position);
         },
-        [draggable, draggedNode, getNodePath]
+        [draggable, draggedNode, getNodePath, getDropPosition]
     );
 
-    const handleDragLeave = useCallback(() => {
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setDropTargetId(null);
+        setDropPosition(null);
     }, []);
 
     const handleDrop = useCallback(
@@ -520,7 +599,12 @@ export const Tree: React.FC<TreeProps> = ({
             e.preventDefault();
             e.stopPropagation();
 
-            if (!draggable || !draggedNode || targetNode.isDisabled) {return;}
+            if (!draggable || !draggedNode || targetNode.isDisabled || !dropPosition) {
+                setDropTargetId(null);
+                setDropPosition(null);
+                setDraggedNode(null);
+                return;
+            }
 
             // Don't allow drop on itself or its children
             if (
@@ -528,20 +612,31 @@ export const Tree: React.FC<TreeProps> = ({
                 getNodePath(targetNode.id).some(name =>
                     getNodePath(draggedNode.id).includes(name))
             ) {
-                return;
-            }
-
-            // Only allow drop on folders or root
-            if (targetNode.type !== NodeType.Folder && targetNode.type !== NodeType.Default) {
                 setDropTargetId(null);
+                setDropPosition(null);
                 setDraggedNode(null);
                 return;
             }
 
-            // Find draggedNode's parent
+            // Only allow Inside drop on folders
+            if (dropPosition === DropPosition.Inside &&
+                targetNode.type !== NodeType.Folder &&
+                targetNode.type !== NodeType.Default) {
+                setDropTargetId(null);
+                setDropPosition(null);
+                setDraggedNode(null);
+                return;
+            }
+
+            // Create a deep copy of the tree data
+            const newTreeData = JSON.parse(JSON.stringify(treeData));
+
+            // Find the parent of the dragged node
+            let draggedNodeParent: TreeNode | null = null;
             const findParent = (nodes: TreeNode[], nodeId: string): boolean => {
                 for (const node of nodes) {
                     if (node.children?.some(child => child.id === nodeId)) {
+                        draggedNodeParent = node;
                         return true;
                     }
                     if (node.children && findParent(node.children, nodeId)) {
@@ -550,51 +645,150 @@ export const Tree: React.FC<TreeProps> = ({
                 }
                 return false;
             };
-            findParent(treeData, draggedNode.id);
-
-            // Create a deep copy of the tree data
-            const newTreeData = JSON.parse(JSON.stringify(treeData));
+            findParent(newTreeData, draggedNode.id);
 
             // Remove the dragged node from its original position
-            const removeNode = (nodes: TreeNode[]): TreeNode[] => nodes
-                    .filter(node => node.id !== draggedNode.id)
-                    .map(node => {
-                        if (node.children) {
-                            return { ...node, children: removeNode(node.children) };
-                        }
-                        return node;
-                    });
+            const removeNode = (nodes: TreeNode[]): { updatedNodes: TreeNode[], removedNode: TreeNode | null } => {
+                let removedNode: TreeNode | null = null;
 
-            // Add the dragged node to the target node
-            const addNode = (nodes: TreeNode[]): TreeNode[] => nodes.map(node => {
-                    if (node.id === targetNode.id) {
-                        const children = node.children || [];
-                        return {
-                            ...node,
-                            children: [...children, { ...draggedNode, parentId: node.id }],
-                            isExpanded: true // Expand the target node
-                        };
+                const updatedNodes = nodes.filter(node => {
+                    if (node.id === draggedNode.id) {
+                        removedNode = {...node};
+                        return false;
                     }
+                    return true;
+                }).map(node => {
                     if (node.children) {
-                        return { ...node, children: addNode(node.children) };
+                        const result = removeNode(node.children);
+                        if (result.removedNode) {
+                            removedNode = result.removedNode;
+                        }
+                        return { ...node, children: result.updatedNodes };
                     }
                     return node;
                 });
 
-            let result = removeNode(newTreeData);
-            result = addNode(result);
+                return { updatedNodes, removedNode };
+            };
+
+            const { updatedNodes, removedNode } = removeNode(newTreeData);
+
+            if (!removedNode) {
+                console.error("Failed to find the dragged node in the tree");
+                setDropTargetId(null);
+                setDropPosition(null);
+                setDraggedNode(null);
+                return;
+            }
+
+            // Reset parentId on the removed node
+            removedNode.parentId = undefined;
+
+            // Handle different drop positions
+            const processDrop = (nodes: TreeNode[]): TreeNode[] => {
+                return nodes.map(node => {
+                    if (node.id === targetNode.id) {
+                        if (dropPosition === DropPosition.Inside) {
+                            // Drop inside the node
+                            const children = node.children || [];
+                            // Also expand the target node when dropping inside
+                            expandedNodesRef.current.add(node.id);
+                            return {
+                                ...node,
+                                isExpanded: true,
+                                children: [...children, { ...removedNode, parentId: node.id }]
+                            };
+                        } else if (dropPosition === DropPosition.Above) {
+                            // Find the target's parent
+                            let targetParent: TreeNode | null = null;
+                            findParent(treeData, targetNode.id);
+                            targetParent = draggedNodeParent;
+
+                            if (targetParent) {
+                                // Special handling needed for the target node's parent
+                                // This will be handled in a separate step
+                                return node;
+                            } else {
+                                // Target is at root level
+                                // We'll handle this in the outer logic
+                                return node;
+                            }
+                        } else if (dropPosition === DropPosition.Below) {
+                            // Similar to Above case
+                            // Find the target's parent
+                            let targetParent: TreeNode | null = null;
+                            findParent(treeData, targetNode.id);
+                            targetParent = draggedNodeParent;
+
+                            if (targetParent) {
+                                // Special handling needed
+                                return node;
+                            } else {
+                                // Target is at root level
+                                return node;
+                            }
+                        }
+                    }
+
+                    if (node.children) {
+                        return { ...node, children: processDrop(node.children) };
+                    }
+
+                    return node;
+                });
+            };
+
+            let result = processDrop(updatedNodes);
+
+            // Special handling for Above/Below at root level or for nodes with the same parent
+            if (dropPosition === DropPosition.Above || dropPosition === DropPosition.Below) {
+                // Find the target's parent
+                let targetParent: TreeNode | null = null;
+                findParent(treeData, targetNode.id);
+                targetParent = draggedNodeParent;
+
+                if (targetParent) {
+                    // The target has a parent, insert at the right position in the parent's children
+                    result = result.map(node => {
+                        if (node.id === targetParent?.id) {
+                            const updatedChildren = [...node.children || []];
+                            const targetIndex = updatedChildren.findIndex(child => child.id === targetNode.id);
+
+                            if (targetIndex !== -1) {
+                                const insertPosition = dropPosition === DropPosition.Above ? targetIndex : targetIndex + 1;
+                                updatedChildren.splice(insertPosition, 0, { ...removedNode, parentId: node.id });
+                            }
+
+                            return { ...node, children: updatedChildren };
+                        }
+                        return node;
+                    });
+                } else {
+                    // The target is at root level, insert at the right position in the root array
+                    const targetIndex = result.findIndex(node => node.id === targetNode.id);
+
+                    if (targetIndex !== -1) {
+                        const insertPosition = dropPosition === DropPosition.Above ? targetIndex : targetIndex + 1;
+                        result.splice(insertPosition, 0, removedNode);
+                    }
+                }
+            }
 
             setTreeData(result);
             onChange?.(result);
+
+            // Reset drag state
             setDropTargetId(null);
+            setDropPosition(null);
             setDraggedNode(null);
 
             // Call callback
-            onNodeMove?.(draggedNode, targetNode);
+            onNodeMove?.(draggedNode, targetNode, dropPosition);
         },
         [
             draggable,
             draggedNode,
+            dropPosition,
             treeData,
             getNodePath,
             onChange,
@@ -602,8 +796,11 @@ export const Tree: React.FC<TreeProps> = ({
         ]
     );
 
-    const handleDragEnd = useCallback(() => {
+    const handleDragEnd = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setDropTargetId(null);
+        setDropPosition(null);
         setDraggedNode(null);
     }, []);
 
@@ -633,18 +830,23 @@ export const Tree: React.FC<TreeProps> = ({
     const renderTreeNode = useCallback(
         (node: TreeNode) => {
             const hasChildren = !!node.children?.length;
-            const isDropTarget = dropTargetId === node.id;
+            const isCurrentDropTarget = dropTargetId === node.id;
+            const dropIndicatorClass = getDropIndicatorClass(node.id, dropPosition);
+            const isEditing = editingNode?.id === node.id;
+            const isCreatingChild = creatingNode?.parentId === node.id;
 
             const defaultRenderer = (
                 <div
                     className={`
-            tree-node 
-            ${node.isExpanded ? 'expanded' : ''} 
-            ${node.isSelected ? 'selected' : ''} 
-            ${node.isDisabled ? 'disabled' : ''} 
-            ${isDropTarget ? 'drop-target' : ''}
-            type-${node.type}
-          `}
+                    tree-node 
+                    ${node.isExpanded ? 'expanded' : ''} 
+                    ${node.isSelected ? 'selected' : ''} 
+                    ${!multiSelect && node.isSelected ? 'single-selected' : ''}
+                    ${node.isDisabled ? 'disabled' : ''} 
+                    ${isCurrentDropTarget ? 'drop-target' : ''}
+                    ${dropIndicatorClass}
+                    type-${node.type}
+                `}
                     draggable={draggable && !node.isDisabled}
                     onDragStart={(e) => handleDragStart(e, node)}
                     onDragOver={(e) => handleDragOver(e, node)}
@@ -660,15 +862,21 @@ export const Tree: React.FC<TreeProps> = ({
                             e.stopPropagation();
                             selectNode(node.id, e.ctrlKey && multiSelect);
                         }}
-                        onDoubleClick={() => handleNodeDoubleClick(node)}
+                        onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            handleNodeDoubleClick(node);
+                        }}
                     >
-                        {hasChildren && (
+                        {/* Toggle button or spacer */}
+                        {hasChildren ? (
                             <button
+                                type="button"
                                 className="toggle-button"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     toggleNode(node.id);
                                 }}
+                                aria-label={node.isExpanded ? "Collapse" : "Expand"}
                             >
                                 {node.isExpanded ? (
                                     <ChevronDown size={14} />
@@ -676,30 +884,42 @@ export const Tree: React.FC<TreeProps> = ({
                                     <ChevronRight size={14} />
                                 )}
                             </button>
+                        ) : (
+                            <div className="toggle-spacer" />
                         )}
 
-                        {!hasChildren && <div className="toggle-spacer" />}
-
+                        {/* Checkbox for multi-select */}
                         {multiSelect && (
-                            <label className="checkbox-container" onClick={(e) => e.stopPropagation()}>
+                            <label
+                                className="checkbox-container"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 <input
                                     type="checkbox"
                                     checked={!!node.isSelected}
-                                    onChange={() => toggleNodeCheckbox(node.id)}
+                                    onChange={(e) => {
+                                        e.stopPropagation();
+                                        toggleNodeCheckbox(node.id);
+                                    }}
                                     disabled={node.isDisabled}
                                 />
                                 <span className="checkbox-checkmark"></span>
                             </label>
                         )}
 
+                        {/* Node icon */}
                         {getNodeIcon(node)}
 
-                        {editingNode?.id === node.id ? (
+                        {/* Node name or edit form */}
+                        {isEditing ? (
                             <form
                                 className="edit-form"
                                 onSubmit={(e) => {
                                     e.preventDefault();
-                                    handleEditNodeSubmit(node.id, editingNode.name);
+                                    e.stopPropagation();
+                                    if (editingNode?.name.trim()) {
+                                        handleEditNodeSubmit(node.id, editingNode.name);
+                                    }
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -708,21 +928,32 @@ export const Tree: React.FC<TreeProps> = ({
                                     value={editingNode.name}
                                     onChange={(e) => setEditingNode({ ...editingNode, name: e.target.value })}
                                     autoFocus
-                                    onBlur={() => setEditingNode(null)}
+                                    onBlur={() => {
+                                        if (editingNode?.name.trim()) {
+                                            handleEditNodeSubmit(node.id, editingNode.name);
+                                        } else {
+                                            setEditingNode(null);
+                                        }
+                                    }}
                                     onKeyDown={(e) => {
-                                        if (e.key === 'Escape') {setEditingNode(null);}
+                                        if (e.key === 'Escape') {
+                                            setEditingNode(null);
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                        }
                                     }}
                                 />
-                                <button type="submit" style={{ display: 'none' }}></button>
                             </form>
                         ) : (
                             <span className="node-name">{node.name}</span>
                         )}
 
+                        {/* Node actions */}
                         {!node.isDisabled && (
                             <div className="node-actions">
                                 {allowCreate && node.type === NodeType.Folder && (
                                     <button
+                                        type="button"
                                         className="action-button create"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -736,6 +967,7 @@ export const Tree: React.FC<TreeProps> = ({
 
                                 {allowEdit && (
                                     <button
+                                        type="button"
                                         className="action-button edit"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -749,6 +981,7 @@ export const Tree: React.FC<TreeProps> = ({
 
                                 {allowDelete && (
                                     <button
+                                        type="button"
                                         className="action-button delete"
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -763,6 +996,7 @@ export const Tree: React.FC<TreeProps> = ({
                         )}
                     </div>
 
+                    {/* Child nodes */}
                     {node.isExpanded && node.children && (
                         <div className="tree-children">
                             {node.children.map((child) => (
@@ -771,18 +1005,25 @@ export const Tree: React.FC<TreeProps> = ({
                                 </div>
                             ))}
 
-                            {creatingNode?.parentId === node.id && (
+                            {/* Node creation form */}
+                            {isCreatingChild && (
                                 <div className="tree-node-wrapper">
                                     <div className="tree-node creating">
                                         <div className="tree-node-content">
                                             <div className="toggle-spacer" />
-                                            {getNodeIcon({ ...creatingNode, id: '', name: '', isExpanded: false } as TreeNode)}
+                                            {getNodeIcon({
+                                                ...creatingNode,
+                                                id: '',
+                                                name: '',
+                                                isExpanded: false
+                                            } as TreeNode)}
                                             <form
                                                 className="edit-form"
                                                 onSubmit={(e) => {
                                                     e.preventDefault();
+                                                    e.stopPropagation();
                                                     const input = e.currentTarget.querySelector('input');
-                                                    if (input?.value) {
+                                                    if (input?.value.trim()) {
                                                         handleCreateNodeSubmit(input.value);
                                                     }
                                                 }}
@@ -792,12 +1033,21 @@ export const Tree: React.FC<TreeProps> = ({
                                                     type="text"
                                                     placeholder={t('tree.newNodeNamePlaceholder')}
                                                     autoFocus
-                                                    onBlur={() => setCreatingNode(null)}
+                                                    onBlur={(e) => {
+                                                        if (e.target.value.trim()) {
+                                                            handleCreateNodeSubmit(e.target.value);
+                                                        } else {
+                                                            setCreatingNode(null);
+                                                        }
+                                                    }}
                                                     onKeyDown={(e) => {
-                                                        if (e.key === 'Escape') {setCreatingNode(null);}
+                                                        if (e.key === 'Escape') {
+                                                            setCreatingNode(null);
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                        }
                                                     }}
                                                 />
-                                                <button type="submit" style={{ display: 'none' }}></button>
                                             </form>
                                         </div>
                                     </div>
@@ -812,6 +1062,11 @@ export const Tree: React.FC<TreeProps> = ({
         },
         [
             dropTargetId,
+            dropPosition,
+            getDropIndicatorClass,
+            editingNode,
+            creatingNode,
+            multiSelect,
             draggable,
             handleDragStart,
             handleDragOver,
@@ -821,12 +1076,10 @@ export const Tree: React.FC<TreeProps> = ({
             showNodePath,
             getNodePath,
             selectNode,
-            multiSelect,
             handleNodeDoubleClick,
             toggleNode,
             toggleNodeCheckbox,
             getNodeIcon,
-            editingNode,
             handleEditNodeSubmit,
             allowCreate,
             allowEdit,
@@ -834,7 +1087,6 @@ export const Tree: React.FC<TreeProps> = ({
             createNode,
             editNode,
             deleteNode,
-            creatingNode,
             handleCreateNodeSubmit,
             renderNode,
             t
@@ -856,13 +1108,18 @@ export const Tree: React.FC<TreeProps> = ({
                     <div className="tree-node creating">
                         <div className="tree-node-content">
                             <div className="toggle-spacer" />
-                            {getNodeIcon({ ...creatingNode, id: '', name: '', isExpanded: false } as TreeNode)}
+                            {getNodeIcon({
+                                ...creatingNode,
+                                id: '',
+                                name: '',
+                                isExpanded: false
+                            } as TreeNode)}
                             <form
                                 className="edit-form"
                                 onSubmit={(e) => {
                                     e.preventDefault();
                                     const input = e.currentTarget.querySelector('input');
-                                    if (input?.value) {
+                                    if (input?.value.trim()) {
                                         handleCreateNodeSubmit(input.value);
                                     }
                                 }}
@@ -872,12 +1129,21 @@ export const Tree: React.FC<TreeProps> = ({
                                     type="text"
                                     placeholder={t('tree.newNodeNamePlaceholder')}
                                     autoFocus
-                                    onBlur={() => setCreatingNode(null)}
+                                    onBlur={(e) => {
+                                        if ((e.target as HTMLInputElement).value.trim()) {
+                                            handleCreateNodeSubmit((e.target as HTMLInputElement).value);
+                                        } else {
+                                            setCreatingNode(null);
+                                        }
+                                    }}
                                     onKeyDown={(e) => {
-                                        if (e.key === 'Escape') {setCreatingNode(null);}
+                                        if (e.key === 'Escape') {
+                                            setCreatingNode(null);
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                        }
                                     }}
                                 />
-                                <button type="submit" style={{ display: 'none' }}></button>
                             </form>
                         </div>
                     </div>
@@ -889,6 +1155,7 @@ export const Tree: React.FC<TreeProps> = ({
                 <div className="tree-actions">
                     <button
                         className="add-root-button"
+                        type="button"
                         onClick={() => createNode(null, NodeType.Folder)}
                         title={t('tree.addRoot')}
                     >
@@ -899,18 +1166,18 @@ export const Tree: React.FC<TreeProps> = ({
             )}
 
             {/* Confirmation dialog */}
-            {confirmDialog.isOpen && (
-                <ConfirmDialog
-                    isOpen={confirmDialog.isOpen}
-                    title={confirmDialog.title}
-                    message={confirmDialog.message}
-                    onConfirm={() => {
-                        confirmDialog.onConfirm();
-                        setConfirmDialog({ ...confirmDialog, isOpen: false });
-                    }}
-                    onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
-                />
-            )}
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={() => {
+                    confirmDialog.onConfirm();
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                }}
+                onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                confirmText={t('tree.confirmButton')}
+                cancelText={t('tree.cancelButton')}
+            />
         </div>
     );
 };

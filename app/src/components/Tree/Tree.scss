@@ -1,4 +1,4 @@
-/* Tree.scss */
+/* Tree.scss - Updated with fixes */
 .tree-component {
   font-family: var(--font-family-sans, 'Noto Sans KR', -apple-system, sans-serif);
   font-size: 14px;
@@ -23,17 +23,20 @@
   .tree-node {
     position: relative;
     border-radius: 4px;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
 
     &:hover {
       background-color: var(--color-bg-tertiary, #f3f4f6);
-
-      .node-actions {
-        opacity: 1;
-        visibility: visible;
-      }
     }
 
+    // FIX: Only show actions for the specific node being hovered
+    &:hover > .tree-node-content .node-actions {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    // FIX: Improved selected state with better visual indicator
     &.selected {
       background-color: var(--color-primary-light, #60a5fa);
       color: var(--color-primary-contrast, #ffffff);
@@ -51,14 +54,52 @@
       }
     }
 
+    // FIX: Additional strong indicator for single-selection mode
+    &.single-selected {
+      border-left: 3px solid var(--color-primary-dark, #2563eb);
+      padding-left: 2px;
+    }
+
     &.disabled {
       opacity: 0.5;
       pointer-events: none;
     }
 
+    // FIX: Improved drop target styles
     &.drop-target {
-      background-color: var(--color-bg-tertiary, #f3f4f6);
-      border: 2px dashed var(--color-primary, #3b82f6);
+      background-color: rgba(59, 130, 246, 0.1);
+      position: relative;
+
+      &.drop-target-above {
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background-color: var(--color-primary, #3b82f6);
+          z-index: 1;
+        }
+      }
+
+      &.drop-target-below {
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background-color: var(--color-primary, #3b82f6);
+          z-index: 1;
+        }
+      }
+
+      &.drop-target-inside {
+        box-shadow: inset 0 0 0 2px var(--color-primary, #3b82f6);
+        animation: pulse 1.5s infinite;
+      }
     }
 
     &.creating {
@@ -73,7 +114,6 @@
     display: flex;
     align-items: center;
     padding: 6px 8px;
-    cursor: pointer;
     min-height: 32px;
     position: relative;
   }
@@ -92,9 +132,15 @@
     color: var(--color-text-secondary, #6b7280);
     margin-right: 4px;
     border-radius: 4px;
+    flex-shrink: 0; // FIX: Prevent shrinking
 
     &:hover {
       background-color: var(--color-bg-inset, #e5e7eb);
+    }
+
+    // FIX: Ensure the toggle button doesn't affect parent cursor
+    &:focus {
+      outline: none;
     }
   }
 
@@ -102,6 +148,7 @@
   .toggle-spacer {
     width: 20px;
     margin-right: 4px;
+    flex-shrink: 0; // FIX: Prevent shrinking
   }
 
   // Node icon
@@ -111,6 +158,7 @@
     align-items: center;
     justify-content: center;
     color: var(--color-text-secondary, #6b7280);
+    flex-shrink: 0; // FIX: Prevent shrinking
 
     &.folder-icon {
       color: var(--color-warning, #f59e0b);
@@ -148,6 +196,7 @@
     margin-right: 6px;
     position: relative;
     cursor: pointer;
+    flex-shrink: 0; // FIX: Prevent shrinking
 
     input[type="checkbox"] {
       position: absolute;
@@ -202,6 +251,7 @@
     visibility: hidden;
     transition: opacity 0.2s ease, visibility 0.2s ease;
     margin-left: 8px;
+    flex-shrink: 0; // FIX: Prevent shrinking
 
     .action-button {
       background: none;
@@ -236,6 +286,7 @@
   // Edit form
   .edit-form {
     flex: 1;
+    min-width: 0; // FIX: Ensure proper flexbox behavior
 
     input {
       width: 100%;
@@ -256,13 +307,14 @@
   .tree-children {
     padding-left: 20px;
     overflow: hidden;
+    position: relative; // FIX: Ensure proper positioning for vertical line
 
     // Vertical connecting line
     &:before {
       content: '';
       position: absolute;
       left: 10px;
-      top: 20px;
+      top: 0;
       bottom: 12px;
       width: 1px;
       background-color: var(--color-border, #e5e7eb);
@@ -309,6 +361,14 @@
     font-size: 12px;
     pointer-events: none;
     z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  // FIX: Animations for improving visual feedback
+  @keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
   }
 }
 
@@ -321,11 +381,15 @@
       }
 
       &.selected {
-        background-color: var(--color-primary, #3b82f6);
+        background-color: var(--color-primary-dark, #2563eb);
+      }
+
+      &.single-selected {
+        border-left-color: var(--color-primary-light, #60a5fa);
       }
 
       &.drop-target {
-        background-color: rgba(59, 130, 246, 0.1);
+        background-color: rgba(59, 130, 246, 0.15);
       }
     }
 
