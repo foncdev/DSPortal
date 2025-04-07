@@ -52,16 +52,33 @@ export const updateNodeSelected = (nodes: TreeNode[], id: string, multiSelection
  * @returns 업데이트된 트리 데이터
  */
 export const toggleNodeCheckbox = (nodes: TreeNode[], id: string): TreeNode[] => {
+    // 먼저 해당 ID를 가진 노드를 찾아 현재 선택 상태 확인
+    const nodeToToggle = findNodeById(id, nodes);
+    if (!nodeToToggle) return nodes;
+
+    // 새로운 선택 상태 값 (반대로 토글)
+    const newIsSelected = !nodeToToggle.isSelected;
+
+    // 트리 노드 업데이트
     return nodes.map(node => {
         if (node.id === id) {
-            return { ...node, isSelected: !node.isSelected };
+            // 선택 상태 토글
+            return {
+                ...node,
+                isSelected: newIsSelected,
+                children: node.children ? toggleNodeCheckbox(node.children, id) : undefined
+            };
         }
         if (node.children) {
-            return { ...node, children: toggleNodeCheckbox(node.children, id) };
+            return {
+                ...node,
+                children: toggleNodeCheckbox(node.children, id)
+            };
         }
         return node;
     });
 };
+
 
 /**
  * 새 노드 생성

@@ -45,10 +45,12 @@ const TreeNode: React.FC<TreeNodeProps> = ({
     const isCreatingChild = creatingNode?.parentId === node.id;
     const isCurrentDropTarget = dropTargetId === node.id;
 
-    // 노드 클래스 계산
+    // 노드 클래스 계산 - multiSelect 모드에서 선택 표시 로직 변경
     const nodeClasses = [
         'tree-node',
         node.isExpanded ? NODE_CLASSES.EXPANDED : '',
+        // 체크박스 모드라면 isSelected는 체크박스 토글 상태로 사용
+        // 노드 선택 표시는 부가적인 선택 클래스로 대체
         node.isSelected ? NODE_CLASSES.SELECTED : '',
         !multiSelect && node.isSelected ? NODE_CLASSES.SINGLE_SELECTED : '',
         node.isDisabled ? NODE_CLASSES.DISABLED : '',

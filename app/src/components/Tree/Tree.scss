@@ -1,4 +1,4 @@
-/* Tree.scss - Updated with fixes */
+/* Tree.scss - Updated styles for better visibility */
 .tree-component {
   font-family: var(--font-family-sans, 'Noto Sans KR', -apple-system, sans-serif);
   font-size: 14px;
@@ -28,41 +28,41 @@
 
     &:hover {
       background-color: var(--color-bg-tertiary, #f3f4f6);
+
+      // Show actions when hovering
+      .node-actions {
+        opacity: 1;
+        visibility: visible;
+      }
     }
 
-    // FIX: Only show actions for the specific node being hovered
-    &:hover > .tree-node-content .node-actions {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    // FIX: Improved selected state with better visual indicator
+    // FIXED: Improved selected state for better visualization
     &.selected {
-      background-color: var(--color-primary-light, #60a5fa);
-      color: var(--color-primary-contrast, #ffffff);
+      background-color: rgba(59, 130, 246, 0.15); // 더 연한 파란색 배경
+      border-left: 3px solid var(--color-primary, #3b82f6); // 좌측 테두리로 선택 표시
+
+      // Make sure text color stays dark for better readability
+      color: var(--color-text-primary, #111827);
 
       .tree-node-icon {
-        color: var(--color-primary-contrast, #ffffff);
+        color: inherit; // Inherit from parent to maintain visibility
       }
 
+      // FIXED: Make action buttons more visible when selected
       .action-button {
-        color: var(--color-primary-contrast, #ffffff);
+        color: var(--color-text-secondary, #6b7280);
 
         &:hover {
-          background-color: rgba(255, 255, 255, 0.2);
+          background-color: rgba(0, 0, 0, 0.05);
+          color: var(--color-text-primary, #111827);
         }
-      }
-
-      // 체크박스 스타일 조정
-      .tree-checkbox-label {
-        border-color: var(--color-primary-contrast, #ffffff);
       }
     }
 
     // FIX: Additional strong indicator for single-selection mode
     &.single-selected {
-      border-left: 3px solid var(--color-primary-dark, #2563eb);
-      padding-left: 2px;
+      // Already has border-left from .selected
+      background-color: rgba(59, 130, 246, 0.25); // 조금 더 진한 배경
     }
 
     &.disabled {
@@ -194,7 +194,7 @@
     text-overflow: ellipsis;
   }
 
-  // 체크박스 관련 스타일
+  // FIXED: 체크박스 관련 스타일 개선
   .tree-checkbox-wrapper {
     display: flex;
     align-items: center;
@@ -205,6 +205,22 @@
     height: 16px;
     cursor: pointer;
     flex-shrink: 0;
+    z-index: 2; // 상위 요소보다 더 높은 z-index로 설정하여 이벤트 우선순위 높임
+
+    &:hover {
+      // 호버 시 시각적 피드백
+      &::before {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        right: -4px;
+        bottom: -4px;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.05);
+        z-index: -1;
+      }
+    }
 
     // 실제 체크박스는 숨기고 커스텀 스타일 적용
     .tree-checkbox {
@@ -230,18 +246,18 @@
       width: 16px;
       height: 16px;
       background-color: var(--color-bg-primary, #fff);
-      border: 1px solid var(--color-border, #d1d5db);
+      border: 2px solid var(--color-border-dark, #9ca3af); // 더 진한 테두리
       border-radius: 3px;
-      transition: all 0.2s;
+      transition: all 0.15s ease; // 더 빠른 트랜지션
 
       &:after {
         content: '';
         position: absolute;
         display: none;
-        left: 5px;
-        top: 1px;
-        width: 4px;
-        height: 8px;
+        left: 4px;
+        top: 0px;
+        width: 5px;
+        height: 9px;
         border: solid white;
         border-width: 0 2px 2px 0;
         transform: rotate(45deg);
@@ -252,14 +268,24 @@
       }
     }
 
-    // 체크된 상태
+    // 체크된 상태 - 색상 더 강하게
     input[type="checkbox"]:checked ~ .tree-checkbox-label {
       background-color: var(--color-primary, #3b82f6);
       border-color: var(--color-primary, #3b82f6);
+
+      // 체크됐을 때 애니메이션 효과
+      animation: checkbox-pop 0.2s ease-out;
     }
   }
 
-  // Node actions (visible on hover)
+  // 체크박스 선택 애니메이션
+  @keyframes checkbox-pop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  // FIXED: 노드 액션 스타일 개선 (더 잘 보이게)
   .node-actions {
     display: flex;
     align-items: center;
@@ -267,34 +293,50 @@
     visibility: hidden;
     transition: opacity 0.2s ease, visibility 0.2s ease;
     margin-left: 8px;
-    flex-shrink: 0; // FIX: Prevent shrinking
+    flex-shrink: 0; // Prevent shrinking
+    background-color: rgba(255, 255, 255, 0.5); // Semi-transparent background
+    border-radius: 4px;
+    padding: 0 2px;
 
     .action-button {
       background: none;
       border: none;
-      padding: 3px;
-      margin-left: 2px;
+      padding: 4px;
+      margin: 2px;
       cursor: pointer;
-      color: var(--color-text-secondary, #6b7280);
       border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.15s ease;
 
       &:hover {
         background-color: var(--color-bg-inset, #e5e7eb);
+        transform: scale(1.1);
       }
 
       &.create {
         color: var(--color-success, #10b981);
+
+        &:hover {
+          background-color: rgba(16, 185, 129, 0.1);
+        }
       }
 
       &.edit {
         color: var(--color-info, #06b6d4);
+
+        &:hover {
+          background-color: rgba(6, 182, 212, 0.1);
+        }
       }
 
       &.delete {
         color: var(--color-error, #ef4444);
+
+        &:hover {
+          background-color: rgba(239, 68, 68, 0.1);
+        }
       }
     }
   }
@@ -396,12 +438,15 @@
         background-color: var(--color-bg-tertiary, #374151);
       }
 
+      // FIXED: Dark mode selected state
       &.selected {
-        background-color: var(--color-primary-dark, #2563eb);
+        background-color: rgba(59, 130, 246, 0.2);
+        border-left-color: var(--color-primary-light, #60a5fa);
+        color: var(--color-text-primary, #f9fafb);
       }
 
       &.single-selected {
-        border-left-color: var(--color-primary-light, #60a5fa);
+        background-color: rgba(59, 130, 246, 0.3);
       }
 
       &.drop-target {
@@ -409,10 +454,34 @@
       }
     }
 
+    // FIXED: Dark mode checkbox
     .tree-checkbox-wrapper {
       .tree-checkbox-label {
         background-color: var(--color-bg-secondary, #1f2937);
         border-color: var(--color-border, #374151);
+      }
+    }
+
+    // FIXED: Dark mode actions
+    .node-actions {
+      background-color: rgba(31, 41, 55, 0.7);
+
+      .action-button {
+        &:hover {
+          background-color: var(--color-bg-tertiary, #374151);
+        }
+
+        &.create:hover {
+          background-color: rgba(16, 185, 129, 0.2);
+        }
+
+        &.edit:hover {
+          background-color: rgba(6, 182, 212, 0.2);
+        }
+
+        &.delete:hover {
+          background-color: rgba(239, 68, 68, 0.2);
+        }
       }
     }
 

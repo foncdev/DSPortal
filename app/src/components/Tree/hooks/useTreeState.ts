@@ -113,32 +113,97 @@ export const useTreeState = (props: TreeProps): TreeState & {
         onChange?.(newTreeData);
     }, [treeData, onChange]);
 
-    // 노드 선택
+    // 노드 선택 - 체크박스와 구분
     const selectNode = useCallback((id: string, multiSelection = false) => {
-        // multiSelect가 아닐 때는 다른 노드의 선택 상태 모두 해제
-        const newTreeData = updateNodeSelected(treeData, id, multiSelection && props.multiSelect);
+        // multiSelect 모드에서도 노드 클릭 시 선택은 단일 선택처럼 동작하고
+        // 체크박스 선택은 다중 선택으로 동작하도록 분리
+
+        // 체크박스 상태를 보존하면서 선택 상태 업데이트
+        const preserveCheckboxes = props.multiSelect; // 다중 선택 모드에서만 체크박스 상태 보존
+
+        const newTreeData = treeData.map(rootNode => {
+            return updateNodeSelectionState(rootNode, id, multiSelection && props.multiSelect, preserveCheckboxes);
+        });
+
         setTreeData(newTreeData);
         onChange?.(newTreeData);
 
         // 콜백 호출
-        const selectedNode = findNodeById(id, treeData);
+        const selectedNode = findNodeById(id, newTreeData);
         if (selectedNode) {
             onNodeSelect?.(selectedNode);
         }
     }, [treeData, onChange, onNodeSelect, props.multiSelect]);
 
-    // 노드 체크박스 토글 (다중 선택)
+    // 노드 선택 상태 업데이트 헬퍼 함수
+    const updateNodeSelectionState = (
+        node: TreeNode,
+        targetId: string,
+        keepOtherSelections: boolean,
+        preserveCheckboxes: boolean
+    ): TreeNode => {
+        const isTarget = node.id === targetId;
+        const wasSelected = node.isSelected;
+
+        // 체크박스 모드에서는 노드 클릭 시 isSelected를 변경하지 않고
+        // 하이라이트만 처리하기 위한 별도의 로직이 필요함
+        // 여기서는 기존 코드와 호환성을 위해 isSelected를 계속 사용
+
+        let newIsSelected = false;
+
+        if (isTarget) {
+            // 타겟 노드는 항상 선택됨
+            newIsSelected = true;
+        } else if (keepOtherSelections && wasSelected && preserveCheckboxes) {
+            // 다중 선택 모드이고 이미 선택되어 있었다면 유지
+            newIsSelected = true;
+        }
+
+        // 자식 노드는 재귀적으로 처리
+        const newChildren = node.children
+            ? node.children.map(child =>
+                updateNodeSelectionState(child, targetId, keepOtherSelections, preserveCheckboxes)
+            )
+            : undefined;
+
+        return { ...node, isSelected: newIsSelected, children: newChildren };
+    };
+
+    // 노드 체크박스 토글 (다중 선택) - 개선된 버전
     const handleToggleNodeCheckbox = useCallback((id: string) => {
-        const newTreeData = toggleNodeCheckbox(treeData, id);
+        // 노드를 찾고 현재 상태를 확인
+        const node = findNodeById(id, treeData);
+        if (!node) return;
+
+        // 체크박스 토글은 노드의 선택 상태를 직접 변경하되, 다른 노드의 선택 상태는 유지해야 함
+        // 즉, multiSelect 모드에서는 단일 노드의 isSelected 상태만 변경
+        const newTreeData = treeData.map(rootNode => {
+            return updateCheckboxState(rootNode, id);
+        });
+
         setTreeData(newTreeData);
         onChange?.(newTreeData);
 
-        // 콜백 호출
-        const selectedNode = findNodeById(id, treeData);
-        if (selectedNode) {
-            onNodeSelect?.(selectedNode);
+        // 콜백 호출 - 상태가 변경된 노드 전달
+        const updatedNode = findNodeById(id, newTreeData);
+        if (updatedNode) {
+            onNodeSelect?.(updatedNode);
         }
     }, [treeData, onChange, onNodeSelect]);
+
+    // 체크박스 상태 업데이트 헬퍼 함수
+    const updateCheckboxState = (node: TreeNode, targetId: string): TreeNode => {
+        if (node.id === targetId) {
+            // 현재 노드가 타겟이면 isSelected 상태를 토글
+            return { ...node, isSelected: !node.isSelected,
+                children: node.children ? node.children.map(child => updateCheckboxState(child, targetId)) : undefined };
+        } else if (node.children) {
+            // 자식 노드 재귀 처리
+            return { ...node, children: node.children.map(child => updateCheckboxState(child, targetId)) };
+        }
+        // 다른 노드는 그대로 유지
+        return node;
+    };
 
     // 노드 생성
     const handleCreateNode = useCallback(async (parentId: string | null, type: NodeType) => {
@@ -264,7 +329,7 @@ export const useTreeState = (props: TreeProps): TreeState & {
         setConfirmDialog,
         toggleNode,
         selectNode,
-        toggleNodeCheckbox: handleToggleNodeCheckbox,
+        toggleNodeCheckbox: handleToggleNodeCheckbox, // 다중 선택 체크박스 토글
         createNode: handleCreateNode,
         handleCreateNodeSubmit,
         editNode: handleEditNode,

@@ -136,91 +136,91 @@ const Tree: React.FC<TreeProps> = (props) => {
         renderNode
     ]);
 
-// 루트 노드 생성 중인지 확인
-const isCreatingRootNode = creatingNode?.parentId === null;
+    // 루트 노드 생성 중인지 확인
+    const isCreatingRootNode = creatingNode?.parentId === null;
 
-return (
-    <div className="tree-component">
-        {/* 루트 레벨 노드 */}
-        {treeData.map((node) => (
-            <div key={node.id} className="tree-node-wrapper root-node">
-                {renderTreeNode(node)}
-            </div>
-        ))}
+    return (
+        <div className="tree-component">
+            {/* 루트 레벨 노드 */}
+            {treeData.map((node) => (
+                <div key={node.id} className="tree-node-wrapper root-node">
+                    {renderTreeNode(node)}
+                </div>
+            ))}
 
-        {/* 루트 레벨 노드 생성 폼 */}
-        {isCreatingRootNode && (
-            <div className="tree-node-wrapper root-node">
-                <div className="tree-node creating">
-                    <div className="tree-node-content">
-                        <div className="toggle-spacer" />
-                        <div className={`tree-node-icon ${creatingNode.type}-icon`} />
-                        <form
-                            className="edit-form"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                const input = e.currentTarget.querySelector('input');
-                                if (input?.value.trim()) {
-                                    handleCreateNodeSubmit(input.value);
-                                }
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <input
-                                type="text"
-                                placeholder={t('tree.newNodeNamePlaceholder')}
-                                autoFocus
-                                onBlur={(e) => {
-                                    if (e.target.value.trim()) {
-                                        handleCreateNodeSubmit(e.target.value);
-                                    } else {
-                                        setCreatingNode(null);
+            {/* 루트 레벨 노드 생성 폼 */}
+            {isCreatingRootNode && (
+                <div className="tree-node-wrapper root-node">
+                    <div className="tree-node creating">
+                        <div className="tree-node-content">
+                            <div className="toggle-spacer" />
+                            <div className={`tree-node-icon ${creatingNode.type}-icon`} />
+                            <form
+                                className="edit-form"
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const input = e.currentTarget.querySelector('input');
+                                    if (input?.value.trim()) {
+                                        handleCreateNodeSubmit(input.value);
                                     }
                                 }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Escape') {
-                                        setCreatingNode(null);
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                    }
-                                }}
-                            />
-                        </form>
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <input
+                                    type="text"
+                                    placeholder={t('tree.newNodeNamePlaceholder')}
+                                    autoFocus
+                                    onBlur={(e) => {
+                                        if (e.target.value.trim()) {
+                                            handleCreateNodeSubmit(e.target.value);
+                                        } else {
+                                            setCreatingNode(null);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Escape') {
+                                            setCreatingNode(null);
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                        }
+                                    }}
+                                />
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
-        )}
+            )}
 
-        {/* "루트 노드 추가" 버튼 */}
-        {allowCreate && (
-            <div className="tree-actions">
-                <button
-                    className="add-root-button"
-                    type="button"
-                    onClick={() => createNode(null, NodeType.Folder)}
-                    title={t('tree.addRoot')}
-                >
-                    <Plus size={16} />
-                    <span>{t('tree.addRoot')}</span>
-                </button>
-            </div>
-        )}
+            {/* "루트 노드 추가" 버튼 */}
+            {allowCreate && (
+                <div className="tree-actions">
+                    <button
+                        className="add-root-button"
+                        type="button"
+                        onClick={() => createNode(null, NodeType.Folder)}
+                        title={t('tree.addRoot')}
+                    >
+                        <Plus size={16} />
+                        <span>{t('tree.addRoot')}</span>
+                    </button>
+                </div>
+            )}
 
-        {/* 확인 다이얼로그 */}
-        <ConfirmDialog
-            isOpen={confirmDialog.isOpen}
-            title={confirmDialog.title}
-            message={confirmDialog.message}
-            onConfirm={() => {
-                confirmDialog.onConfirm();
-                setConfirmDialog({ ...confirmDialog, isOpen: false });
-            }}
-            onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
-            confirmText="tree.confirmButton"
-            cancelText="tree.cancelButton"
-        />
-    </div>
-);
+            {/* 확인 다이얼로그 */}
+            <ConfirmDialog
+                isOpen={confirmDialog.isOpen}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                onConfirm={() => {
+                    confirmDialog.onConfirm();
+                    setConfirmDialog({ ...confirmDialog, isOpen: false });
+                }}
+                onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                confirmText="tree.confirmButton"
+                cancelText="tree.cancelButton"
+            />
+        </div>
+    );
 };
 
 export default Tree;

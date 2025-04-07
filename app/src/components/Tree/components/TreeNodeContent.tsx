@@ -56,6 +56,12 @@ const TreeNodeContent: React.FC<TreeNodeContentProps> = ({
     const ExpandedIcon = TOGGLE_ICONS.expanded;
     const CollapsedIcon = TOGGLE_ICONS.collapsed;
 
+    // 체크박스 토글 핸들러 - 이벤트 전파 중지
+    const handleCheckboxToggle = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onCheckboxToggle(node.id);
+    };
+
     return (
         <div
             className="tree-node-content"
@@ -92,7 +98,10 @@ const TreeNodeContent: React.FC<TreeNodeContentProps> = ({
                     id={node.id}
                     checked={!!node.isSelected}
                     disabled={node.isDisabled}
-                    onChange={onCheckboxToggle.bind(null, node.id)}
+                    onChange={() => {
+                        // 체크박스 토글 이벤트가 발생했을 때 노드 선택이 아닌 체크박스 값만 변경
+                        onCheckboxToggle(node.id);
+                    }}
                 />
             )}
 
