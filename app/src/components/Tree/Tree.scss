@@ -1,0 +1,357 @@
+/* Tree.scss */
+.tree-component {
+  font-family: var(--font-family-sans, 'Noto Sans KR', -apple-system, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-primary, #111827);
+  width: 100%;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  // Root level styling
+  .tree-node-wrapper {
+    position: relative;
+
+    &.root-node {
+      margin-bottom: 4px;
+    }
+  }
+
+  // Node container
+  .tree-node {
+    position: relative;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--color-bg-tertiary, #f3f4f6);
+
+      .node-actions {
+        opacity: 1;
+        visibility: visible;
+      }
+    }
+
+    &.selected {
+      background-color: var(--color-primary-light, #60a5fa);
+      color: var(--color-primary-contrast, #ffffff);
+
+      .tree-node-icon {
+        color: var(--color-primary-contrast, #ffffff);
+      }
+
+      .action-button {
+        color: var(--color-primary-contrast, #ffffff);
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    &.drop-target {
+      background-color: var(--color-bg-tertiary, #f3f4f6);
+      border: 2px dashed var(--color-primary, #3b82f6);
+    }
+
+    &.creating {
+      .edit-form input {
+        border: 1px solid var(--color-primary, #3b82f6);
+      }
+    }
+  }
+
+  // Node content (the visible part with icon and name)
+  .tree-node-content {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    min-height: 32px;
+    position: relative;
+  }
+
+  // Toggle button (expand/collapse)
+  .toggle-button {
+    background: none;
+    border: none;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-text-secondary, #6b7280);
+    margin-right: 4px;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: var(--color-bg-inset, #e5e7eb);
+    }
+  }
+
+  // Spacer for nodes without children
+  .toggle-spacer {
+    width: 20px;
+    margin-right: 4px;
+  }
+
+  // Node icon
+  .tree-node-icon {
+    margin-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-secondary, #6b7280);
+
+    &.folder-icon {
+      color: var(--color-warning, #f59e0b);
+    }
+
+    &.file-icon {
+      color: var(--color-info, #06b6d4);
+    }
+
+    &.device-icon {
+      color: var(--color-success, #10b981);
+    }
+
+    &.layout-icon {
+      color: var(--color-secondary, #64748b);
+    }
+
+    &.custom-icon {
+      color: var(--color-primary, #3b82f6);
+    }
+  }
+
+  // Node name
+  .node-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // Checkbox for multi-select
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-right: 6px;
+    position: relative;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkbox-checkmark {
+      position: relative;
+      height: 16px;
+      width: 16px;
+      background-color: var(--color-bg-primary, #ffffff);
+      border: 1px solid var(--color-border, #e5e7eb);
+      border-radius: 3px;
+      transition: all 0.2s ease;
+
+      &:after {
+        content: "";
+        position: absolute;
+        display: none;
+        left: 5px;
+        top: 2px;
+        width: 4px;
+        height: 8px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+    }
+
+    input:checked ~ .checkbox-checkmark {
+      background-color: var(--color-primary, #3b82f6);
+      border-color: var(--color-primary, #3b82f6);
+
+      &:after {
+        display: block;
+      }
+    }
+
+    &:hover .checkbox-checkmark {
+      border-color: var(--color-primary, #3b82f6);
+    }
+  }
+
+  // Node actions (visible on hover)
+  .node-actions {
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    margin-left: 8px;
+
+    .action-button {
+      background: none;
+      border: none;
+      padding: 3px;
+      margin-left: 2px;
+      cursor: pointer;
+      color: var(--color-text-secondary, #6b7280);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background-color: var(--color-bg-inset, #e5e7eb);
+      }
+
+      &.create {
+        color: var(--color-success, #10b981);
+      }
+
+      &.edit {
+        color: var(--color-info, #06b6d4);
+      }
+
+      &.delete {
+        color: var(--color-error, #ef4444);
+      }
+    }
+  }
+
+  // Edit form
+  .edit-form {
+    flex: 1;
+
+    input {
+      width: 100%;
+      padding: 2px 6px;
+      font-size: 14px;
+      border: 1px solid var(--color-border, #e5e7eb);
+      border-radius: 4px;
+      outline: none;
+
+      &:focus {
+        border-color: var(--color-primary, #3b82f6);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+
+  // Child nodes container
+  .tree-children {
+    padding-left: 20px;
+    overflow: hidden;
+
+    // Vertical connecting line
+    &:before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 20px;
+      bottom: 12px;
+      width: 1px;
+      background-color: var(--color-border, #e5e7eb);
+    }
+  }
+
+  // Actions at the bottom of the tree
+  .tree-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-start;
+
+    .add-root-button {
+      display: flex;
+      align-items: center;
+      background-color: var(--color-bg-secondary, #f9fafb);
+      border: 1px solid var(--color-border, #e5e7eb);
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+
+      svg {
+        margin-right: 6px;
+      }
+
+      &:hover {
+        background-color: var(--color-bg-tertiary, #f3f4f6);
+        border-color: var(--color-primary, #3b82f6);
+      }
+    }
+  }
+
+  // Drag preview
+  .tree-drag-preview {
+    position: fixed;
+    top: -100px; // Hidden but accessible by dragImage
+    left: -100px;
+    padding: 6px 10px;
+    background-color: var(--color-primary, #3b82f6);
+    color: white;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+  }
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .tree-component {
+    .tree-node {
+      &:hover {
+        background-color: var(--color-bg-tertiary, #374151);
+      }
+
+      &.selected {
+        background-color: var(--color-primary, #3b82f6);
+      }
+
+      &.drop-target {
+        background-color: rgba(59, 130, 246, 0.1);
+      }
+    }
+
+    .checkbox-container {
+      .checkbox-checkmark {
+        background-color: var(--color-bg-secondary, #1f2937);
+        border-color: var(--color-border, #374151);
+      }
+    }
+
+    .toggle-button:hover,
+    .action-button:hover {
+      background-color: var(--color-bg-tertiary, #374151);
+    }
+
+    .tree-children:before {
+      background-color: var(--color-border, #4b5563);
+    }
+
+    .add-root-button {
+      background-color: var(--color-bg-secondary, #1f2937);
+      border-color: var(--color-border, #374151);
+
+      &:hover {
+        background-color: var(--color-bg-tertiary, #374151);
+      }
+    }
+  }
+}

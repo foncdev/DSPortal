@@ -1,0 +1,159 @@
+/* Dialog.scss */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog-container {
+  background-color: var(--color-bg-primary, #ffffff);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.2s ease;
+}
+
+.dialog-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.dialog-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--color-text-secondary, #6b7280);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary, #f3f4f6);
+    color: var(--color-text-primary, #111827);
+  }
+}
+
+.dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+// Confirm Dialog Specific Styles
+.confirm-dialog {
+  .confirm-message {
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: var(--color-text-secondary, #6b7280);
+  }
+
+  .confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .cancel-button {
+      background-color: var(--color-bg-secondary, #f9fafb);
+      border-color: var(--color-border, #e5e7eb);
+      color: var(--color-text-secondary, #6b7280);
+
+      &:hover {
+        background-color: var(--color-bg-tertiary, #f3f4f6);
+        color: var(--color-text-primary, #111827);
+      }
+    }
+
+    .confirm-button {
+      background-color: var(--color-error, #ef4444);
+      color: white;
+
+      &:hover {
+        background-color: var(--color-error-dark, #dc2626);
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .dialog-container {
+    background-color: var(--color-bg-secondary, #1f2937);
+  }
+
+  .dialog-header {
+    border-color: var(--color-border, #374151);
+  }
+
+  .dialog-close:hover {
+    background-color: var(--color-bg-tertiary, #374151);
+  }
+
+  .confirm-dialog {
+    .confirm-actions {
+      .cancel-button {
+        background-color: var(--color-bg-tertiary, #374151);
+        border-color: var(--color-border, #4b5563);
+
+        &:hover {
+          background-color: var(--color-bg-inset, #4b5563);
+        }
+      }
+    }
+  }
+}
