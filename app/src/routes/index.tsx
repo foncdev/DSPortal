@@ -28,6 +28,7 @@ const Error500 = lazy(() => import('../pages/Error500'));
 const Unauthorized = lazy(() => import('../pages/Unauthorized'));
 const BlankPage = lazy(() => import('../pages/BlankPage'));
 const ComponentsDemo = lazy(() => import('../pages/ComponentsDemo')); // 추가: UI 컴포넌트 데모 페이지
+const TreeDemo = lazy(() => import('../pages/TreeDemo')); // 추가: UI 컴포넌트 데모 페이지
 
 
 const AppRoutes: React.FC = () => (
@@ -142,6 +143,15 @@ const AppRoutes: React.FC = () => (
                     <UsersTable />
                 }
             />
+
+            <Route
+                path="/tree"
+                element={
+                    <TreeDemo />
+                }
+            />
+
+
 
 
 

@@ -1,0 +1,212 @@
+/* TreeDemo.scss */
+.tree-demo {
+  font-family: var(--font-family-sans, 'Noto Sans KR', -apple-system, sans-serif);
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h1 {
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: var(--color-text-primary, #111827);
+  }
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: var(--color-text-primary, #111827);
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  // Demo controls
+  .demo-controls {
+    background-color: var(--color-bg-secondary, #f9fafb);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+
+      label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+        font-size: 14px;
+
+        input[type="checkbox"] {
+          margin-right: 6px;
+        }
+      }
+    }
+  }
+
+  // Main demo container
+  .demo-container {
+    display: flex;
+    gap: 24px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+    }
+  }
+
+  // Tree container
+  .tree-container {
+    flex: 1;
+    background-color: var(--color-bg-primary, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 500px;
+    overflow: auto;
+  }
+
+  // Side panel
+  .side-panel {
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    @media (max-width: 768px) {
+      width: 100%;
+    }
+  }
+
+  // Selected node info
+  .selected-node {
+    background-color: var(--color-bg-primary, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    .node-details {
+      p {
+        margin: 8px 0;
+        font-size: 14px;
+
+        strong {
+          font-weight: 600;
+          margin-right: 4px;
+        }
+      }
+    }
+
+    .no-selection {
+      color: var(--color-text-tertiary, #9ca3af);
+      font-style: italic;
+      font-size: 14px;
+    }
+  }
+
+  // Logs panel
+  .logs-panel {
+    background-color: var(--color-bg-primary, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    .logs-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid var(--color-border, #e5e7eb);
+
+      h3 {
+        margin: 0;
+      }
+
+      .clear-logs {
+        background-color: var(--color-bg-secondary, #f9fafb);
+        border: 1px solid var(--color-border, #e5e7eb);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--color-bg-tertiary, #f3f4f6);
+        }
+      }
+    }
+
+    .logs {
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 300px;
+      flex: 1;
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          padding: 6px 0;
+          border-bottom: 1px solid var(--color-border-light, #f3f4f6);
+          font-size: 13px;
+          color: var(--color-text-secondary, #4b5563);
+
+          &:last-child {
+            border-bottom: none;
+          }
+        }
+      }
+
+      .no-logs {
+        color: var(--color-text-tertiary, #9ca3af);
+        font-style: italic;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// Dark mode adjustments
+:global(.dark) {
+  .tree-demo {
+    .demo-controls {
+      background-color: var(--color-bg-secondary, #1f2937);
+      border-color: var(--color-border, #374151);
+    }
+
+    .tree-container,
+    .selected-node,
+    .logs-panel {
+      background-color: var(--color-bg-secondary, #1f2937);
+      border-color: var(--color-border, #374151);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .logs-panel {
+      .logs-header {
+        border-color: var(--color-border, #374151);
+
+        .clear-logs {
+          background-color: var(--color-bg-tertiary, #374151);
+          border-color: var(--color-border, #4b5563);
+
+          &:hover {
+            background-color: var(--color-bg-inset, #4b5563);
+          }
+        }
+      }
+
+      .logs ul li {
+        border-color: var(--color-border, #374151);
+      }
+    }
+  }
+}
