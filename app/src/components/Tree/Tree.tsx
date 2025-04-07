@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { TreeProps, TreeNode, NodeType } from './types';
-import { generateNodeId } from './constants';
 import { TreeNode as TreeNodeComponent } from './components';
 import { useTreeState, useTreeDragDrop } from './hooks';
 import { getNodePath } from './utils';
@@ -31,7 +30,6 @@ const Tree: React.FC<TreeProps> = (props) => {
     // 트리 상태 관리 훅
     const {
         treeData,
-        expandedNodesRef,
         editingNode,
         creatingNode,
         confirmDialog,
@@ -57,7 +55,6 @@ const Tree: React.FC<TreeProps> = (props) => {
         handleDragLeave,
         handleDrop,
         handleDragEnd,
-        getDropIndicatorClass,
     } = useTreeDragDrop(props, treeData, setTreeData);
 
     // 노드 더블 클릭 핸들러

@@ -4,7 +4,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 import SingleLayout from '../layouts/SingleLayout';
 import UsersTable from "@/pages/UsersTable";
-import CrontabDemo from "@/pages/CrontabDemo";
 
 // Loading spinner component
 const Loading = () => (
@@ -151,18 +150,6 @@ const AppRoutes: React.FC = () => (
                     <TreeDemo />
                 }
             />
-
-            <Route
-                path="/crontab"
-                element={
-                    <CrontabDemo />
-                }
-            />
-
-
-
-
-
 
             {/* Catch-all route - 404 */}
             <Route

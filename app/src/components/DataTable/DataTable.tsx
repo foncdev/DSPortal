@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import React, { useEffect, useRef, useState } from 'react';
 import { useTable } from './hooks';
 import { TableProps } from './types';

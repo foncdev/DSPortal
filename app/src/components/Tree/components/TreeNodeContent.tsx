@@ -39,7 +39,6 @@ const TreeNodeContent: React.FC<TreeNodeContentProps> = ({
                                                              allowEdit,
                                                              allowDelete,
                                                              editingNode,
-                                                             creatingChild,
                                                              onToggle,
                                                              onSelect,
                                                              onCheckboxToggle,

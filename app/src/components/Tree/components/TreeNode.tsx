@@ -1,5 +1,5 @@
 import React from 'react';
-import { TreeNodeProps, NodeType } from '../types';
+import { TreeNodeProps } from '../types';
 import { NODE_CLASSES } from '../constants';
 import TreeNodeContent from './TreeNodeContent';
 import NodeForm from './NodeForm';

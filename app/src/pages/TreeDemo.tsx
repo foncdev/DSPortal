@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Tree, NodeType, TreeNode } from '../components/Tree';
 
 // Initial data for the tree
@@ -207,71 +207,6 @@ const TreeDemo: React.FC = () => {
                     )}
                 </div>
             </div>
-
-            <style jsx>{`
-        .page-container {
-          padding: 20px;
-        }
-        
-        .page-title {
-          margin-bottom: 20px;
-        }
-        
-        .tree-demo-container {
-          display: flex;
-          gap: 30px;
-        }
-        
-        .tree-panel {
-          flex: 1;
-          border: 1px solid var(--color-border);
-          border-radius: 8px;
-          padding: 20px;
-          background-color: var(--color-bg-secondary);
-        }
-        
-        .info-panel {
-          width: 300px;
-          border: 1px solid var(--color-border);
-          border-radius: 8px;
-          padding: 20px;
-          background-color: var(--color-bg-secondary);
-        }
-        
-        .selected-node-info {
-          padding: 10px;
-          background-color: var(--color-bg-tertiary);
-          border-radius: 4px;
-          margin-bottom: 20px;
-        }
-        
-        .checked-nodes-list {
-          padding: 10px;
-          background-color: var(--color-bg-tertiary);
-          border-radius: 4px;
-        }
-        
-        .checked-nodes-list ul {
-          list-style-type: none;
-          padding: 0;
-          margin: 0;
-        }
-        
-        .checked-nodes-list li {
-          padding: 4px 0;
-          border-bottom: 1px dashed var(--color-border);
-        }
-        
-        .checked-nodes-list li:last-child {
-          border-bottom: none;
-        }
-        
-        h2 {
-          margin-top: 0;
-          margin-bottom: 15px;
-          font-size: 1.2rem;
-        }
-      `}</style>
         </div>
     );
 };

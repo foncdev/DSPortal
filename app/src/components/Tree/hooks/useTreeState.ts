@@ -2,7 +2,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { TreeNode, NodeType, TreeProps, TreeState } from '../types';
 import {
-    updateNodeExpanded,
     updateNodeName,
     deleteNode,
     createNewNode
