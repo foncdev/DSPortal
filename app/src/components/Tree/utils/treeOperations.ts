@@ -9,8 +9,7 @@ import { findNodeById, findParentNode } from './treeNodeFinder';
  * @param isExpanded 확장 여부
  * @returns 업데이트된 트리 데이터
  */
-export const updateNodeExpanded = (nodes: TreeNode[], id: string, isExpanded: boolean): TreeNode[] => {
-    return nodes.map(node => {
+export const updateNodeExpanded = (nodes: TreeNode[], id: string, isExpanded: boolean): TreeNode[] => nodes.map(node => {
         if (node.id === id) {
             return { ...node, isExpanded };
         }
@@ -19,7 +18,6 @@ export const updateNodeExpanded = (nodes: TreeNode[], id: string, isExpanded: bo
         }
         return node;
     });
-};
 
 /**
  * 노드 선택 상태 업데이트
@@ -28,8 +26,7 @@ export const updateNodeExpanded = (nodes: TreeNode[], id: string, isExpanded: bo
  * @param multiSelection 다중 선택 모드인지 여부
  * @returns 업데이트된 트리 데이터
  */
-export const updateNodeSelected = (nodes: TreeNode[], id: string, multiSelection: boolean): TreeNode[] => {
-    return nodes.map(node => {
+export const updateNodeSelected = (nodes: TreeNode[], id: string, multiSelection: boolean): TreeNode[] => nodes.map(node => {
         // 다중 선택 모드가 아니거나 현재 노드인 경우만 선택 상태 업데이트
         const isSelected = node.id === id
             ? true
@@ -43,7 +40,6 @@ export const updateNodeSelected = (nodes: TreeNode[], id: string, multiSelection
             children: node.children ? updateNodeSelected(node.children, id, multiSelection) : undefined
         };
     });
-};
 
 /**
  * 체크박스 토글 (다중 선택)
@@ -54,7 +50,7 @@ export const updateNodeSelected = (nodes: TreeNode[], id: string, multiSelection
 export const toggleNodeCheckbox = (nodes: TreeNode[], id: string): TreeNode[] => {
     // 먼저 해당 ID를 가진 노드를 찾아 현재 선택 상태 확인
     const nodeToToggle = findNodeById(id, nodes);
-    if (!nodeToToggle) return nodes;
+    if (!nodeToToggle) {return nodes;}
 
     // 새로운 선택 상태 값 (반대로 토글)
     const newIsSelected = !nodeToToggle.isSelected;
@@ -138,8 +134,7 @@ export const createNewNode = (
  * @param name 새 노드 이름
  * @returns 업데이트된 트리 데이터
  */
-export const updateNodeName = (nodes: TreeNode[], id: string, name: string): TreeNode[] => {
-    return nodes.map(node => {
+export const updateNodeName = (nodes: TreeNode[], id: string, name: string): TreeNode[] => nodes.map(node => {
         if (node.id === id) {
             return { ...node, name };
         }
@@ -148,7 +143,6 @@ export const updateNodeName = (nodes: TreeNode[], id: string, name: string): Tre
         }
         return node;
     });
-};
 
 /**
  * 노드 삭제
@@ -156,8 +150,7 @@ export const updateNodeName = (nodes: TreeNode[], id: string, name: string): Tre
  * @param id 삭제할 노드 ID
  * @returns 업데이트된 트리 데이터
  */
-export const deleteNode = (nodes: TreeNode[], id: string): TreeNode[] => {
-    return nodes
+export const deleteNode = (nodes: TreeNode[], id: string): TreeNode[] => nodes
         .filter(node => node.id !== id)
         .map(node => {
             if (node.children) {
@@ -165,7 +158,6 @@ export const deleteNode = (nodes: TreeNode[], id: string): TreeNode[] => {
             }
             return node;
         });
-};
 
 /**
  * 노드 이동 (드래그 앤 드롭)
@@ -262,8 +254,7 @@ export const moveNode = (
 /**
  * 노드를 타겟 노드 내부에 삽입
  */
-const insertNodeInside = (nodes: TreeNode[], targetId: string, nodeToInsert: TreeNode): TreeNode[] => {
-    return nodes.map(node => {
+const insertNodeInside = (nodes: TreeNode[], targetId: string, nodeToInsert: TreeNode): TreeNode[] => nodes.map(node => {
         if (node.id === targetId) {
             const children = node.children || [];
             nodeToInsert.parentId = node.id;
@@ -284,7 +275,6 @@ const insertNodeInside = (nodes: TreeNode[], targetId: string, nodeToInsert: Tre
 
         return node;
     });
-};
 
 /**
  * 형제 노드 기준 삽입 위치 타입
@@ -300,8 +290,7 @@ const insertNodeRelativeToSibling = (
     siblingId: string,
     nodeToInsert: TreeNode,
     position: InsertPosition
-): TreeNode[] => {
-    return nodes.map(node => {
+): TreeNode[] => nodes.map(node => {
         if (node.id === parentId && node.children) {
             const siblingIndex = node.children.findIndex(child => child.id === siblingId);
 
@@ -328,7 +317,6 @@ const insertNodeRelativeToSibling = (
 
         return node;
     });
-};
 
 /**
  * 노드를 루트 레벨에서 특정 노드 기준으로 삽입

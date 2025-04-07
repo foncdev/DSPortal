@@ -27,14 +27,14 @@ export const useTreeDragDrop = (
         const relativeY = y - rect.top;
         const height = rect.height;
 
-        if (relativeY < height * DROP_THRESHOLD.ABOVE) return DropPosition.Above;
-        if (relativeY > height * DROP_THRESHOLD.BELOW) return DropPosition.Below;
+        if (relativeY < height * DROP_THRESHOLD.ABOVE) {return DropPosition.Above;}
+        if (relativeY > height * DROP_THRESHOLD.BELOW) {return DropPosition.Below;}
         return DropPosition.Inside;
     }, []);
 
     // 드롭 타겟 CSS 클래스 계산
     const getDropIndicatorClass = useCallback((nodeId: string, position: DropPosition | null) => {
-        if (nodeId !== dropTargetId || !position) return '';
+        if (nodeId !== dropTargetId || !position) {return '';}
 
         switch (position) {
             case DropPosition.Above:
@@ -50,7 +50,7 @@ export const useTreeDragDrop = (
 
     // 드래그 시작 핸들러
     const handleDragStart = useCallback((e: React.DragEvent, node: TreeNode) => {
-        if (!draggable || node.isDisabled) return;
+        if (!draggable || node.isDisabled) {return;}
 
         e.stopPropagation();
         e.dataTransfer.setData('text/plain', node.id);
@@ -75,7 +75,7 @@ export const useTreeDragDrop = (
         e.preventDefault();
         e.stopPropagation();
 
-        if (!draggable || !draggedNode || node.isDisabled) return;
+        if (!draggable || !draggedNode || node.isDisabled) {return;}
 
         // Throttle drag over updates to prevent excessive state updates
         const now = Date.now();

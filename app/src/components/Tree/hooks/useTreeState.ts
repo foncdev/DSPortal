@@ -132,9 +132,7 @@ export const useTreeState = (props: TreeProps): TreeState & {
     // Select node (highlighting) - separate from checkbox toggling
     const selectNode = useCallback((id: string, multiSelection = false) => {
         // Process tree to update highlighting
-        const newTreeData = treeData.map(rootNode => {
-            return updateNodeHighlightState(rootNode, id, multiSelection && props.multiSelect);
-        });
+        const newTreeData = treeData.map(rootNode => updateNodeHighlightState(rootNode, id, multiSelection && props.multiSelect));
 
         setTreeData(newTreeData);
         onChange?.(newTreeData);
@@ -180,9 +178,7 @@ export const useTreeState = (props: TreeProps): TreeState & {
     // Toggle checkbox (separate from node highlighting)
     const toggleNodeCheckbox = useCallback((id: string) => {
         // Process tree to update checkbox selection
-        const newTreeData = treeData.map(rootNode => {
-            return updateNodeCheckboxState(rootNode, id);
-        });
+        const newTreeData = treeData.map(rootNode => updateNodeCheckboxState(rootNode, id));
 
         setTreeData(newTreeData);
         onChange?.(newTreeData);
@@ -224,7 +220,7 @@ export const useTreeState = (props: TreeProps): TreeState & {
         // Check if creation is allowed
         if (onBeforeCreate) {
             const canCreate = await onBeforeCreate(parentNode, type);
-            if (!canCreate) return;
+            if (!canCreate) {return;}
         }
 
         // Set creating state
@@ -261,12 +257,12 @@ export const useTreeState = (props: TreeProps): TreeState & {
     // Edit node
     const handleEditNode = useCallback(async (id: string) => {
         const node = findNodeById(id, treeData);
-        if (!node) return;
+        if (!node) {return;}
 
         // Check if edit is allowed
         if (onBeforeEdit) {
             const canEdit = await onBeforeEdit(node);
-            if (!canEdit) return;
+            if (!canEdit) {return;}
         }
 
         // Set editing state
@@ -303,12 +299,12 @@ export const useTreeState = (props: TreeProps): TreeState & {
     // Delete node
     const handleDeleteNode = useCallback(async (id: string) => {
         const node = findNodeById(id, treeData);
-        if (!node) return;
+        if (!node) {return;}
 
         // Check if delete is allowed
         if (onBeforeDelete) {
             const canDelete = await onBeforeDelete(node);
-            if (!canDelete) return;
+            if (!canDelete) {return;}
         }
 
         // Show confirmation dialog

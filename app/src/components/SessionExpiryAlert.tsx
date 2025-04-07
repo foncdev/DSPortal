@@ -46,7 +46,7 @@ const SessionExpiryAlert: React.FC = () => {
     }, [handleSessionUpdate]);
 
     const extendSession = async () => {
-        if (extending) return;
+        if (extending) {return;}
 
         setExtending(true);
         try {

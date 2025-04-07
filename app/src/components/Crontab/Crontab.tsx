@@ -35,11 +35,11 @@ const Crontab: React.FC<CrontabProps> = ({ value, onChange }) => {
     // 크론 표현식 파싱 함수
     const parseCronExpression = useCallback((cronExpression: string) => {
         const parts = cronExpression.split(' ');
-        if (parts.length !== 5) return;
+        if (parts.length !== 5) {return;}
 
         const parseField = (field: string) => {
-            if (field === '*') return [];
-            if (field.includes(',')) return field.split(',').map(Number);
+            if (field === '*') {return [];}
+            if (field.includes(',')) {return field.split(',').map(Number);}
             return [Number(field)];
         };
 
