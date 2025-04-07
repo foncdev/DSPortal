@@ -1,8 +1,13 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTable } from './hooks';
 import { TableProps } from './types';
 import styles from './DataTable.module.scss';
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, Columns, Filter } from 'lucide-react';
+import { ChevronUp, ChevronDown, ArrowUpDown, Columns, Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import FilterDropdown from './components/FilterDropdown';
+import ColumnDropdown from './components/ColumnDropdown';
+import Pagination from './components/Pagination';
+import { isDevelopment } from '../../utils/environment';
 
 /**
  * DataTable - 기능적이고 유연한 데이터 테이블 컴포넌트
@@ -32,8 +37,9 @@ export function DataTable<T>({
                                  initialVerticalScroll = true,
                                  hideFilterBarOnMobile = true,
                                  mobileBreakpoint = 768,
-                                 customStyles = {},
                              }: TableProps<T>) {
+    const { t } = useTranslation();
+
     // 테이블 로직 커스텀 훅 사용
     const {
         state,
@@ -56,6 +62,7 @@ export function DataTable<T>({
     const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
     const [isColumnDropdownOpen, setIsColumnDropdownOpen] = useState(false);
 
+    // 필터 및 컬럼 설정은 항상 표시되도록 수정
     // 드롭다운 참조 생성
     const filterDropdownRef = useRef<HTMLDivElement>(null);
     const columnDropdownRef = useRef<HTMLDivElement>(null);
@@ -121,7 +128,9 @@ export function DataTable<T>({
 
     // 필터 드롭다운 토글
     const toggleFilterDropdown = () => {
+        console.log('Filter dropdown clicked, current state:', isFilterDropdownOpen);
         setIsFilterDropdownOpen(!isFilterDropdownOpen);
+
         // 다른 드롭다운 닫기
         if (isColumnDropdownOpen) {
             setIsColumnDropdownOpen(false);
@@ -130,15 +139,35 @@ export function DataTable<T>({
 
     // 컬럼 설정 드롭다운 토글
     const toggleColumnDropdown = () => {
+        console.log('Column dropdown clicked, current state:', isColumnDropdownOpen);
         setIsColumnDropdownOpen(!isColumnDropdownOpen);
+
         // 다른 드롭다운 닫기
         if (isFilterDropdownOpen) {
             setIsFilterDropdownOpen(false);
         }
     };
 
+    // useEffect를 사용하여 드롭다운 위치 계산
+    useEffect(() => {
+        // 윈도우 리사이즈 시 드롭다운 위치 업데이트
+        const handleResize = () => {
+            // 드롭다운이 열려있는 경우에만 업데이트
+            if (isFilterDropdownOpen || isColumnDropdownOpen) {
+                // 강제로 리렌더링하여 위치 업데이트
+                setIsFilterDropdownOpen(isFilterDropdownOpen);
+                setIsColumnDropdownOpen(isColumnDropdownOpen);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [isFilterDropdownOpen, isColumnDropdownOpen]);
+
     // 스크롤 컨테이너 스타일 설정
-    const scrollContainerStyle = {
+    const scrollContainerStyle: React.CSSProperties = {
         maxHeight: state.verticalScroll ? maxHeight || 'auto' : 'none',
         overflowX: state.horizontalScroll ? 'auto' : 'hidden',
         overflowY: state.verticalScroll ? 'auto' : 'hidden',
@@ -167,8 +196,26 @@ export function DataTable<T>({
         }
     };
 
+    // 정렬 아이콘 렌더링
+    const renderSortIcon = (colKey: string) => (
+            <span className={styles.sortIcon} aria-hidden="true">
+        {state.sortKey === colKey ? (
+            state.sortOrder === 'asc' ? (
+                <ChevronUp size={14} />
+            ) : (
+                <ChevronDown size={14} />
+            )
+        ) : (
+            <span className={styles.inactive}>
+            <ChevronDown size={14} />
+          </span>
+        )}
+      </span>
+        );
+
     return (
         <div className="relative">
+            {/* 테이블 툴바 (필터, 컬럼 설정은 항상 표시, 스크롤 토글은 개발 모드에서만) */}
             <div className={styles.tableToolbar}>
                 <div className={styles.toolbarActions}>
                     {/* 필터 버튼 */}
@@ -177,49 +224,23 @@ export function DataTable<T>({
                             ref={filterButtonRef}
                             className={`${styles.actionButton} ${styles[themeClass]}`}
                             onClick={toggleFilterDropdown}
-                            title="필터 설정"
+                            title={t('dataTable.filterSettings')}
                             aria-haspopup="true"
                             aria-expanded={isFilterDropdownOpen ? "true" : "false"}
                         >
                             <Filter size={18} className={styles.buttonIcon} />
-                            <span className={styles.buttonText}>필터</span>
+                            <span className={styles.buttonText}>{t('dataTable.filter')}</span>
                         </button>
 
                         {/* 필터 드롭다운 */}
-                        <div
+                        <FilterDropdown
                             ref={filterDropdownRef}
-                            className={`${styles.dropdown} ${styles[themeClass]} ${isFilterDropdownOpen ? '' : 'hidden'}`}
-                            style={{ maxHeight: '400px', overflow: 'auto' }}
-                            role="menu"
-                            aria-labelledby="filter-toggle-btn"
-                        >
-                            <h4 className={`${styles.dropdownTitle} ${styles[themeClass]}`}>필터 옵션</h4>
-                            {state.columns
-                                .filter(col => col.filterable)
-                                .map(col => (
-                                    <div key={`filter-${col.key}`} className={styles.dropdownItem}>
-                                        <label
-                                            htmlFor={`filter-${col.key}`}
-                                            className={`${styles.itemLabel} ${styles[themeClass]}`}
-                                        >
-                                            {col.header}
-                                        </label>
-                                        <input
-                                            id={`filter-${col.key}`}
-                                            type="text"
-                                            value={state.filters[col.key] || ''}
-                                            onChange={(e) => handlers.handleFilterChange(col.key, e.target.value)}
-                                            className={`${styles.filterInput} ${styles[themeClass]}`}
-                                            placeholder={`${col.header} 검색...`}
-                                        />
-                                    </div>
-                                ))}
-                            {state.columns.filter(col => col.filterable).length === 0 && (
-                                <div className={styles.dropdownItem}>
-                                    <p className={`${styles.itemLabel} ${styles[themeClass]}`}>필터링 가능한 컬럼이 없습니다.</p>
-                                </div>
-                            )}
-                        </div>
+                            isOpen={isFilterDropdownOpen}
+                            columns={state.columns}
+                            filters={state.filters}
+                            onFilterChange={handlers.handleFilterChange}
+                            themeClass={themeClass}
+                        />
                     </div>
 
                     {/* 컬럼 설정 버튼 */}
@@ -228,70 +249,52 @@ export function DataTable<T>({
                             ref={columnButtonRef}
                             className={`${styles.actionButton} ${styles[themeClass]}`}
                             onClick={toggleColumnDropdown}
-                            title="컬럼 설정"
+                            title={t('dataTable.columnSettings')}
                             aria-haspopup="true"
                             aria-expanded={isColumnDropdownOpen ? "true" : "false"}
                         >
                             <Columns size={18} className={styles.buttonIcon} />
-                            <span className={styles.buttonText}>컬럼 설정</span>
+                            <span className={styles.buttonText}>{t('dataTable.columns')}</span>
                         </button>
 
                         {/* 컬럼 설정 드롭다운 */}
-                        <div
+                        <ColumnDropdown
                             ref={columnDropdownRef}
-                            className={`${styles.dropdown} ${styles[themeClass]} ${isColumnDropdownOpen ? '' : 'hidden'}`}
-                            style={{ maxHeight: '400px', overflow: 'auto' }}
-                            role="menu"
-                            aria-labelledby="column-toggle-btn"
-                        >
-                            <h4 className={`${styles.dropdownTitle} ${styles[themeClass]}`}>표시할 컬럼</h4>
-                            <div className="max-h-60 overflow-y-auto">
-                                {state.columns.map(col => (
-                                    <div key={`visibility-${col.key}`} className={styles.columnToggle}>
-                                        <input
-                                            type="checkbox"
-                                            id={`visibility-${col.key}`}
-                                            checked={col.visible}
-                                            onChange={() => handlers.toggleColumnVisibility(col.key)}
-                                            className={`${styles.toggleCheckbox} ${styles[themeClass]}`}
-                                        />
-                                        <label
-                                            htmlFor={`visibility-${col.key}`}
-                                            className={`${styles.toggleLabel} ${styles[themeClass]}`}
-                                        >
-                                            {col.header}
-                                        </label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                            isOpen={isColumnDropdownOpen}
+                            columns={state.columns}
+                            toggleColumnVisibility={handlers.toggleColumnVisibility}
+                            themeClass={themeClass}
+                        />
                     </div>
 
-                    {/* 가로 스크롤 토글 버튼 */}
-                    <button
-                        className={`${styles.actionButton} ${styles[themeClass]}`}
-                        onClick={handlers.toggleHorizontalScroll}
-                        title={state.horizontalScroll ? '가로 스크롤 비활성화' : '가로 스크롤 활성화'}
-                        aria-pressed={state.horizontalScroll ? "true" : "false"}
-                    >
-                        <ArrowUpDown size={18} className={styles.buttonIcon} style={{ transform: 'rotate(90deg)' }} />
-                        <span className={styles.buttonText}>
-              {state.horizontalScroll ? '가로 스크롤 ON' : '가로 스크롤 OFF'}
-            </span>
-                    </button>
+                    {/* 가로/세로 스크롤 토글 버튼 (개발 모드에서만 표시) */}
+                    {isDevelopment() && (
+                        <>
+                            <button
+                                className={`${styles.actionButton} ${styles[themeClass]}`}
+                                onClick={handlers.toggleHorizontalScroll}
+                                title={state.horizontalScroll ? t('dataTable.disableHorizontalScroll') : t('dataTable.enableHorizontalScroll')}
+                                aria-pressed={state.horizontalScroll ? "true" : "false"}
+                            >
+                                <ArrowUpDown size={18} className={styles.buttonIcon} style={{ transform: 'rotate(90deg)' }} />
+                                <span className={styles.buttonText}>
+                  {state.horizontalScroll ? t('dataTable.horizontalScrollOn') : t('dataTable.horizontalScrollOff')}
+                </span>
+                            </button>
 
-                    {/* 세로 스크롤 토글 버튼 */}
-                    <button
-                        className={`${styles.actionButton} ${styles[themeClass]}`}
-                        onClick={handlers.toggleVerticalScroll}
-                        title={state.verticalScroll ? '세로 스크롤 비활성화' : '세로 스크롤 활성화'}
-                        aria-pressed={state.verticalScroll ? "true" : "false"}
-                    >
-                        <ArrowUpDown size={18} className={styles.buttonIcon} />
-                        <span className={styles.buttonText}>
-              {state.verticalScroll ? '세로 스크롤 ON' : '세로 스크롤 OFF'}
-            </span>
-                    </button>
+                            <button
+                                className={`${styles.actionButton} ${styles[themeClass]}`}
+                                onClick={handlers.toggleVerticalScroll}
+                                title={state.verticalScroll ? t('dataTable.disableVerticalScroll') : t('dataTable.enableVerticalScroll')}
+                                aria-pressed={state.verticalScroll ? "true" : "false"}
+                            >
+                                <ArrowUpDown size={18} className={styles.buttonIcon} />
+                                <span className={styles.buttonText}>
+                  {state.verticalScroll ? t('dataTable.verticalScrollOn') : t('dataTable.verticalScrollOff')}
+                </span>
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -315,7 +318,7 @@ export function DataTable<T>({
                                 className={`${styles.headerCell} ${styles[themeClass]}`}
                                 style={{ width: '40px' }}
                                 role="columnheader"
-                                aria-label="선택"
+                                aria-label={t('dataTable.select')}
                             >
                                 <input
                                     type="checkbox"
@@ -325,7 +328,7 @@ export function DataTable<T>({
                                         tableData.filteredData.length > 0
                                     }
                                     onChange={(e) => handlers.handleSelectAll(e.target.checked)}
-                                    aria-label="모두 선택"
+                                    aria-label={t('dataTable.selectAll')}
                                 />
                             </th>
                         )}
@@ -355,24 +358,10 @@ export function DataTable<T>({
                                         }}
                                         tabIndex={col.sortable ? 0 : -1}
                                         role={col.sortable ? "button" : undefined}
-                                        aria-label={col.sortable ? `${col.header} 정렬` : undefined}
+                                        aria-label={col.sortable ? `${t('dataTable.sortBy')} ${col.header}` : undefined}
                                     >
                                         <span className={styles.headerTitle}>{col.header}</span>
-                                        {col.sortable && (
-                                            <span className={styles.sortIcon} aria-hidden="true">
-                          {state.sortKey === col.key ? (
-                              state.sortOrder === 'asc' ? (
-                                  <ChevronUp size={14} />
-                              ) : (
-                                  <ChevronDown size={14} />
-                              )
-                          ) : (
-                              <span className={styles.inactive}>
-                              <ChevronDown size={14} />
-                            </span>
-                          )}
-                        </span>
-                                        )}
+                                        {col.sortable && renderSortIcon(col.key)}
                                     </div>
 
                                     {/* 필터 입력 필드 */}
@@ -384,8 +373,8 @@ export function DataTable<T>({
                                                 onChange={(e) => handlers.handleFilterChange(col.key, e.target.value)}
                                                 onClick={(e) => e.stopPropagation()}
                                                 className={`${styles.filterInput} ${styles[themeClass]}`}
-                                                placeholder="필터..."
-                                                aria-label={`${col.header} 필터`}
+                                                placeholder={t('dataTable.filterDots')}
+                                                aria-label={`${t('dataTable.filterBy')} ${col.header}`}
                                             />
                                         </div>
                                     )}
@@ -397,9 +386,15 @@ export function DataTable<T>({
                                         className={`${styles.resizeHandle} ${state.resizingColumnKey === col.key ? styles.resizing : ''} ${styles[themeClass]}`}
                                         onMouseDown={(e) => handlers.handleMouseDown(e, col.key)}
                                         onClick={(e) => e.stopPropagation()}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handlers.handleMouseDown(e as any, col.key);
+                                            }
+                                        }}
                                         role="separator"
                                         aria-orientation="vertical"
-                                        aria-label="컬럼 크기 조절"
+                                        aria-label={t('dataTable.resizeColumn')}
                                     />
                                 )}
                             </th>
@@ -446,7 +441,7 @@ export function DataTable<T>({
                                                 checked={utils.isSelected(item)}
                                                 onChange={(e) => handlers.handleRowSelect(item, e.target.checked)}
                                                 onClick={(e) => e.stopPropagation()}
-                                                aria-label={`행 ${rowIndex + 1} 선택`}
+                                                aria-label={`${t('dataTable.selectRow')} ${rowIndex + 1}`}
                                             />
                                         </td>
                                     )}
@@ -483,7 +478,7 @@ export function DataTable<T>({
                                                     expandedRowRenderer(item)
                                                 ) : (
                                                     <div className="text-center">
-                                                        <p>확장 뷰 렌더러가 제공되지 않았습니다.</p>
+                                                        <p>{t('dataTable.noExpandedRowRenderer')}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -499,7 +494,7 @@ export function DataTable<T>({
                                 className={`${styles.noDataMessage} ${styles[themeClass]}`}
                                 role="gridcell"
                             >
-                                데이터가 없습니다
+                                {t('dataTable.noData')}
                             </td>
                         </tr>
                     )}
@@ -509,119 +504,16 @@ export function DataTable<T>({
 
             {/* 페이지네이션 */}
             {pagination && tableData.totalPages > 0 && (
-                <div
-                    className={`${styles.pagination} ${styles[themeClass]}`}
-                    role="navigation"
-                    aria-label="페이지네이션"
-                >
-                    <div className={styles.paginationInfo}>
-                        <div className={`${styles.infoText} ${styles[themeClass]}`}>
-              <span className={`${styles.infoHighlight} ${styles[themeClass]}`}>
-                {Math.min((state.currentPage - 1) * state.itemsPerPageState + 1, tableData.sortedData.length)}
-              </span>
-                            -
-                            <span className={`${styles.infoHighlight} ${styles[themeClass]}`}>
-                {Math.min(state.currentPage * state.itemsPerPageState, tableData.sortedData.length)}
-              </span>{' '}
-                            of{' '}
-                            <span className={`${styles.infoHighlight} ${styles[themeClass]}`}>
-                {tableData.sortedData.length}
-              </span>{' '}
-                            항목
-                        </div>
-
-                        <div className={styles.itemsPerPageSelect}>
-                            <label
-                                htmlFor="table-items-per-page"
-                                className={`${styles.selectLabel} ${styles[themeClass]}`}
-                            >
-                                페이지당 행:
-                            </label>
-                            <select
-                                id="table-items-per-page"
-                                value={state.itemsPerPageState}
-                                onChange={(e) => {
-                                    handlers.setItemsPerPageState(Number(e.target.value));
-                                }}
-                                className={`${styles.select} ${styles[themeClass]}`}
-                                aria-label="페이지당 항목 수"
-                            >
-                                {itemsPerPageOptions.map((option) => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className={styles.paginationButtons}>
-                        <button
-                            onClick={() => handlers.handlePageChange(1)}
-                            disabled={state.currentPage === 1}
-                            className={`${styles.pageButton} ${styles[themeClass]} ${state.currentPage === 1 ? styles.disabled : ''}`}
-                            aria-label="첫 페이지"
-                            aria-disabled={state.currentPage === 1}
-                        >
-                            <ChevronsLeft size={16} />
-                        </button>
-
-                        <button
-                            onClick={() => handlers.handlePageChange(state.currentPage - 1)}
-                            disabled={state.currentPage === 1}
-                            className={`${styles.pageButton} ${styles[themeClass]} ${state.currentPage === 1 ? styles.disabled : ''}`}
-                            aria-label="이전 페이지"
-                            aria-disabled={state.currentPage === 1}
-                        >
-                            <ChevronLeft size={16} />
-                        </button>
-
-                        {Array.from({ length: Math.min(5, tableData.totalPages) }, (_, i) => {
-                            let pageNum;
-                            if (tableData.totalPages <= 5) {
-                                pageNum = i + 1;
-                            } else if (state.currentPage <= 3) {
-                                pageNum = i + 1;
-                            } else if (state.currentPage >= tableData.totalPages - 2) {
-                                pageNum = tableData.totalPages - 4 + i;
-                            } else {
-                                pageNum = state.currentPage - 2 + i;
-                            }
-
-                            return (
-                                <button
-                                    key={pageNum}
-                                    onClick={() => handlers.handlePageChange(pageNum)}
-                                    className={`${styles.pageButton} ${styles[themeClass]} ${state.currentPage === pageNum ? styles.active : ''}`}
-                                    aria-label={`${pageNum} 페이지`}
-                                    aria-current={state.currentPage === pageNum ? "page" : undefined}
-                                >
-                                    {pageNum}
-                                </button>
-                            );
-                        })}
-
-                        <button
-                            onClick={() => handlers.handlePageChange(state.currentPage + 1)}
-                            disabled={state.currentPage === tableData.totalPages}
-                            className={`${styles.pageButton} ${styles[themeClass]} ${state.currentPage === tableData.totalPages ? styles.disabled : ''}`}
-                            aria-label="다음 페이지"
-                            aria-disabled={state.currentPage === tableData.totalPages}
-                        >
-                            <ChevronRight size={16} />
-                        </button>
-
-                        <button
-                            onClick={() => handlers.handlePageChange(tableData.totalPages)}
-                            disabled={state.currentPage === tableData.totalPages}
-                            className={`${styles.pageButton} ${styles[themeClass]} ${state.currentPage === tableData.totalPages ? styles.disabled : ''}`}
-                            aria-label="마지막 페이지"
-                            aria-disabled={state.currentPage === tableData.totalPages}
-                        >
-                            <ChevronsRight size={16} />
-                        </button>
-                    </div>
-                </div>
+                <Pagination
+                    currentPage={state.currentPage}
+                    totalPages={tableData.totalPages}
+                    itemsPerPage={state.itemsPerPageState}
+                    itemsPerPageOptions={itemsPerPageOptions}
+                    totalItems={tableData.sortedData.length}
+                    onPageChange={handlers.handlePageChange}
+                    onItemsPerPageChange={handlers.setItemsPerPageState}
+                    themeClass={themeClass}
+                />
             )}
         </div>
     );

@@ -3,6 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 import SingleLayout from '../layouts/SingleLayout';
+import UsersTable from "@/pages/UsersTable";
 
 // Loading spinner component
 const Loading = () => (
@@ -133,6 +134,16 @@ const AppRoutes: React.FC = () => (
                     <ComponentsDemo />
                 }
             />
+
+
+            <Route
+                path="/table"
+                element={
+                    <UsersTable />
+                }
+            />
+
+
 
             {/* Catch-all route - 404 */}
             <Route

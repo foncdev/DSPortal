@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { TableColumn, TableState } from './types';
+import { TableColumn } from './types';
 
 /**
  * 테이블 기본 로직을 처리하는 커스텀 훅
@@ -9,7 +9,6 @@ export function useTable<T>({
                               initialColumns,
                               uniqueKey,
                               itemsPerPage,
-                              expandableRows = false,
                               initialHorizontalScroll = true,
                               initialVerticalScroll = true,
                               mobileBreakpoint = 768, // 기본 모바일 중단점
@@ -80,20 +79,16 @@ export function useTable<T>({
   }, [itemsPerPage]);
 
   // 필터 적용
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      return Object.entries(filters).every(([key, value]) => {
-        if (!value.trim()) return true;
+  const filteredData = useMemo(() => data.filter((item) => Object.entries(filters).every(([key, value]) => {
+        if (!value.trim()) {return true;}
 
         const itemValue = String(item[key as keyof T] || '').toLowerCase();
         return itemValue.includes(value.toLowerCase());
-      });
-    });
-  }, [data, filters]);
+      })), [data, filters]);
 
   // 정렬 적용
   const sortedData = useMemo(() => {
-    if (!sortKey) return filteredData;
+    if (!sortKey) {return filteredData;}
 
     return [...filteredData].sort((a, b) => {
       const aValue = a[sortKey as keyof T];
@@ -130,9 +125,7 @@ export function useTable<T>({
   }, [sortedData, currentPage, itemsPerPageState]);
 
   // 총 페이지 수 계산
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(sortedData.length / itemsPerPageState));
-  }, [sortedData, itemsPerPageState]);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(sortedData.length / itemsPerPageState)), [sortedData, itemsPerPageState]);
 
   // 현재 페이지가 유효한지 확인하고 필요시 조정
   useEffect(() => {
@@ -251,7 +244,7 @@ export function useTable<T>({
 
   // 컬럼 리사이징 처리 (마우스 이동/업)
   useEffect(() => {
-    if (!resizingColumnKey) return;
+    if (!resizingColumnKey) {return undefined;}
 
     const handleMouseMove = (e: MouseEvent) => {
       if (resizingColumnKey) {
@@ -261,7 +254,7 @@ export function useTable<T>({
           const newWidth =
               typeof currentWidth === 'number'
                   ? Math.max(80, currentWidth + deltaX)
-                  : Math.max(80, parseInt(String(currentWidth || 100)) + deltaX);
+                  : Math.max(80, parseInt(String(currentWidth || 100), 10) + deltaX);
           return { ...prev, [resizingColumnKey]: newWidth };
         });
         setInitialX(e.clientX);
@@ -282,13 +275,11 @@ export function useTable<T>({
   }, [resizingColumnKey, initialX]);
 
   // 보이는 컬럼만 필터링 (모바일 환경에서는 hideOnMobile 속성도 고려)
-  const visibleColumns = useMemo(() => {
-    return columns.filter((col) => {
-      if (!col.visible) return false;
-      if (isMobile && col.hideOnMobile) return false;
+  const visibleColumns = useMemo(() => columns.filter((col) => {
+      if (!col.visible) {return false;}
+      if (isMobile && col.hideOnMobile) {return false;}
       return true;
-    });
-  }, [columns, isMobile]);
+    }), [columns, isMobile]);
 
   // 스크롤 토글 핸들러
   const toggleHorizontalScroll = useCallback(() => {

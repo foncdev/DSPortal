@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 /**
  * 테이블 컬럼 정의를 위한 타입
  */
-export type TableColumn<T> = {
+export interface TableColumn<T> {
   key: string;
   header: string;
   visible?: boolean;
@@ -13,12 +13,12 @@ export type TableColumn<T> = {
   customRenderer?: (item: T, key: string) => ReactNode;
   resizable?: boolean;
   hideOnMobile?: boolean; // 모바일에서 컬럼 숨김 여부
-};
+}
 
 /**
  * 테이블 속성을 위한 타입
  */
-export type TableProps<T> = {
+export interface TableProps<T> {
   data: T[];
   columns: TableColumn<T>[];
   uniqueKey: keyof T;
@@ -49,12 +49,12 @@ export type TableProps<T> = {
     footer?: string;
     pagination?: string;
   };
-};
+}
 
 /**
  * 테이블 상태 관리를 위한 타입
  */
-export type TableState<T> = {
+export interface TableState<T> {
   columns: TableColumn<T>[];
   sortKey: string | null;
   sortOrder: 'asc' | 'desc';
@@ -69,31 +69,31 @@ export type TableState<T> = {
   horizontalScroll: boolean;
   verticalScroll: boolean;
   isMobile: boolean;
-};
+}
 
 /**
  * 테이블 데이터 상태를 위한 타입
  */
-export type TableData<T> = {
+export interface TableData<T> {
   filteredData: T[];
   sortedData: T[];
   paginatedData: T[];
   visibleColumns: TableColumn<T>[];
   totalPages: number;
-};
+}
 
 /**
  * 테이블 유틸리티 함수를 위한 타입
  */
-export type TableUtils<T> = {
+export interface TableUtils<T> {
   isSelected: (item: T) => boolean;
   isRowExpanded: (item: T) => boolean;
-};
+}
 
 /**
  * 테이블 핸들러 함수를 위한 타입
  */
-export type TableHandlers<T> = {
+export interface TableHandlers<T> {
   setItemsPerPageState: (value: number) => void;
   toggleColumnVisibility: (columnKey: string) => void;
   handleSort: (key: string) => void;
@@ -105,14 +105,14 @@ export type TableHandlers<T> = {
   toggleRowExpansion: (item: T) => void;
   toggleHorizontalScroll: () => void;
   toggleVerticalScroll: () => void;
-};
+}
 
 /**
  * 테이블 훅 반환 타입
  */
-export type UseTableReturn<T> = {
+export interface UseTableReturn<T> {
   state: TableState<T>;
   handlers: TableHandlers<T>;
   data: TableData<T>;
   utils: TableUtils<T>;
-};
+}

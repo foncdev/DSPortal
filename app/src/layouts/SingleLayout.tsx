@@ -16,7 +16,7 @@ interface SingleLayoutProps {
 const SingleLayout: React.FC<SingleLayoutProps> = ({
                                                        children,
                                                        centered = true,
-                                                       maxWidth = '480px',
+                                                       maxWidth = '640px',
                                                        withHeader = false,
                                                        withFooter = false
                                                    }) => {

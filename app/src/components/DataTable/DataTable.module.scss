@@ -381,38 +381,45 @@ $light-accent-hover: var(--color-primary-dark, #2563eb);
 }
 
 // 드롭다운 스타일
+.hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
 .dropdown {
-  position: absolute;
-  left: 0;
-  top: 100%;
-  z-index: 50;
-  margin-top: 0.25rem;
-  width: 14rem;
+  position: fixed; /* absolute에서 fixed로 변경 */
+  left: auto; /* left 속성 제거하여 자동 계산되도록 */
+  top: auto; /* top 속성 제거하여 자동 계산되도록 */
+  z-index: 9999; /* z-index 더 높게 증가 */
+  right: auto;
+  bottom: auto;
+  margin-top: 2.5rem; /* 헤더 높이 고려 */
+  width: 18rem;
   border-radius: $border-radius;
   border-width: 1px;
   border-style: solid;
   padding: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2); /* 그림자 강화 */
   max-height: 24rem;
   overflow-y: auto;
+  display: block !important; /* 확실하게 표시 */
 
   &.dark {
-    border-color: $dark-border;
-    background-color: $dark-bg-primary;
+    border-color: $dark-border !important;
+    background-color: $dark-bg-primary !important;
     color: $dark-text-primary;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   }
 
   &.light {
-    border-color: $light-border;
-    background-color: $light-bg-primary;
+    border-color: $light-border !important;
+    background-color: $light-bg-primary !important;
     color: $light-text-primary;
   }
 
   .dropdownTitle {
     font-size: 0.875rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
 
     &.dark {
       color: $dark-text-secondary;
@@ -424,9 +431,74 @@ $light-accent-hover: var(--color-primary-dark, #2563eb);
   }
 }
 
+// 검색 컨테이너 스타일
+.searchContainer {
+  position: relative;
+  margin-bottom: 0.75rem;
+
+  .searchIconWrapper {
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  .searchIcon {
+    color: $light-text-tertiary;
+
+    &.dark {
+      color: $dark-text-tertiary;
+    }
+  }
+
+  .searchInput {
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 2rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    border-width: 1px;
+    border-style: solid;
+
+    &.dark {
+      border-color: $dark-border;
+      background-color: $dark-bg-secondary;
+      color: $dark-text-primary;
+
+      &:focus {
+        outline: none;
+        border-color: $dark-accent;
+        box-shadow: 0 0 0 1px $dark-accent;
+      }
+
+      &::placeholder {
+        color: $dark-text-tertiary;
+      }
+    }
+
+    &.light {
+      border-color: $light-border;
+      background-color: $light-bg-primary;
+      color: $light-text-primary;
+
+      &:focus {
+        outline: none;
+        border-color: $light-accent;
+        box-shadow: 0 0 0 1px $light-accent;
+      }
+
+      &::placeholder {
+        color: $light-text-tertiary;
+      }
+    }
+  }
+}
+
 // 드롭다운 아이템 스타일
 .dropdownItem {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 
   .itemLabel {
     display: block;
@@ -444,53 +516,83 @@ $light-accent-hover: var(--color-primary-dark, #2563eb);
   }
 }
 
-// 컬럼 토글 체크박스 스타일
+// 컬럼 토글 스타일
 .columnToggle {
+  margin-bottom: 0.5rem;
+}
+
+// 컬럼 토글 버튼 스타일
+.toggleButton {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  border: none;
+  background-color: transparent;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color $transition-duration ease;
 
-  .toggleCheckbox {
-    height: 1rem;
-    width: 1rem;
-    border-radius: 0.25rem;
-    border-width: 1px;
-    border-style: solid;
-    cursor: pointer;
+  &.dark {
+    color: $dark-text-tertiary;
 
-    &.dark {
-      border-color: $dark-border;
-      background-color: $dark-bg-secondary;
-
-      &:checked {
-        background-color: $dark-accent;
-        border-color: $dark-accent;
-      }
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
     }
 
-    &.light {
-      border-color: $light-border;
+    &.visible {
+      color: $dark-text-primary;
+    }
+  }
 
-      &:checked {
-        background-color: $light-accent;
-        border-color: $light-accent;
-      }
+  &.light {
+    color: $light-text-tertiary;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    &.visible {
+      color: $light-text-primary;
+    }
+  }
+
+  .toggleIcon {
+    display: flex;
+    align-items: center;
+    margin-right: 0.5rem;
+  }
+
+  &.visible .toggleIcon {
+    color: $light-accent;
+
+    &.dark {
+      color: $dark-accent;
     }
   }
 
   .toggleLabel {
-    font-size: 0.875rem;
-    cursor: pointer;
-
-    &.dark {
-      color: $dark-text-secondary;
-    }
-
-    &.light {
-      color: $light-text-secondary;
-    }
+    flex: 1;
+    text-align: left;
   }
+}
+
+// 빈 결과 스타일
+.noResults {
+  padding: 1rem 0;
+  text-align: center;
+  color: $light-text-tertiary;
+
+  &.dark {
+    color: $dark-text-tertiary;
+  }
+}
+
+// 컬럼 리스트 스타일
+.columnList {
+  max-height: 16rem;
+  overflow-y: auto;
 }
 
 // 페이지네이션 스타일
@@ -660,6 +762,7 @@ $light-accent-hover: var(--color-primary-dark, #2563eb);
     align-items: stretch;
 
     .toolbarActions {
+      flex-wrap: wrap;
       justify-content: space-between;
     }
   }

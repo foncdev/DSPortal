@@ -2,23 +2,23 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { dataTableEnTranslations, dataTableKoTranslations } from '../components/DataTable/i18n';
+
 
 // Import translations
-import translationEN from './locales/en.json';
-import translationKO from './locales/ko.json';
+import baseEnTranslations from './locales/en.json';
+import baseKoTranslations from './locales/ko.json';
 
-// Resources for i18next
-const resources = {
-    en: {
-        translation: translationEN
-    },
-    ko: {
-        translation: translationKO
-    }
+const enTranslations = {
+    ...baseEnTranslations,
+    ...dataTableEnTranslations
 };
 
-// Initialize i18next
-// Mark as void to fix no-floating-promises warning
+const koTranslations = {
+    ...baseKoTranslations,
+    ...dataTableKoTranslations
+};
+
 void i18n
     // Detect user language
     .use(LanguageDetector)
@@ -26,7 +26,14 @@ void i18n
     .use(initReactI18next)
     // Initialize i18next
     .init({
-        resources,
+        resources: {
+            en: {
+                translation: enTranslations
+            },
+            ko: {
+                translation: koTranslations
+            }
+        },
         fallbackLng: 'ko', // Default language
         debug: process.env.NODE_ENV === 'development',
         interpolation: {
