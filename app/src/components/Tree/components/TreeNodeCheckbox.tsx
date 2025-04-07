@@ -15,6 +15,7 @@ const TreeNodeCheckbox: React.FC<TreeNodeCheckboxProps> = ({
                                                            }) => {
     // Reference to the checkbox DOM element
     const checkboxRef = useRef<HTMLInputElement>(null);
+    const wrapperRef = useRef<HTMLDivElement>(null);
 
     // Update DOM directly when checked prop changes
     useEffect(() => {
@@ -22,6 +23,20 @@ const TreeNodeCheckbox: React.FC<TreeNodeCheckboxProps> = ({
             checkboxRef.current.checked = checked;
         }
     }, [checked]);
+
+    // Expand click area to entire parent element
+    useEffect(() => {
+        const wrapper = wrapperRef.current;
+        const checkbox = checkboxRef.current;
+
+        if (wrapper && checkbox) {
+            // Make sure the wrapper fills the entire checkbox area
+            wrapper.style.position = 'relative';
+            wrapper.style.width = '24px';  // Increased from 16px
+            wrapper.style.height = '24px'; // Increased from 16px
+            wrapper.style.cursor = disabled ? 'not-allowed' : 'pointer';
+        }
+    }, [disabled]);
 
     // Handle click with proper event isolation
     const handleClick = (e: React.MouseEvent) => {
@@ -36,10 +51,11 @@ const TreeNodeCheckbox: React.FC<TreeNodeCheckboxProps> = ({
 
     return (
         <div
+            ref={wrapperRef}
             className="tree-checkbox-wrapper"
             onClick={handleClick}
             // Capture all mouse events to prevent them from bubbling up
-            onMouseDown={(e) => e.stopPropagation()}
+            // onMouseDown={(e) => e.stopPropagation()}
         >
             <input
                 ref={checkboxRef}
@@ -48,13 +64,9 @@ const TreeNodeCheckbox: React.FC<TreeNodeCheckboxProps> = ({
                 className="tree-checkbox"
                 checked={checked}
                 disabled={disabled}
-                // Important: We're handling the change via the wrapper div's click
-                // This prevents double toggling
                 onChange={(e) => e.stopPropagation()}
-                // Prevent default checkbox behavior - we'll handle it ourselves
                 onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
+                    handleClick(e);
                 }}
                 aria-label={`Select ${id}`}
             />
