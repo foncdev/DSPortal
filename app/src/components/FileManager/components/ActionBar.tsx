@@ -45,6 +45,13 @@ const ActionBar: React.FC = () => {
     }
   };
 
+  // Trigger file input when upload button is clicked
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   // Handle create folder
   const handleCreateFolder = () => {
     const folderName = prompt('Enter folder name:');
@@ -89,16 +96,18 @@ const ActionBar: React.FC = () => {
   return (
       <div className={styles.container}>
         <div className={styles.buttonGroup}>
-          {/* Upload button */}
+          {/* Hidden file input */}
           <input
               type="file"
               ref={fileInputRef}
               onChange={handleFileUpload}
-              className="hidden"
+              className={styles.hiddenFileInput}
               multiple
           />
+
+          {/* Upload button */}
           <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={triggerFileInput}
               className={styles.primaryButton}
           >
             <Upload size={16} />
@@ -143,7 +152,6 @@ const ActionBar: React.FC = () => {
             </button>
             {showSortOptions && <SortOptions onClose={() => setShowSortOptions(false)} />}
           </div>
-
 
           {/* Filter button */}
           <div className={`${styles.optionsContainer} ${showFilterOptions ? styles.active : ''}`}>
