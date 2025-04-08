@@ -34,31 +34,32 @@ const BreadcrumbPath: React.FC = () => {
   const goToPath = (path: string) => {
     // We'd need to get the folder ID from the path in a real application
     // This is simplified for demonstration
-    // In a real app, you might have a service that resolves paths to folder IDs
     console.log('Navigate to path:', path);
   };
 
   return (
       <div className={styles.container}>
-        <button
-            onClick={goToRoot}
-            className={styles.breadcrumbItem}
-        >
-          <Home size={16} className={styles.homeIcon} />
-          <span>Home</span>
-        </button>
+        <div className={styles.path}>
+          <button
+              onClick={goToRoot}
+              className={styles.breadcrumbItem}
+          >
+            <Home size={16} className={styles.homeIcon} />
+            <span>Home</span>
+          </button>
 
-        {pathSegments.map((segment, index) => (
-            <React.Fragment key={index}>
-              <ChevronRight size={16} className={styles.divider} />
-              <button
-                  onClick={() => goToPath(segment.path)}
-                  className={styles.breadcrumbItem}
-              >
-                {segment.name}
-              </button>
-            </React.Fragment>
-        ))}
+          {pathSegments.map((segment, index) => (
+              <React.Fragment key={index}>
+                <ChevronRight size={14} className={styles.divider} />
+                <button
+                    onClick={() => goToPath(segment.path)}
+                    className={styles.breadcrumbItem}
+                >
+                  {segment.name}
+                </button>
+              </React.Fragment>
+          ))}
+        </div>
       </div>
   );
 };

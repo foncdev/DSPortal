@@ -50,12 +50,12 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
   const nameRef = useRef<HTMLDivElement>(null);
   const md5Ref = useRef<HTMLDivElement>(null);
 
-  // Determine if the item is a folder based on type or isFolder property
+  // 아이템이 폴더인지 판별
   const isFolder = item.type === 'folder' || item.isFolder === true;
-
+  // 선택된 아이템인지 확인
   const isSelected = selectedItems.includes(item.id);
 
-  // Close actions menu when clicking outside
+  // 액션 메뉴 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (actionsRef.current && !actionsRef.current.contains(event.target as Node)) {
@@ -69,7 +69,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     };
   }, []);
 
-  // Reset copy states after timeout
+  // 복사 상태 초기화 타이머
   useEffect(() => {
     if (nameCopied) {
       const timer = setTimeout(() => {
@@ -88,52 +88,46 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     }
   }, [md5Copied]);
 
-  // Update tooltip position for name
-  const updateNameTooltipPosition = () => {
-    if (nameRef.current) {
-      const rect = nameRef.current.getBoundingClientRect();
-      setTooltipPosition({
-        x: rect.left,
-        y: rect.top - 30,
-      });
-    }
+  // 툴팁 위치 업데이트 - 파일명
+  const updateNameTooltipPosition = (event: React.MouseEvent) => {
+    // 마우스 위치를 기반으로 툴팁 위치 계산
+    setTooltipPosition({
+      x: event.clientX,
+      y: event.clientY - 30
+    });
   };
 
-  // Update tooltip position for MD5
-  const updateMd5TooltipPosition = () => {
-    if (md5Ref.current) {
-      const rect = md5Ref.current.getBoundingClientRect();
-      setTooltipPosition({
-        x: rect.left,
-        y: rect.top - 30,
-      });
-    }
+  // 툴팁 위치 업데이트 - MD5
+  const updateMd5TooltipPosition = (event: React.MouseEvent) => {
+    // 마우스 위치를 기반으로 툴팁 위치 계산
+    setTooltipPosition({
+      x: event.clientX,
+      y: event.clientY - 30
+    });
   };
 
-  // Handle item click (select)
+  // 아이템 클릭 (선택)
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     selectItem(item.id, e.ctrlKey || e.metaKey || e.shiftKey);
   };
 
-  // Handle item double click (open folder)
+  // 아이템 더블 클릭 (폴더 열기/파일 실행)
   const handleDoubleClick = () => {
     if (isFolder) {
       setCurrentFolder(item.id, item.path || `/${item.name}`);
     } else if (item.url) {
-      // Open file in a new tab if URL is available
       window.open(item.url, '_blank');
     }
   };
 
-  // Handle checkbox click
+  // 체크박스 클릭
   const handleCheckboxClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 이벤트 버블링 방지
-    // 항상 다중 선택 모드 활성화 (Ctrl 키를 누른 것처럼)
+    e.stopPropagation();
     selectItem(item.id, true);
   };
 
-  // Handle rename item
+  // 이름 변경
   const handleRename = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowActions(false);
@@ -148,7 +142,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     }
   };
 
-  // Handle delete item
+  // 삭제
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowActions(false);
@@ -159,7 +153,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     }
   };
 
-  // Handle download item
+  // 다운로드
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowActions(false);
@@ -171,7 +165,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     }
   };
 
-  // Handle copy to clipboard
+  // 클립보드에 복사
   const copyToClipboard = (text: string, type: 'name' | 'md5') => {
     navigator.clipboard
         .writeText(text)
@@ -187,7 +181,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
         });
   };
 
-  // Get creation and modification dates
+  // 생성 및 수정 날짜 가져오기
   const getCreationDate = () => {
     return item.createdAt || item.createAt || '';
   };
@@ -196,7 +190,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     return item.modifiedAt || item.modifiedDate || '';
   };
 
-  // Get file icon based on type
+  // 파일 타입에 따른 아이콘 가져오기
   const getFileIcon = () => {
     if (isFolder) {
       return <Folder className="text-yellow-500" />;
@@ -218,20 +212,77 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     }
   };
 
-  // Tooltip component
+  // 리스트 뷰의 아이콘/썸네일 렌더링
+  const renderListViewIcon = () => {
+    if (item.thumbnail && !isFolder) {
+      return (
+          <div className={styles.icon}>
+            <img
+                src={item.thumbnail}
+                alt={item.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallbackIcon = document.createElement('div');
+                  fallbackIcon.className = 'flex items-center justify-center';
+                  fallbackIcon.appendChild(getFileIcon().props.children);
+                  e.currentTarget.parentElement?.appendChild(fallbackIcon);
+                }}
+            />
+          </div>
+      );
+    }
+
+    return (
+        <div className={styles.icon}>
+          {getFileIcon()}
+        </div>
+    );
+  };
+
+  // 그리드 뷰의 아이콘/썸네일 렌더링
+  const renderGridViewThumbnail = () => {
+    if (item.thumbnail && !isFolder) {
+      return (
+          <div className={styles.gridThumbnail}>
+            <img
+                src={item.thumbnail}
+                alt={item.name}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const iconWrapper = document.createElement('div');
+                  iconWrapper.className = styles.iconLarge;
+                  iconWrapper.appendChild(getFileIcon().props.children);
+                  e.currentTarget.parentElement?.appendChild(iconWrapper);
+                }}
+            />
+          </div>
+      );
+    }
+
+    return (
+        <div className={styles.gridThumbnail}>
+          <div className={styles.iconLarge}>{getFileIcon()}</div>
+        </div>
+    );
+  };
+
+  // 툴팁 컴포넌트
   const Tooltip = ({ content }: { content: string }) => (
       <div
           className={styles.tooltip}
           style={{
             top: `${tooltipPosition.y}px`,
             left: `${tooltipPosition.x}px`,
+            transform: 'translateX(-50%)' // 마우스 위치 중앙에 놓이도록 조정
           }}
       >
         {content}
       </div>
   );
 
-  // Render list view
+  // 리스트 뷰 렌더링
   if (viewMode === 'list') {
     return (
         <div
@@ -239,37 +290,20 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
             onClick={handleClick}
             onDoubleClick={handleDoubleClick}
         >
-          {/* Checkbox */}
+          {/* 체크박스 */}
           <div className={styles.checkbox} onClick={handleCheckboxClick}>
             <input
                 type="checkbox"
                 checked={isSelected}
-                onChange={() => {}} // React needs an onChange handler, but we handle clicks in the div's onClick
+                onChange={() => {}}
                 className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
           </div>
 
-          {/* Icon or Thumbnail & Name */}
+          {/* 아이콘/썸네일 & 이름 */}
           <div className={styles.fileInfo}>
-            {/* Icon or Thumbnail */}
-            <div className={styles.icon}>
-              {item.thumbnail ? (
-                  <img
-                      src={item.thumbnail}
-                      alt={item.name}
-                      className="size-6 rounded object-cover"
-                      onError={(e: any) => {
-                        // Fallback to icon if thumbnail fails to load
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.style.display = 'block';
-                      }}
-                  />
-              ) : (
-                  getFileIcon()
-              )}
-              {/* Hidden icon for thumbnail fallback */}
-              {item.thumbnail && <div className="hidden">{getFileIcon()}</div>}
-            </div>
+            {/* 아이콘 또는 썸네일 */}
+            {renderListViewIcon()}
 
             <div className={styles.nameContainer}>
               <div
@@ -306,12 +340,12 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
             </div>
           </div>
 
-          {/* File Size */}
+          {/* 파일 크기 */}
           <div className={styles.fileMetaInfo}>
             {!isFolder ? formatFileSize(item.size) : '—'}
           </div>
 
-          {/* Modified Date */}
+          {/* 수정 날짜 */}
           <div className={styles.fileMetaInfo}>
             {getModificationDate()
                 ? formatDate(getModificationDate())
@@ -320,7 +354,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
                     : '—'}
           </div>
 
-          {/* File MD5 */}
+          {/* 파일 MD5 */}
           <div
               ref={md5Ref}
               className={styles.fileMd5}
@@ -356,7 +390,7 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
             )}
           </div>
 
-          {/* Actions */}
+          {/* 액션 버튼 */}
           <div className={styles.actionsContainer} ref={actionsRef}>
             <button
                 onClick={(e) => {
@@ -413,50 +447,35 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
     );
   }
 
-  // Render grid view
+  // 그리드 뷰 렌더링
   return (
       <div
           className={`${styles.gridItem} ${styles.item} ${isSelected ? styles.selected : ''}`}
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
       >
-        {/* Checkbox (top-left) */}
+        {/* 체크박스 (좌상단) */}
         <div className={styles.gridCheckbox} onClick={handleCheckboxClick}>
           <input
               type="checkbox"
               checked={isSelected}
               onChange={() => {}} // React needs an onChange handler, but we handle clicks in the div's onClick
-              className="size-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              aria-label={`Select ${item.name}`}
           />
         </div>
 
-        {/* Thumbnail or Icon */}
-        <div className={styles.gridThumbnail}>
-          {item.thumbnail && !isFolder ? (
-              <img
-                  src={item.thumbnail}
-                  alt={item.name}
-                  onError={(e) => {
-                    // Fallback to icon if thumbnail fails to load
-                    e.currentTarget.style.display = 'none';
-                    (e.currentTarget.nextSibling as HTMLElement).style.display = 'flex';
-                  }}
-              />
-          ) : (
-              <div className={styles.iconLarge}>{getFileIcon()}</div>
-          )}
-          {/* Hidden icon for thumbnail fallback */}
-          {item.thumbnail && !isFolder && <div className="hidden">{getFileIcon()}</div>}
-        </div>
+        {/* 썸네일 또는 아이콘 */}
+        {renderGridViewThumbnail()}
 
         <div className={styles.gridInfo}>
           <div
               ref={nameRef}
               className={styles.gridFileName}
-              onMouseEnter={() => {
-                updateNameTooltipPosition();
+              onMouseEnter={(e) => {
+                updateNameTooltipPosition(e);
                 setShowNameTooltip(true);
               }}
+              onMouseMove={(e) => updateNameTooltipPosition(e)}
               onMouseLeave={() => setShowNameTooltip(false)}
           >
             <span className={styles.nameText}>{item.name}</span>
@@ -481,33 +500,42 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
             {isFolder ? 'Folder' : formatFileSize(item.size)}
           </div>
 
-          {/* MD5 in grid view */}
+          {/* 그리드 뷰에서 MD5 표시 */}
           {item.md5 && (
               <div
                   ref={md5Ref}
-                  className={styles.gridMd5}
-                  onMouseEnter={() => {
-                    updateMd5TooltipPosition();
-                    setShowMd5Tooltip(true);
+                  className={styles.fileMd5}
+                  onMouseEnter={(e) => {
+                    if (item.md5) {
+                      updateMd5TooltipPosition(e);
+                      setShowMd5Tooltip(true);
+                    }
                   }}
+                  onMouseMove={(e) => item.md5 && updateMd5TooltipPosition(e)}
                   onMouseLeave={() => setShowMd5Tooltip(false)}
               >
-                <span>MD5: {item.md5.substring(0, 8)}</span>
-                <button
-                    className={styles.copyButton}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copyToClipboard(item.md5!, 'md5');
-                    }}
-                    title="Copy MD5 to clipboard"
-                >
-                  {md5Copied ? (
-                      <Check size={14} className={styles.copySuccess} />
-                  ) : (
-                      <Copy size={14} />
-                  )}
-                </button>
-                {showMd5Tooltip && <Tooltip content={item.md5} />}
+                {item.md5 ? (
+                    <>
+                      <span>{item.md5.substring(0, 8)}</span>
+                      <button
+                          className={styles.copyButton}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(item.md5!, 'md5');
+                          }}
+                          title="Copy MD5 to clipboard"
+                      >
+                        {md5Copied ? (
+                            <Check size={14} className={styles.copySuccess} />
+                        ) : (
+                            <Copy size={14} />
+                        )}
+                      </button>
+                      {showMd5Tooltip && <Tooltip content={item.md5} />}
+                    </>
+                ) : (
+                    '—'
+                )}
               </div>
           )}
         </div>

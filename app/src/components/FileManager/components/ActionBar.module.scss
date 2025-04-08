@@ -24,6 +24,7 @@
   font-weight: 500;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none; /* 테두리선 제거 */
 
   &:hover {
     background-color: #2563eb;
@@ -36,7 +37,7 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
-  .dark & {
+  :global(.dark) & {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 
     &:hover {
@@ -61,6 +62,7 @@
   font-weight: 500;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none; /* 테두리선 제거 */
 
   &:hover {
     background-color: #e5e7eb;
@@ -73,7 +75,7 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
-  .dark & {
+  :global(.dark) & {
     color: #d1d5db;
     background-color: #374151;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
@@ -102,6 +104,7 @@
   border-radius: 0.5rem;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none; /* 테두리선 제거 */
 
   &:hover {
     background-color: #e5e7eb;
@@ -118,13 +121,13 @@
     background-color: #e5e7eb;
     color: #2563eb;
 
-    .dark & {
+    :global(.dark) & {
       background-color: #4b5563;
       color: #60a5fa;
     }
   }
 
-  .dark & {
+  :global(.dark) & {
     color: #d1d5db;
     background-color: #374151;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
@@ -163,6 +166,7 @@
   font-weight: 500;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none; /* 테두리선 제거 */
 
   &:hover {
     background-color: #fecaca;
@@ -175,7 +179,7 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
-  .dark & {
+  :global(.dark) & {
     color: #f87171;
     background-color: rgba(127, 29, 29, 0.5);
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
@@ -203,6 +207,7 @@
   font-weight: 500;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none; /* 테두리선 제거 */
 
   &:hover {
     background-color: #a7f3d0;
@@ -215,7 +220,7 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   }
 
-  .dark & {
+  :global(.dark) & {
     color: #6ee7b7;
     background-color: rgba(6, 78, 59, 0.5);
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
