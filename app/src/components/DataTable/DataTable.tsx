@@ -2,14 +2,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTable } from './hooks';
 import { TableProps } from './types';
-import styles from './DataTable.module.scss';
+
 import { ChevronUp, ChevronDown, ArrowUpDown, Columns, Filter } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FilterDropdown from './components/FilterDropdown';
 import ColumnDropdown from './components/ColumnDropdown';
 import Pagination from './components/Pagination';
-import { isDevelopment } from '../../utils/environment';
+// import { isDevelopment } from '../../utils/environment';
+// @ts-ignore
+import styles from './DataTable.module.scss';
 
+const isDevelopment = () => {
+    return false;
+};
 /**
  * DataTable - 기능적이고 유연한 데이터 테이블 컴포넌트
  *

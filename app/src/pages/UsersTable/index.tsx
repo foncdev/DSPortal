@@ -1,5 +1,8 @@
 import React from 'react';
-import { DataTable } from '@/components/DataTable';
+import {DataTable} from "@/components/DataTable";
+
+
+
 
 // 데이터 예시
 const users = [

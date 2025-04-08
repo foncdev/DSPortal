@@ -1,6 +1,7 @@
 import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, Eye, EyeOff } from 'lucide-react';
+// @ts-ignore
 import styles from '../DataTable.module.scss';
 import { TableColumn } from '../types';
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+// @ts-ignore
 import styles from '../DataTable.module.scss';
 
 interface PaginationProps {

@@ -10,6 +10,8 @@ export * from './components/Card';
 export * from './components/Tabs';
 export * from './components/Spinner';
 export * from './components/Badge';
+export * from './components/Tree';
+
 
 // Export types
 export * from './types';

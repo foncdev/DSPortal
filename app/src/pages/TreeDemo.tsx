@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tree, NodeType, TreeNode } from '../components/Tree';
+import { Tree, NodeType, TreeNode } from '@ds/ui';
 
 // Initial data for the tree
 const initialData: TreeNode[] = [
