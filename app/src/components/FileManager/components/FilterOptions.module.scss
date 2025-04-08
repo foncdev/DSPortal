@@ -1,0 +1,261 @@
+// src/components/FileManager/components/FilterOptions.module.scss
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  margin-top: 0.5rem;
+  width: 18rem;
+  border-radius: 0.625rem;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  :global(.dark) & {
+    border-color: #374151;
+    background-color: #1f2937;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.container {
+  padding: 1.25rem;
+}
+
+.header {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+
+  :global(.dark) & {
+    color: #f3f4f6;
+  }
+}
+
+.closeButton {
+  color: #6b7280;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #374151;
+    background-color: #f3f4f6;
+  }
+
+  :global(.dark) & {
+    color: #9ca3af;
+
+    &:hover {
+      color: #d1d5db;
+      background-color: #374151;
+    }
+  }
+
+  svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  :global(.dark) & {
+    color: #9ca3af;
+  }
+}
+
+.searchInputContainer {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 0.75rem;
+  pointer-events: none;
+  color: #9ca3af;
+
+  :global(.dark) & {
+    color: #6b7280;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.searchInput {
+  display: block;
+  width: 100%;
+  height: 2.5rem;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  color: #111827;
+  background-color: white;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  :global(.dark) & {
+    border-color: #4b5563;
+    background-color: #111827;
+    color: #f9fafb;
+
+    &::placeholder {
+      color: #6b7280;
+    }
+
+    &:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+    }
+  }
+}
+
+.checkboxGroup {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1.5px solid #d1d5db;
+  color: #3b82f6;
+  transition: all 0.15s ease;
+  cursor: pointer;
+
+  &:checked {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+  }
+
+  &:hover:not(:checked) {
+    border-color: #9ca3af;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 1px;
+  }
+
+  :global(.dark) & {
+    border-color: #4b5563;
+
+    &:hover:not(:checked) {
+      border-color: #6b7280;
+    }
+  }
+}
+
+.checkboxLabel {
+  margin-left: 0.625rem;
+  font-size: 0.875rem;
+  color: #374151;
+
+  :global(.dark) & {
+    color: #d1d5db;
+  }
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.clearButton {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+  }
+
+  :global(.dark) & {
+    color: #9ca3af;
+
+    &:hover {
+      color: #f3f4f6;
+      background-color: #374151;
+    }
+  }
+}
+
+.applyButton {
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+
+  :global(.dark) & {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+
+    &:hover {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    }
+  }
+}

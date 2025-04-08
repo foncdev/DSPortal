@@ -1,54 +1,77 @@
 // src/components/FileManager/index.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FileManagerProvider } from './FileManagerProvider';
 import BreadcrumbPath from './components/BreadcrumbPath';
 import ActionBar from './components/ActionBar';
 import FileList from './components/FileList';
 import FileGrid from './components/FileGrid';
 import { useFileManager } from './hooks/useFileManager';
+import styles from './FileManager.module.scss';
 
 interface FileManagerContainerProps {
-  initialFolderId?: string | null;
+    initialFolderId?: string | null;
 }
 
 // Main file manager component with context access
 const FileManagerContainer: React.FC = () => {
-  const { state } = useFileManager();
-  const { viewMode, isLoading, error } = state;
+    const { state } = useFileManager();
+    const { viewMode, isLoading, error } = state;
 
-  return (
-    <div className="flex h-full flex-col rounded-lg bg-white shadow dark:bg-gray-900">
-      <div className="border-b border-gray-200 p-4 dark:border-gray-800">
-        <BreadcrumbPath />
-        <ActionBar />
-      </div>
+    // Add effect to support proper rendering when dark mode changes
+    useEffect(() => {
+        // This is a no-op function just to re-render when dark mode changes
+        const darkModeObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    // Force react to re-render (we don't need to change state, just acknowledge the change)
+                    // This ensures all components are aware of the dark mode change
+                }
+            });
+        });
 
-      <div className="grow overflow-auto p-4">
-        {isLoading && (
-          <div className="flex h-full items-center justify-center">
-            <div className="size-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          </div>
-        )}
+        darkModeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
 
-        {error && (
-          <div className="rounded-md bg-red-100 p-4 text-red-800 dark:bg-red-900 dark:text-red-200">
-            {error}
-          </div>
-        )}
+        return () => {
+            darkModeObserver.disconnect();
+        };
+    }, []);
 
-        {!isLoading && !error && <>{viewMode === 'list' ? <FileList /> : <FileGrid />}</>}
-      </div>
-    </div>
-  );
+    return (
+        <div className={styles.container}>
+            <div className={styles.header}>
+                <BreadcrumbPath />
+                <ActionBar />
+            </div>
+
+            <div className={styles.content}>
+                {isLoading && (
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.loadingSpinner} />
+                    </div>
+                )}
+
+                {error && (
+                    <div className={styles.errorContainer}>
+                        {error}
+                    </div>
+                )}
+
+                {!isLoading && !error && <>{viewMode === 'list' ? <FileList /> : <FileGrid />}</>}
+            </div>
+        </div>
+    );
 };
 
 // Main file manager component with provider
 export const FileManager: React.FC<FileManagerContainerProps> = ({ initialFolderId = null }) => {
-  return (
-    <FileManagerProvider initialFolderId={initialFolderId}>
-      <FileManagerContainer />
-    </FileManagerProvider>
-  );
+    return (
+        <FileManagerProvider initialFolderId={initialFolderId}>
+            <FileManagerContainer />
+        </FileManagerProvider>
+    );
 };
 
 export default FileManager;

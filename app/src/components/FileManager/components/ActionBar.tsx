@@ -20,6 +20,7 @@ import { useFolderOperations } from '../hooks/useFolderOperations';
 import { useClipboard } from '../hooks/useClipboard';
 import FilterOptions from './FilterOptions';
 import SortOptions from './SortOptions';
+import styles from './ActionBar.module.scss';
 
 const ActionBar: React.FC = () => {
   const { state, setViewMode, reloadFiles } = useFileManager();
@@ -86,142 +87,134 @@ const ActionBar: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <div className="flex items-center space-x-2">
-        {/* Upload button */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileUpload}
-          className="hidden"
-          multiple
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center rounded-md bg-blue-500 px-3 py-2 text-white hover:bg-blue-600"
-        >
-          <Upload size={16} className="mr-2" />
-          <span>Upload</span>
-        </button>
-
-        {/* Create folder button */}
-        <button
-          onClick={handleCreateFolder}
-          className="flex items-center rounded-md bg-gray-100 px-3 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-        >
-          <FolderPlus size={16} className="mr-2" />
-          <span>New Folder</span>
-        </button>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        {/* View toggle buttons */}
-        <button
-          onClick={() => setViewMode('list')}
-          className={`rounded-md p-2 ${
-            viewMode === 'list'
-              ? 'bg-gray-200 dark:bg-gray-700'
-              : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
-          }`}
-          title="List view"
-        >
-          <List size={16} />
-        </button>
-        <button
-          onClick={() => setViewMode('grid')}
-          className={`rounded-md p-2 ${
-            viewMode === 'grid'
-              ? 'bg-gray-200 dark:bg-gray-700'
-              : 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
-          }`}
-          title="Grid view"
-        >
-          <Grid size={16} />
-        </button>
-
-        {/* Sort button */}
-        <div className="relative">
+      <div className={styles.container}>
+        <div className={styles.buttonGroup}>
+          {/* Upload button */}
+          <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              className="hidden"
+              multiple
+          />
           <button
-            onClick={toggleSortOptions}
-            className="rounded-md bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-            title="Sort options"
+              onClick={() => fileInputRef.current?.click()}
+              className={styles.primaryButton}
           >
-            <SortAsc size={16} />
+            <Upload size={16} />
+            <span>Upload</span>
           </button>
-          {showSortOptions && <SortOptions onClose={() => setShowSortOptions(false)} />}
+
+          {/* Create folder button */}
+          <button
+              onClick={handleCreateFolder}
+              className={styles.secondaryButton}
+          >
+            <FolderPlus size={16} />
+            <span>New Folder</span>
+          </button>
         </div>
 
-        {/* Filter button */}
-        <div className="relative">
+        <div className={styles.buttonGroup}>
+          {/* View toggle buttons */}
           <button
-            onClick={toggleFilterOptions}
-            className="rounded-md bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-            title="Filter options"
+              onClick={() => setViewMode('list')}
+              className={`${styles.iconButton} ${viewMode === 'list' ? styles.active : ''}`}
+              title="List view"
           >
-            <Filter size={16} />
+            <List size={16} />
           </button>
-          {showFilterOptions && <FilterOptions onClose={() => setShowFilterOptions(false)} />}
-        </div>
+          <button
+              onClick={() => setViewMode('grid')}
+              className={`${styles.iconButton} ${viewMode === 'grid' ? styles.active : ''}`}
+              title="Grid view"
+          >
+            <Grid size={16} />
+          </button>
 
-        {/* Refresh button */}
-        <button
-          onClick={() => reloadFiles()}
-          className="rounded-md bg-gray-100 p-2 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-          title="Refresh"
-        >
-          <RefreshCw size={16} />
-        </button>
-      </div>
-
-      {/* Item actions (visible when items are selected) */}
-      {selectedItems.length > 0 && (
-        <div className="mt-2 flex w-full items-center space-x-2">
-          <button
-            onClick={() => copy()}
-            className="flex items-center rounded-md bg-gray-100 px-3 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <Copy size={16} className="mr-2" />
-            <span>Copy</span>
-          </button>
-          <button
-            onClick={() => cut()}
-            className="flex items-center rounded-md bg-gray-100 px-3 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <Scissors size={16} className="mr-2" />
-            <span>Cut</span>
-          </button>
-          <button
-            onClick={handleDeleteSelected}
-            className="flex items-center rounded-md bg-red-100 px-3 py-2 text-red-800 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800"
-          >
-            <Trash size={16} className="mr-2" />
-            <span>Delete</span>
-          </button>
-          {selectedItems.length === 1 && (
+          {/* Sort button */}
+          <div className={styles.optionsContainer}>
             <button
-              onClick={handleDownloadSelected}
-              className="flex items-center rounded-md bg-gray-100 px-3 py-2 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                onClick={toggleSortOptions}
+                className={styles.iconButton}
+                title="Sort options"
             >
-              <Download size={16} className="mr-2" />
-              <span>Download</span>
+              <SortAsc size={16} />
             </button>
-          )}
-        </div>
-      )}
+            {showSortOptions && <SortOptions onClose={() => setShowSortOptions(false)} />}
+          </div>
 
-      {/* Paste button (visible when clipboard has items) */}
-      {hasClipboardItems && (
-        <div className="mt-2 flex w-full items-center">
+          {/* Filter button */}
+          <div className={styles.optionsContainer}>
+            <button
+                onClick={toggleFilterOptions}
+                className={styles.iconButton}
+                title="Filter options"
+            >
+              <Filter size={16} />
+            </button>
+            {showFilterOptions && <FilterOptions onClose={() => setShowFilterOptions(false)} />}
+          </div>
+
+          {/* Refresh button */}
           <button
-            onClick={() => paste()}
-            className="flex items-center rounded-md bg-green-100 px-3 py-2 text-green-800 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800"
+              onClick={() => reloadFiles()}
+              className={styles.iconButton}
+              title="Refresh"
           >
-            <Clipboard size={16} className="mr-2" />
-            <span>Paste</span>
+            <RefreshCw size={16} />
           </button>
         </div>
-      )}
-    </div>
+
+        {/* Item actions (visible when items are selected) */}
+        {selectedItems.length > 0 && (
+            <div className={styles.actionRow}>
+              <button
+                  onClick={() => copy()}
+                  className={styles.secondaryButton}
+              >
+                <Copy size={16} />
+                <span>Copy</span>
+              </button>
+              <button
+                  onClick={() => cut()}
+                  className={styles.secondaryButton}
+              >
+                <Scissors size={16} />
+                <span>Cut</span>
+              </button>
+              <button
+                  onClick={handleDeleteSelected}
+                  className={styles.dangerButton}
+              >
+                <Trash size={16} />
+                <span>Delete</span>
+              </button>
+              {selectedItems.length === 1 && (
+                  <button
+                      onClick={handleDownloadSelected}
+                      className={styles.secondaryButton}
+                  >
+                    <Download size={16} />
+                    <span>Download</span>
+                  </button>
+              )}
+            </div>
+        )}
+
+        {/* Paste button (visible when clipboard has items) */}
+        {hasClipboardItems && (
+            <div className={styles.actionRow}>
+              <button
+                  onClick={() => paste()}
+                  className={styles.successButton}
+              >
+                <Clipboard size={16} />
+                <span>Paste</span>
+              </button>
+            </div>
+        )}
+      </div>
   );
 };
 

@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { ChevronRight, Home } from 'lucide-react';
 import { useFileManager } from '../hooks/useFileManager';
+import styles from './BreadcrumbPath.module.scss';
 
 const BreadcrumbPath: React.FC = () => {
   const { state, setCurrentFolder } = useFileManager();
@@ -38,27 +39,27 @@ const BreadcrumbPath: React.FC = () => {
   };
 
   return (
-    <div className="mb-4 flex flex-wrap items-center">
-      <button
-        onClick={goToRoot}
-        className="flex items-center text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-      >
-        <Home size={16} className="mr-1" />
-        <span>Home</span>
-      </button>
+      <div className={styles.container}>
+        <button
+            onClick={goToRoot}
+            className={styles.breadcrumbItem}
+        >
+          <Home size={16} className={styles.homeIcon} />
+          <span>Home</span>
+        </button>
 
-      {pathSegments.map((segment, index) => (
-        <React.Fragment key={index}>
-          <ChevronRight size={16} className="mx-2 text-gray-400" />
-          <button
-            onClick={() => goToPath(segment.path)}
-            className="text-gray-700 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-          >
-            {segment.name}
-          </button>
-        </React.Fragment>
-      ))}
-    </div>
+        {pathSegments.map((segment, index) => (
+            <React.Fragment key={index}>
+              <ChevronRight size={16} className={styles.divider} />
+              <button
+                  onClick={() => goToPath(segment.path)}
+                  className={styles.breadcrumbItem}
+              >
+                {segment.name}
+              </button>
+            </React.Fragment>
+        ))}
+      </div>
   );
 };
 

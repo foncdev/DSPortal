@@ -1,6 +1,7 @@
 // src/pages/FileManagerDemo.tsx
 import React, { useState, useEffect } from 'react';
 import FileManager from '../components/FileManager';
+import styles from './FileManagerDemo.module.scss';
 
 // Mock data in the expected API format
 const mockApiResponse = {
@@ -130,6 +131,15 @@ const FileManagerDemo: React.FC = () => {
       setIsLoading(false);
     }, 1000);
 
+    // Check system preference for dark mode on initial load
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setIsDarkMode(prefersDarkMode);
+
+    // Apply dark mode based on system preference
+    if (prefersDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+
     return () => {
       clearTimeout(timer);
       // Restore original fetch when component unmounts
@@ -148,45 +158,45 @@ const FileManagerDemo: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header bar */}
-      <header className="bg-white shadow dark:bg-gray-800">
-        <div className="mx-auto flex max-w-7xl items-center justify-between p-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">File Manager Demo</h1>
-          <button
-            onClick={toggleDarkMode}
-            className="rounded-md bg-gray-100 px-4 py-2 text-gray-800 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-          >
-            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-          </button>
-        </div>
-      </header>
-
-      {/* Main content area */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-          {/* File manager container */}
-          <div className="h-[calc(100vh-14rem)]">
-            {isLoading ? (
-              <div className="flex h-full items-center justify-center">
-                <div className="size-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-              </div>
-            ) : (
-              <FileManager initialFolderId={null} />
-            )}
+      <div className={styles.pageContainer}>
+        {/* Header bar */}
+        <header className={styles.header}>
+          <div className={styles.headerContainer}>
+            <h1 className={styles.pageTitle}>File Manager Demo</h1>
+            <button
+                onClick={toggleDarkMode}
+                className={styles.themeButton}
+            >
+              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
           </div>
-        </div>
-      </main>
+        </header>
 
-      {/* Footer */}
-      <footer className="mt-8 bg-white shadow dark:bg-gray-800">
-        <div className="mx-auto max-w-7xl p-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            This demo uses the FileManager component with mock API implementation.
-          </p>
-        </div>
-      </footer>
-    </div>
+        {/* Main content area */}
+        <main className={styles.mainContent}>
+          <div className={styles.contentContainer}>
+            {/* File manager container */}
+            <div className={styles.fileManagerContainer}>
+              {isLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner} />
+                  </div>
+              ) : (
+                  <FileManager initialFolderId={null} />
+              )}
+            </div>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <div className={styles.footerContainer}>
+            <p className={styles.footerText}>
+              This demo uses the FileManager component with mock API implementation.
+            </p>
+          </div>
+        </footer>
+      </div>
   );
 };
 

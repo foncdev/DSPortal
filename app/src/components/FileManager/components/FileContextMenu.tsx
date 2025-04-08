@@ -17,6 +17,7 @@ import { useFileOperations } from '../hooks/useFileOperations';
 import { useFolderOperations } from '../hooks/useFolderOperations';
 import { useClipboard } from '../hooks/useClipboard';
 import { isViewableFile } from '../utils/fileTypeUtils';
+import styles from './FileContextMenu.module.scss';
 
 interface FileContextMenuProps {
   x: number;
@@ -137,101 +138,101 @@ const FileContextMenu: React.FC<FileContextMenuProps> = ({ x, y, item, onClose }
   const hasSingleNonFolderSelected = selectedItems.length === 1 && item && !item.isFolder;
 
   return (
-    <div
-      ref={ref}
-      className="absolute z-50 w-60 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-      style={{ top: adjustedY, left: adjustedX }}
-    >
-      {/* Always visible options */}
-      <button
-        onClick={handleCreateFolder}
-        className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+      <div
+          ref={ref}
+          className={styles.contextMenu}
+          style={{ top: adjustedY, left: adjustedX }}
       >
-        <FolderPlus size={16} className="mr-2" />
-        New Folder
-      </button>
-
-      {/* Option when item is selected */}
-      {hasSelectedItems && (
-        <>
-          <button
-            onClick={handleCopy}
-            className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <Copy size={16} className="mr-2" />
-            Copy
-          </button>
-          <button
-            onClick={handleCut}
-            className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <Scissors size={16} className="mr-2" />
-            Cut
-          </button>
-        </>
-      )}
-
-      {/* Paste option when clipboard has items */}
-      {hasClipboardItems && (
+        {/* Always visible options */}
         <button
-          onClick={handlePaste}
-          className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            onClick={handleCreateFolder}
+            className={styles.menuItem}
         >
-          <Clipboard size={16} className="mr-2" />
-          Paste
+          <FolderPlus size={16} />
+          New Folder
         </button>
-      )}
 
-      {/* Options when a single item is right-clicked */}
-      {item && (
-        <>
-          <hr className="my-1 border-gray-200 dark:border-gray-700" />
-          <button
-            onClick={handleRename}
-            className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            <Pencil size={16} className="mr-2" />
-            Rename
-          </button>
-          <button
-            onClick={handleDelete}
-            className="flex w-full items-center px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
-          >
-            <Trash size={16} className="mr-2" />
-            Delete
-          </button>
+        {/* Option when item is selected */}
+        {hasSelectedItems && (
+            <>
+              <button
+                  onClick={handleCopy}
+                  className={styles.menuItem}
+              >
+                <Copy size={16} />
+                Copy
+              </button>
+              <button
+                  onClick={handleCut}
+                  className={styles.menuItem}
+              >
+                <Scissors size={16} />
+                Cut
+              </button>
+            </>
+        )}
 
-          {hasSingleNonFolderSelected && (
+        {/* Paste option when clipboard has items */}
+        {hasClipboardItems && (
             <button
-              onClick={handleDownload}
-              className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                onClick={handlePaste}
+                className={styles.menuItem}
             >
-              <Download size={16} className="mr-2" />
-              Download
+              <Clipboard size={16} />
+              Paste
             </button>
-          )}
+        )}
 
-          {hasViewableItem && (
-            <button
-              onClick={handleView}
-              className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              <Eye size={16} className="mr-2" />
-              View
-            </button>
-          )}
-        </>
-      )}
+        {/* Options when a single item is right-clicked */}
+        {item && (
+            <>
+              <hr className={styles.divider} />
+              <button
+                  onClick={handleRename}
+                  className={styles.menuItem}
+              >
+                <Pencil size={16} />
+                Rename
+              </button>
+              <button
+                  onClick={handleDelete}
+                  className={`${styles.menuItem} ${styles.dangerItem}`}
+              >
+                <Trash size={16} />
+                Delete
+              </button>
 
-      <hr className="my-1 border-gray-200 dark:border-gray-700" />
-      <button
-        onClick={handleRefresh}
-        className="flex w-full items-center px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-      >
-        <RefreshCw size={16} className="mr-2" />
-        Refresh
-      </button>
-    </div>
+              {hasSingleNonFolderSelected && (
+                  <button
+                      onClick={handleDownload}
+                      className={styles.menuItem}
+                  >
+                    <Download size={16} />
+                    Download
+                  </button>
+              )}
+
+              {hasViewableItem && (
+                  <button
+                      onClick={handleView}
+                      className={styles.menuItem}
+                  >
+                    <Eye size={16} />
+                    View
+                  </button>
+              )}
+            </>
+        )}
+
+        <hr className={styles.divider} />
+        <button
+            onClick={handleRefresh}
+            className={styles.menuItem}
+        >
+          <RefreshCw size={16} />
+          Refresh
+        </button>
+      </div>
   );
 };
 
