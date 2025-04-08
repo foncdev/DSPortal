@@ -1,108 +1,123 @@
 import React, { useCallback, useState } from 'react';
 import { Upload } from 'lucide-react';
-import { FILE_TYPE_CONFIGS, formatFileSize } from '@/components/FileUpload';
+import { FILE_TYPE_CONFIGS } from '../config';
+import { formatFileSize } from '../utils';
+import styles from '../FileUpload.module.scss';
 
 interface DropzoneProps {
-  onFileDrop: (file: File) => void;
-  acceptedTypes: string[];
-  maxSize?: number;
-  disabled?: boolean;
-  className?: string;
+    onFileDrop: (file: File) => void;
+    acceptedTypes: string[];
+    maxSize?: number;
+    disabled?: boolean;
+    className?: string;
 }
 
 export const Dropzone: React.FC<DropzoneProps> = ({
-  onFileDrop,
-  acceptedTypes,
-  maxSize,
-  disabled = false,
-  className = '',
-}) => {
-  const [isDragging, setIsDragging] = useState(false);
+                                                      onFileDrop,
+                                                      acceptedTypes,
+                                                      maxSize,
+                                                      disabled = false,
+                                                      className = '',
+                                                  }) => {
+    const [isDragging, setIsDragging] = useState(false);
 
-  const getAcceptString = (): string => {
-    return acceptedTypes.map((type) => FILE_TYPE_CONFIGS[type].accept).join(',');
-  };
+    const getAcceptString = (): string => {
+        return acceptedTypes.map((type) => FILE_TYPE_CONFIGS[type].accept).join(',');
+    };
 
-  const handleDragOver = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const getAcceptedFileTypes = (): string => {
+        return acceptedTypes
+            .map((type) => {
+                switch(type) {
+                    case 'image': return '이미지';
+                    case 'video': return '비디오';
+                    case 'document': return '문서';
+                    case 'archive': return '압축 파일';
+                    case 'application': return '앱 파일';
+                    default: return type;
+                }
+            })
+            .join(', ');
+    };
 
-      if (disabled) return;
+    const handleDragOver = useCallback(
+        (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-      setIsDragging(true);
-    },
-    [disabled],
-  );
+            if (disabled) return;
 
-  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+            setIsDragging(true);
+        },
+        [disabled],
+    );
 
-    setIsDragging(false);
-  }, []);
+    const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
+        setIsDragging(false);
+    }, []);
 
-      setIsDragging(false);
+    const handleDrop = useCallback(
+        (e: React.DragEvent<HTMLDivElement>) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-      if (disabled) return;
+            setIsDragging(false);
 
-      if (e.dataTransfer.files?.length) {
-        const file = e.dataTransfer.files[0]; // We only accept one file at a time
-        onFileDrop(file);
-      }
-    },
-    [disabled, onFileDrop],
-  );
+            if (disabled) return;
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (disabled) return;
+            if (e.dataTransfer.files?.length) {
+                const file = e.dataTransfer.files[0]; // We only accept one file at a time
+                onFileDrop(file);
+            }
+        },
+        [disabled, onFileDrop],
+    );
 
-      const files = e.target.files;
-      if (files?.length) {
-        onFileDrop(files[0]); // We only accept one file at a time
-      }
+    const handleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            if (disabled) return;
 
-      // Reset the input value so the same file can be uploaded again if needed
-      e.target.value = '';
-    },
-    [disabled, onFileDrop],
-  );
+            const files = e.target.files;
+            if (files?.length) {
+                onFileDrop(files[0]); // We only accept one file at a time
+            }
 
-  return (
-    <div
-      className={`relative cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors
-        ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-        ${disabled ? 'cursor-not-allowed opacity-50' : ''}
-        ${className}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      <input
-        type="file"
-        className="absolute inset-0 size-full cursor-pointer opacity-0"
-        onChange={handleChange}
-        accept={getAcceptString()}
-        disabled={disabled}
-      />
+            // Reset the input value so the same file can be uploaded again if needed
+            e.target.value = '';
+        },
+        [disabled, onFileDrop],
+    );
 
-      <div className="flex flex-col items-center justify-center gap-2">
-        <Upload className="size-10 text-gray-400" />
-        <p className="text-lg font-medium text-gray-700">
-          파일을 여기에 드래그하거나 클릭하여 업로드
-        </p>
-        <p className="text-sm text-gray-500">
-          {acceptedTypes.map((t) => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')} 파일만
-          허용됩니다.
-          {maxSize && ` (최대 ${formatFileSize(maxSize)})`}
-        </p>
-      </div>
-    </div>
-  );
+    return (
+        <div
+            className={`${styles.dropzone} ${isDragging ? styles.dragging : ''} ${
+                disabled ? styles.disabled : ''
+            } ${className}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            <input
+                type="file"
+                className={styles.dropzoneInput}
+                onChange={handleChange}
+                accept={getAcceptString()}
+                disabled={disabled}
+            />
+
+            <div className={styles.dropzoneContent}>
+                <Upload className={styles.dropzoneIcon} />
+                <p className={styles.dropzoneTitle}>
+                    파일을 드래그하거나 클릭하여 업로드
+                </p>
+                <p className={styles.dropzoneText}>
+                    {getAcceptedFileTypes()} 파일만 가능
+                    {maxSize && ` (최대 ${formatFileSize(maxSize)})`}
+                </p>
+            </div>
+        </div>
+    );
 };

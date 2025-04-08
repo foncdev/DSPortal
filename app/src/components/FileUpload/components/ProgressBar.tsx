@@ -1,49 +1,51 @@
 import React from 'react';
+import styles from '../FileUpload.module.scss';
 
 interface ProgressBarProps {
   progress: number;
   className?: string;
   height?: number;
-  color?: string;
-  backgroundColor?: string;
+  status?: 'uploading' | 'completed' | 'error' | 'paused';
   withLabel?: boolean;
   labelPosition?: 'inside' | 'outside';
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
-  progress,
-  className = '',
-  height = 8,
-  color = 'bg-blue-500',
-  backgroundColor = 'bg-gray-200',
-  withLabel = true,
-  labelPosition = 'outside',
-}) => {
-  return (
-    <div className={`w-full ${className}`}>
-      <div className="relative">
-        <div
-          className={`w-full overflow-hidden rounded-full ${backgroundColor}`}
-          style={{ height: `${height}px` }}
-        >
-          <div
-            className={`transition-width h-full rounded-full duration-300 ease-in-out ${color}`}
-            style={{ width: `${progress}%` }}
-          >
-            {withLabel && labelPosition === 'inside' && progress > 15 && (
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
-                {Math.round(progress)}%
-              </span>
-            )}
-          </div>
-        </div>
+                                                          progress,
+                                                          className = '',
+                                                          height = 6,
+                                                          status = 'uploading',
+                                                          withLabel = true,
+                                                          labelPosition = 'outside',
+                                                        }) => {
+  const statusClass = `status-${status}`;
+  const progressValue = Math.min(Math.max(0, progress), 100); // 0-100 사이로 제한
 
-        {withLabel && labelPosition === 'outside' && (
-          <div className="mt-1 text-right text-xs font-medium text-gray-700">
-            {Math.round(progress)}%
+  return (
+      <div className={`${styles.progressContainer} ${className}`}>
+        <div className={styles.progressBar}>
+          <div
+              className={styles.progressTrack}
+              style={{ height: `${height}px` }}
+          >
+            <div
+                className={`${styles.progressIndicator} ${styles[statusClass]}`}
+                style={{ width: `${progressValue}%` }}
+            >
+              {withLabel && labelPosition === 'inside' && progressValue > 15 && (
+                  <span className={styles.progressLabelInside}>
+                {Math.round(progressValue)}%
+              </span>
+              )}
+            </div>
           </div>
-        )}
+
+          {withLabel && labelPosition === 'outside' && (
+              <div className={styles.progressLabelOutside}>
+                {Math.round(progressValue)}%
+              </div>
+          )}
+        </div>
       </div>
-    </div>
   );
 };
