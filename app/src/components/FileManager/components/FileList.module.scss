@@ -154,3 +154,40 @@
     background-color: #111827;
   }
 }
+
+// 모바일 반응형 스타일 추가
+@media (max-width: 768px) {
+  .container {
+    overflow-x: auto; // 가로 스크롤 활성화
+    -webkit-overflow-scrolling: touch; // iOS에서 부드러운 스크롤
+  }
+
+  .headerGrid {
+    min-width: 768px; // 최소 너비 설정하여 스크롤 가능하게
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 5; // 스크롤 시 헤더 고정
+    width: fit-content;
+    min-width: 100%;
+  }
+
+  // 리스트 아이템도 같은 너비 유지
+  :global(.listItem) {
+    min-width: 768px;
+    width: fit-content;
+  }
+
+  // 모바일에서 중요한 컬럼만 표시 (선택적)
+  .headerColumn {
+    &.md5 {
+      display: none;
+    }
+  }
+
+  :global(.fileMd5) {
+    display: none;
+  }
+}

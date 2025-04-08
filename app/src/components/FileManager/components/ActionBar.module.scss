@@ -146,6 +146,33 @@
 
 .optionsContainer {
   position: relative;
+
+  @media (max-width: 768px) {
+    &.active::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      z-index: 5;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    :global(.dark) &.active::before {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .actionRow {
@@ -235,5 +262,123 @@
     margin-right: 0.5rem;
     width: 1.125rem;
     height: 1.125rem;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .buttonGroup {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    flex: 1;
+    justify-content: center;
+    padding: 0.75rem 1rem; // 버튼 패딩 확대
+    font-size: 1rem; // 폰트 크기 확대
+
+    span {
+      white-space: nowrap;
+    }
+
+    svg {
+      width: 1.25rem; // 아이콘 크기 확대
+      height: 1.25rem;
+    }
+  }
+
+  // 두 번째 버튼 그룹에 있는 아이콘 버튼들 크기 확대
+  .buttonGroup:nth-child(2) {
+    justify-content: center;
+    gap: 1.5rem; // 간격 확대
+  }
+
+  .iconButton {
+    width: 3rem; // 버튼 크기 대폭 확대
+    height: 3rem;
+
+    svg {
+      width: 1.5rem; // 아이콘 크기 확대
+      height: 1.5rem;
+    }
+  }
+
+  // 액션 행에 있는 버튼들 (선택된 항목에 대한 액션)
+  .actionRow {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    button {
+      flex: 1;
+      min-width: calc(50% - 0.75rem);
+      justify-content: center;
+      padding: 0.75rem 1rem; // 패딩 확대
+      font-size: 1rem; // 폰트 크기 확대
+
+      svg {
+        width: 1.25rem; // 아이콘 크기 확대
+        height: 1.25rem;
+      }
+    }
+  }
+
+  // 옵션 컨테이너는 아이콘 버튼을 포함하므로 상대적 위치가 필요
+  .optionsContainer {
+    position: relative;
+    display: inline-flex;
+
+    &.active::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.4); // 더 진한 배경
+      z-index: 5;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    :global(.dark) &.active::before {
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+  }
+}
+
+// 작은 모바일 기기에 대한 추가 최적화
+@media (max-width: 480px) {
+  .primaryButton,
+  .secondaryButton {
+    padding: 0.75rem 0.5rem; // 좌우 패딩 줄임
+
+    span {
+      font-size: 0.9375rem; // 텍스트 크기 약간 줄임
+    }
+  }
+
+  .buttonGroup:nth-child(2) {
+    gap: 1.25rem; // 간격 약간 줄임
+  }
+
+  .iconButton {
+    width: 2.75rem; // 버튼 크기 약간 줄임
+    height: 2.75rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }

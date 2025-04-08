@@ -69,3 +69,19 @@
     background-color: rgba(127, 29, 29, 0.3);
   }
 }
+
+@media (max-width: 768px) {
+  .container {
+    border-radius: 0.5rem;
+  }
+
+  .header {
+    padding: 1rem;
+  }
+
+  .content {
+    padding: 1rem;
+    overflow-x: auto; // 가로 스크롤 활성화
+    -webkit-overflow-scrolling: touch; // iOS에서 부드러운 스크롤
+  }
+}

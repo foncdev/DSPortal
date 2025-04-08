@@ -74,3 +74,28 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 }
+
+@media (max-width: 768px) {
+  .container {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+  }
+
+  .path {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding: 0.25rem;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+  }
+
+  .breadcrumbItem {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}

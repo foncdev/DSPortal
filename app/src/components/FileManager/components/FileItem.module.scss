@@ -633,3 +633,67 @@
     transform: translateY(0);
   }
 }
+
+// FileItem.module.scss 모바일 가독성 개선을 위한 추가 스타일
+
+// 모바일 반응형 스타일
+@media (max-width: 768px) {
+  .listItem {
+    min-width: 768px; // 최소 너비 설정하여 스크롤 가능하게
+    width: fit-content;
+  }
+
+  .fileMd5 {
+    display: none; // 모바일에서는 MD5 영역 숨김
+  }
+
+  // 그리드 뷰 최적화
+  .gridItem {
+    padding: 1rem 0.75rem;
+  }
+
+  .gridThumbnail {
+    width: 5rem;  // 그리드 이미지 크기 줄임
+    height: 5rem;
+  }
+
+  .gridFileName {
+    font-size: 0.8125rem;
+  }
+
+  .gridFileSize {
+    font-size: 0.6875rem;
+  }
+}
+
+// 작은 모바일 기기 최적화
+@media (max-width: 480px) {
+  .gridItem {
+    padding: 0.875rem 0.625rem;
+  }
+
+  .gridThumbnail {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  // 리스트 뷰에서 접근성 높이기
+  .fileInfo {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .nameContainer {
+    max-width: 100%;
+  }
+
+  .fileName {
+    max-width: 100%;
+  }
+
+  // 그리드 뷰에서 체크박스 위치 조정
+  .gridCheckbox {
+    top: 0.5rem;
+    left: 0.5rem;
+  }
+}

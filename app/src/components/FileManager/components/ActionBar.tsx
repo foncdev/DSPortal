@@ -133,10 +133,10 @@ const ActionBar: React.FC = () => {
           </button>
 
           {/* Sort button */}
-          <div className={styles.optionsContainer}>
+          <div className={`${styles.optionsContainer} ${showSortOptions ? styles.active : ''}`}>
             <button
                 onClick={toggleSortOptions}
-                className={styles.iconButton}
+                className={`${styles.iconButton} ${showSortOptions ? styles.active : ''}`}
                 title="Sort options"
             >
               <SortAsc size={16} />
@@ -144,11 +144,12 @@ const ActionBar: React.FC = () => {
             {showSortOptions && <SortOptions onClose={() => setShowSortOptions(false)} />}
           </div>
 
+
           {/* Filter button */}
-          <div className={styles.optionsContainer}>
+          <div className={`${styles.optionsContainer} ${showFilterOptions ? styles.active : ''}`}>
             <button
                 onClick={toggleFilterOptions}
-                className={styles.iconButton}
+                className={`${styles.iconButton} ${showFilterOptions ? styles.active : ''}`}
                 title="Filter options"
             >
               <Filter size={16} />

@@ -7,20 +7,34 @@
   margin-top: 0.5rem;
   width: 15rem;
   border-radius: 0.625rem;
-  border: 1px solid #e5e7eb;
   background-color: white;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  border: none; /* 테두리 제거 */
 
   :global(.dark) & {
-    border-color: #374151;
     background-color: #1f2937;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  }
+
+  // 모바일에서 중앙 정렬 및 크기 확대
+  @media (max-width: 768px) {
+    right: 50%;
+    transform: translateX(50%);
+    width: 90%;
+    max-width: 350px; // 최대 폭 확대
+    max-height: 85vh; // 최대 높이 제한
+    overflow-y: auto; // 필요시 스크롤 가능하게
   }
 }
 
 .container {
   padding: 1.25rem;
+
+  // 모바일에서 여백 확대
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
 }
 
 .header {
@@ -28,6 +42,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  // 모바일에서 헤더 확대
+  @media (max-width: 768px) {
+    margin-bottom: 1.5rem;
+  }
 }
 
 .title {
@@ -38,6 +57,11 @@
   :global(.dark) & {
     color: #f3f4f6;
   }
+
+  // 모바일에서 제목 텍스트 크기 확대
+  @media (max-width: 768px) {
+    font-size: 1.125rem;
+  }
 }
 
 .closeButton {
@@ -45,6 +69,8 @@
   padding: 0.25rem;
   border-radius: 9999px;
   transition: all 0.15s ease;
+  border: none; /* 테두리 제거 */
+  background-color: transparent;
 
   &:hover {
     color: #374151;
@@ -63,11 +89,27 @@
   svg {
     width: 1.125rem;
     height: 1.125rem;
+
+    // 모바일에서 닫기 버튼 확대
+    @media (max-width: 768px) {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+
+  // 모바일에서 닫기 버튼 확대
+  @media (max-width: 768px) {
+    padding: 0.5rem;
   }
 }
 
 .formGroup {
   margin-bottom: 1.25rem;
+
+  // 모바일에서 그룹 간격 확대
+  @media (max-width: 768px) {
+    margin-bottom: 1.75rem;
+  }
 }
 
 .formLabel {
@@ -82,6 +124,12 @@
   :global(.dark) & {
     color: #9ca3af;
   }
+
+  // 모바일에서 레이블 텍스트 크기 확대
+  @media (max-width: 768px) {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
 }
 
 .radioGroup {
@@ -89,6 +137,12 @@
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
+
+  // 모바일에서 라디오 옵션 간 간격 확대
+  @media (max-width: 768px) {
+    gap: 1rem;
+    margin-top: 0.75rem;
+  }
 }
 
 .radioItem {
@@ -124,6 +178,12 @@
       border-color: #6b7280;
     }
   }
+
+  // 모바일에서 라디오 버튼 확대
+  @media (max-width: 768px) {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
 }
 
 .radioLabel {
@@ -136,6 +196,12 @@
   :global(.dark) & {
     color: #d1d5db;
   }
+
+  // 모바일에서 라디오 레이블 텍스트 크기 확대
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-left: 0.75rem;
+  }
 }
 
 .directionIcon {
@@ -145,12 +211,22 @@
   :global(.dark) & {
     color: #9ca3af;
   }
+
+  // 모바일에서 아이콘 크기 확대
+  @media (max-width: 768px) {
+    margin-right: 0.5rem;
+  }
 }
 
 .buttonContainer {
   display: flex;
   justify-content: flex-end;
   margin-top: 0.5rem;
+
+  // 모바일에서 버튼 컨테이너 확대
+  @media (max-width: 768px) {
+    margin-top: 1rem;
+  }
 }
 
 .applyButton {
@@ -162,6 +238,7 @@
   font-weight: 500;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: none; /* 테두리 제거 */
 
   &:hover {
     background-color: #2563eb;
@@ -180,5 +257,12 @@
     &:hover {
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
     }
+  }
+
+  // 모바일에서 적용 버튼 확대
+  @media (max-width: 768px) {
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
   }
 }
