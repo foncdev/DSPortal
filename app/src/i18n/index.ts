@@ -2,13 +2,13 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import { dataTableEnTranslations } from '@ds/ui';
 import { treeTranslations } from '@ds/ui';
 
 
 // Import translations
 import baseEnTranslations from './locales/en.json';
 import baseKoTranslations from './locales/ko.json';
+import {dataTableEnTranslations} from "@/components/DataTable";
 
 const enTranslations = {
     ...baseEnTranslations,
