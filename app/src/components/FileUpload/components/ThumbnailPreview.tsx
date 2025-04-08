@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileInfo } from '../types';
 import { formatFileSize } from '../utils';
 import styles from '../FileUpload.module.scss';
@@ -11,6 +11,7 @@ interface ThumbnailPreviewProps {
 export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, className = '' }) => {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
+  const [isSliderActive, setIsSliderActive] = useState<boolean>(false);
 
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -21,11 +22,30 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, cl
   const handleVideoLoad = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
     setDuration(video.duration);
-    // Set to middle of video initially
-    const middleTime = video.duration / 2;
-    setCurrentTime(middleTime);
-    video.currentTime = middleTime;
+    // Set to first frame initially
+    setCurrentTime(0);
+    video.currentTime = 0;
+
+    // 비디오 로드 후 썸네일 생성 확인
+    setTimeout(() => {
+      generateThumbnailFromCurrentTime();
+    }, 100);
   };
+
+  // 컴포넌트 마운트 시 비디오 리소스 해제 처리
+  useEffect(() => {
+    let videoUrl: string | null = null;
+
+    if (fileInfo.file.type.startsWith('video/')) {
+      videoUrl = URL.createObjectURL(fileInfo.file);
+    }
+
+    return () => {
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, [fileInfo.file]);
 
   if (!fileInfo.preview) {
     return (
@@ -55,10 +75,8 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, cl
   }
 
   if (fileInfo.file.type.startsWith('video/')) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [videoUrl] = useState(URL.createObjectURL(fileInfo.file));
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [currentThumbnail, setCurrentThumbnail] = useState<string>(fileInfo.preview || '');
+    // 비디오 URL은 필요할 때만 생성
+    const videoUrl = URL.createObjectURL(fileInfo.file);
 
     // 썸네일 생성 함수
     const generateThumbnailFromCurrentTime = () => {
@@ -76,30 +94,55 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, cl
 
       try {
         const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
-        setCurrentThumbnail(thumbnailUrl);
+        return thumbnailUrl;
       } catch (err) {
         console.error('썸네일 생성 오류:', err);
+        return fileInfo.preview;
       }
     };
 
-    const handleSliderChangeWithThumbnail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const video = document.getElementById('preview-video') as HTMLVideoElement;
       if (video) {
         const newTime = parseFloat(e.target.value);
         setCurrentTime(newTime);
         video.currentTime = newTime;
-
-        const onCanPlay = () => {
-          generateThumbnailFromCurrentTime();
-          video.removeEventListener('canplay', onCanPlay);
-        };
-
-        video.addEventListener('canplay', onCanPlay);
       }
     };
 
+    const handleSliderMouseDown = () => {
+      setIsSliderActive(true);
+    };
+
+    const handleSliderMouseUp = () => {
+      const video = document.getElementById('preview-video') as HTMLVideoElement;
+      if (video) {
+        // 슬라이더 조작 완료 후 해당 프레임의 썸네일 생성
+        generateThumbnailFromCurrentTime();
+      }
+      setIsSliderActive(false);
+    };
+
     const handleVideoSeeked = () => {
-      generateThumbnailFromCurrentTime();
+      // 비디오가 seek 완료된 경우에만 썸네일 생성
+      if (!isSliderActive) {
+        generateThumbnailFromCurrentTime();
+      }
+    };
+
+    // 비디오 메타데이터 정보 가져오기
+    const getVideoMetadataDisplay = () => {
+      const metadata = [];
+
+      if (fileInfo.metadata?.width && fileInfo.metadata?.height) {
+        metadata.push(`${fileInfo.metadata.width}×${fileInfo.metadata.height}`);
+      }
+
+      if (fileInfo.metadata?.duration) {
+        metadata.push(formatTime(fileInfo.metadata.duration));
+      }
+
+      return metadata.join(' • ');
     };
 
     return (
@@ -112,15 +155,13 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, cl
                 controls={false}
                 onLoadedMetadata={handleVideoLoad}
                 onSeeked={handleVideoSeeked}
-                preload="auto"
+                preload="metadata"
             />
-            {currentThumbnail && (
-                <img
-                    src={currentThumbnail}
-                    alt={fileInfo.name}
-                    className={styles.thumbnailImage}
-                />
-            )}
+            <img
+                src={fileInfo.preview}
+                alt={fileInfo.name}
+                className={styles.thumbnailImage}
+            />
           </div>
 
           <div className={styles.videoControls}>
@@ -129,28 +170,20 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, cl
                   type="range"
                   min={0}
                   max={duration || 100}
+                  step="0.1"
                   value={currentTime}
-                  onChange={handleSliderChangeWithThumbnail}
+                  onChange={handleSliderChange}
+                  onMouseDown={handleSliderMouseDown}
+                  onMouseUp={handleSliderMouseUp}
+                  onTouchStart={handleSliderMouseDown}
+                  onTouchEnd={handleSliderMouseUp}
                   className={styles.slider}
               />
             </div>
             <div className={styles.timeDisplay}>
               <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
+              <span>{getVideoMetadataDisplay()}</span>
             </div>
-            {fileInfo.metadata && (
-                <div className={styles.videoMetadata}>
-                  {fileInfo.metadata.width && fileInfo.metadata.height && (
-                      <div>
-                        해상도: {fileInfo.metadata.width} x {fileInfo.metadata.height}px
-                      </div>
-                  )}
-                  {fileInfo.metadata.duration && (
-                      <div>재생 시간: {formatTime(fileInfo.metadata.duration)}</div>
-                  )}
-                  {fileInfo.metadata.codec && <div>코덱: {fileInfo.metadata.codec}</div>}
-                </div>
-            )}
           </div>
         </div>
     );

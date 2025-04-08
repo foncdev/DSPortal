@@ -4,6 +4,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 import SingleLayout from '../layouts/SingleLayout';
 import UsersTable from "@/pages/UsersTable";
+import FileUploadDemo from "@/pages/FileUploadDemo";
+import FileManagerDemo from "@/pages/FileManagerDemo";
 
 // Loading spinner component
 const Loading = () => (
@@ -150,6 +152,25 @@ const AppRoutes: React.FC = () => (
                     <TreeDemo />
                 }
             />
+
+            <Route
+                path="/fileupload"
+                element={
+                    <FileUploadDemo />
+                }
+            />
+
+            <Route
+                path="/filemanager"
+                element={
+                    <FileManagerDemo />
+                }
+            />
+
+
+
+
+
 
             {/* Catch-all route - 404 */}
             <Route
