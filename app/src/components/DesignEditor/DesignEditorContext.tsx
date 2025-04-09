@@ -149,7 +149,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             }
         }
 
-        canvas.renderAll();
+        canvas.requestRenderAll();
     }, [canvas, showGrid, width, height]);
 
     // Update selected object when selection changes
@@ -266,6 +266,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
                     canvas.add(img);
                     canvas.setActiveObject(img);
+                    canvas.requestRenderAll();
+                    setSelectedObject(img);
                     saveToHistory();
                 });
                 return;
@@ -291,13 +293,11 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             });
 
             // Add to canvas, select it, and save to history
-            // canvas.add(object);
-            // canvas.setActiveObject(object);
-            // saveToHistory();
-
             canvas.add(object);
+            canvas.setActiveObject(object);
             console.log("Object added:", object);
-            canvas.renderAll(); // 강제 렌더링 추가
+            canvas.requestRenderAll(); // renderAll 대신 requestRenderAll 사용
+            setSelectedObject(object); // 선택된 객체 상태 업데이트
             saveToHistory();
         }
     };
@@ -307,7 +307,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         if (!canvas || !selectedObject) return;
 
         selectedObject.set(options);
-        canvas.renderAll();
+        selectedObject.setCoords(); // 객체 좌표 업데이트
+        canvas.requestRenderAll(); // renderAll 대신 requestRenderAll 사용
         saveToHistory();
     };
 
@@ -317,6 +318,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
         canvas.remove(selectedObject);
         setSelectedObject(null);
+        canvas.requestRenderAll();
         saveToHistory();
     };
 
@@ -339,6 +341,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
             canvas.add(cloned);
             canvas.setActiveObject(cloned);
+            canvas.requestRenderAll();
+            setSelectedObject(cloned);
             saveToHistory();
         });
     };
@@ -348,12 +352,16 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         if (!canvas) return;
 
         if (object) {
+            // 객체 선택 전에 활성 객체를 초기화
+            canvas.discardActiveObject();
             canvas.setActiveObject(object);
+            // 선택 후 객체를 화면에 렌더링하기 위해 renderAll 대신 requestRenderAll 사용
+            canvas.requestRenderAll();
         } else {
             canvas.discardActiveObject();
+            canvas.requestRenderAll();
         }
 
-        canvas.renderAll();
         setSelectedObject(object);
     };
 
@@ -372,7 +380,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             (selectedObject as any)[property] = value;
         }
 
-        canvas.renderAll();
+        // 객체 좌표 업데이트 (특히 크기나 위치 변경시 중요)
+        selectedObject.setCoords();
+        canvas.requestRenderAll(); // 화면 갱신 요청
         saveToHistory();
     };
 
@@ -392,7 +402,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             setHistoryIndex(newIndex);
             setCanUndo(newIndex > 0);
             setCanRedo(true);
-            canvas.renderAll();
+            canvas.requestRenderAll();
         });
     };
 
@@ -407,7 +417,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             setHistoryIndex(newIndex);
             setCanUndo(true);
             setCanRedo(newIndex < history.length - 1);
-            canvas.renderAll();
+            canvas.requestRenderAll();
         });
     };
 
@@ -416,6 +426,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         setCanUndo(historyIndex > 0);
         setCanRedo(historyIndex < history.length - 1);
     }, [historyIndex, history]);
+
+    // 캔버스에 초기 상태를 저장
+    useEffect(() => {
+        if (canvas && history.length === 0) {
+            saveToHistory();
+        }
+    }, [canvas]);
 
     // Context value
     const contextValue: DesignEditorContextType = {

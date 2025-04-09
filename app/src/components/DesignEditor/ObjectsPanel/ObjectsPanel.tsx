@@ -128,16 +128,20 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
             // 가시성과 함께 선택 가능성(selectable)도 함께 설정
             object.set({
                 'visible': !isVisible,
-                'selectable': !isVisible ? true : false, // 보이지 않으면 선택도 불가능하게
-                'evented': !isVisible ? true : false     // 보이지 않으면 이벤트도 받지 않게
+                'selectable': !isVisible, // 보이지 않으면 선택도 불가능하게
+                'evented': !isVisible     // 보이지 않으면 이벤트도 받지 않게
             });
 
-            canvas.renderAll();
+            // 객체 좌표 업데이트
+            object.setCoords();
+            canvas.requestRenderAll(); // renderAll 대신 requestRenderAll 사용
 
             // 보이지 않게 된 객체가 현재 선택된 상태라면 선택 해제
             if (isVisible && selectedObject && selectedObject.id === object.id) {
                 canvas.discardActiveObject();
                 canvas.requestRenderAll();
+                // 선택 객체 상태도 업데이트
+                selectObject(null);
             }
 
             // 목록 업데이트

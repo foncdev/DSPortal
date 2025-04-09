@@ -37,7 +37,8 @@ const Canvas: React.FC = () => {
             backgroundColor: '#ffffff',
             preserveObjectStacking: true,
             selection: true,
-            stopContextMenu: true
+            stopContextMenu: true,
+            renderOnAddRemove: true // 객체 추가/제거 시 자동 렌더링
         });
 
         // Set the canvas in the context
@@ -60,7 +61,7 @@ const Canvas: React.FC = () => {
             vpt[4] = (canvasWidth * (1 - zoomLevel)) / 2;
             vpt[5] = (canvasHeight * (1 - zoomLevel)) / 2;
         }
-        canvas.renderAll();
+        canvas.requestRenderAll();
     }, [canvas, zoomLevel, canvasWidth, canvasHeight]);
 
     // Handle keyboard shortcuts
@@ -241,9 +242,6 @@ const Canvas: React.FC = () => {
         const vpt = canvas.viewportTransform;
         if (!vpt) return;
 
-        // Save current zoom
-        const prevZoom = canvas.getZoom();
-
         // Set zoom
         canvas.zoomToPoint({ x: point.x, y: point.y }, zoom);
 
@@ -282,7 +280,7 @@ const Canvas: React.FC = () => {
     return (
         <div
             ref={containerRef}
-            className={styles.canvasContainer}
+            className={`${styles.canvasContainer} ${isPanning ? styles.panning : ''}`}
         >
             <div
                 className={styles.canvasWrapper}
