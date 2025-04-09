@@ -10,6 +10,10 @@ export interface FabricObjectWithId extends fabric.Object {
     id?: number;
     objectType?: ObjectType;
     name?: string;
+    // 계층 구조를 위한 추가 속성
+    layoutGroup?: string;      // 이 객체가 속한 레이아웃 그룹 ID
+    isLayoutParent?: boolean;  // 이 객체가 레이아웃의 부모 객체인지 여부
+    groupOrder?: number;       // 그룹 내에서의 순서
 }
 
 // Define context type
@@ -24,11 +28,23 @@ interface DesignEditorContextType {
     selectedObject: FabricObjectWithId | null;
     getObjects: () => FabricObjectWithId[];
 
+    // 레이아웃 그룹 관련 함수
+    createLayoutGroup: (name: string, options?: any) => string;
+    addObjectToGroup: (groupId: string, type: ObjectType, options?: any) => void;
+    getObjectsByGroup: (groupId: string) => FabricObjectWithId[];
+    deleteLayoutGroup: (groupId: string) => void;
+    moveObjectToGroup: (objectId: number | string, groupId: string | null) => void;
+
     // Actions
     addObject: (type: ObjectType, options?: any) => void;
     updateObject: (options: Partial<FabricObjectWithId>) => void;
     deleteObject: () => void;
     cloneObject: () => void;
+    moveObjectUp: (object?: FabricObjectWithId) => void;
+    moveObjectDown: (object?: FabricObjectWithId) => void;
+    moveObjectToTop: (object?: FabricObjectWithId) => void;
+    moveObjectToBottom: (object?: FabricObjectWithId) => void;
+    setObjectZIndex: (object: FabricObjectWithId, newIndex: number) => void;
 
     // Selection
     selectObject: (object: FabricObjectWithId | null) => void;
@@ -218,7 +234,10 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                     fontSize: options.fontSize || 24,
                     fill: options.fill || '#000000',
                     width: options.width || 200,
-                    editable: true
+                    editable: true,
+                    originX: options.originX || 'left',
+                    originY: options.originY || 'top',
+                    textAlign: options.textAlign || 'left'
                 });
                 break;
 
@@ -230,7 +249,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                     height: options.height || 100,
                     fill: options.fill || '#3b82f6',
                     rx: options.rx || 0,
-                    ry: options.ry || 0
+                    ry: options.ry || 0,
+                    selectable: options.selectable !== undefined ? options.selectable : true
                 });
                 break;
 
@@ -295,7 +315,6 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             // Add to canvas, select it, and save to history
             canvas.add(object);
             canvas.setActiveObject(object);
-            console.log("Object added:", object);
             canvas.requestRenderAll(); // renderAll 대신 requestRenderAll 사용
             setSelectedObject(object); // 선택된 객체 상태 업데이트
             saveToHistory();
@@ -345,6 +364,71 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             setSelectedObject(cloned);
             saveToHistory();
         });
+    };
+
+    // Move object up one level
+    const moveObjectUp = (object?: FabricObjectWithId) => {
+        if (!canvas) return;
+        const objectToMove = object || selectedObject;
+        if (!objectToMove) return;
+
+        canvas.bringForward(objectToMove);
+        canvas.requestRenderAll();
+        saveToHistory();
+    };
+
+    // Move object down one level
+    const moveObjectDown = (object?: FabricObjectWithId) => {
+        if (!canvas) return;
+        const objectToMove = object || selectedObject;
+        if (!objectToMove) return;
+
+        canvas.sendBackwards(objectToMove);
+        canvas.requestRenderAll();
+        saveToHistory();
+    };
+
+    // Move object to the top
+    const moveObjectToTop = (object?: FabricObjectWithId) => {
+        if (!canvas) return;
+        const objectToMove = object || selectedObject;
+        if (!objectToMove) return;
+
+        canvas.bringToFront(objectToMove);
+        canvas.requestRenderAll();
+        saveToHistory();
+    };
+
+    // Move object to the bottom
+    const moveObjectToBottom = (object?: FabricObjectWithId) => {
+        if (!canvas) return;
+        const objectToMove = object || selectedObject;
+        if (!objectToMove) return;
+
+        canvas.sendToBack(objectToMove);
+        canvas.requestRenderAll();
+        saveToHistory();
+    };
+
+    // Set object z-index directly (for drag & drop ordering)
+    const setObjectZIndex = (object: FabricObjectWithId, newIndex: number) => {
+        if (!canvas) return;
+
+        const objects = canvas.getObjects();
+        const currentIndex = objects.indexOf(object);
+
+        if (currentIndex === -1) return; // Object not found
+        if (currentIndex === newIndex) return; // Already at target index
+
+        // Remove from current position
+        canvas.remove(object);
+
+        // Insert at new position
+        objects.splice(newIndex, 0, object);
+        canvas.insertAt(object, newIndex);
+
+        canvas.requestRenderAll();
+        saveToHistory();
     };
 
     // Select an object
@@ -421,6 +505,155 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         });
     };
 
+    // createLayoutGroup: 새로운 레이아웃 그룹 생성
+    const createLayoutGroup = (name: string, options: any = {}) => {
+        if (!canvas) return '';
+
+        // 새 그룹 ID 생성
+        const groupId = `layout_${Date.now()}`;
+
+        // 레이아웃 부모 객체 생성 (배경 사각형)
+        const layoutObject = new fabric.Rect({
+            left: options.left || Math.random() * (width - 300) + 150,
+            top: options.top || Math.random() * (height - 200) + 100,
+            width: options.width || 500,
+            height: options.height || 300,
+            fill: options.fill || '#f0f0f0',
+            opacity: options.opacity || 0.5,
+            rx: options.rx || 0,
+            ry: options.ry || 0
+        });
+
+        // 커스텀 속성 추가
+        layoutObject.set({
+            id: objectCount + 1,
+            objectType: 'rectangle',
+            name: name || `Layout ${objectCount + 1}`,
+            isLayoutParent: true,
+            layoutGroup: groupId
+        });
+
+        // ID 카운터 업데이트
+        setObjectCount(objectCount + 1);
+
+        // 캔버스에 추가
+        canvas.add(layoutObject);
+        canvas.requestRenderAll();
+        saveToHistory();
+
+        return groupId;
+    };
+
+    // addObjectToGroup: 그룹에 객체 추가
+    const addObjectToGroup = (groupId: string, type: ObjectType, options: any = {}) => {
+        if (!canvas) return;
+
+        // 그룹의 레이아웃 부모 객체 찾기
+        const groupObjects = getObjectsByGroup(groupId);
+        const parentObject = groupObjects.find(obj => obj.isLayoutParent);
+
+        if (!parentObject) return;
+
+        // 부모 객체 내부에 위치시키기 위한 좌표 계산
+        const parentLeft = parentObject.left || 0;
+        const parentTop = parentObject.top || 0;
+        const parentWidth = parentObject.width || 0;
+        const parentHeight = parentObject.height || 0;
+
+        // 기본 좌표 설정 (부모 객체 중앙)
+        const objLeft = options.left || (parentLeft + parentWidth / 2);
+        const objTop = options.top || (parentTop + parentHeight / 2);
+
+        // 그룹에 속한 같은 타입 객체 수 계산
+        const sameTypeCount = groupObjects.filter(obj =>
+            obj.objectType === type ||
+            (obj.type === 'textbox' && type === 'text') ||
+            (obj.type === 'rect' && type === 'rectangle')
+        ).length;
+
+        // 객체 유형별 기본 이름 설정
+        let objName = '';
+        switch (type) {
+            case 'text':
+                objName = 'Text';
+                break;
+            case 'image':
+                objName = 'Image';
+                break;
+            case 'video':
+                objName = 'Video';
+                break;
+            case 'rectangle':
+                objName = 'Shape';
+                break;
+            case 'circle':
+                objName = 'Circle';
+                break;
+            case 'triangle':
+                objName = 'Triangle';
+                break;
+            default:
+                objName = 'Object';
+        }
+
+        // 객체 추가 시 그룹 정보 포함
+        addObject(type, {
+            ...options,
+            left: objLeft,
+            top: objTop,
+            name: options.name || `${objName} ${sameTypeCount + 1}`,
+            layoutGroup: groupId,
+            isLayoutParent: false
+        });
+    };
+
+    // getObjectsByGroup: 그룹에 속한 객체 가져오기
+    const getObjectsByGroup = (groupId: string): FabricObjectWithId[] => {
+        if (!canvas) return [];
+
+        return canvas.getObjects()
+            .filter(obj => (obj as FabricObjectWithId).layoutGroup === groupId) as FabricObjectWithId[];
+    };
+
+// deleteLayoutGroup: 레이아웃 그룹 삭제
+    const deleteLayoutGroup = (groupId: string) => {
+        if (!canvas) return;
+
+        // 그룹에 속한 모든 객체 찾기
+        const groupObjects = getObjectsByGroup(groupId);
+
+        // 모든 객체 캔버스에서 제거
+        groupObjects.forEach(obj => {
+            canvas.remove(obj);
+        });
+
+        canvas.requestRenderAll();
+        saveToHistory();
+    };
+
+// moveObjectToGroup: 객체를 다른 그룹으로 이동
+    const moveObjectToGroup = (objectId: number | string, groupId: string | null) => {
+        if (!canvas) return;
+
+        // 이동할 객체 찾기
+        const object = canvas.getObjects().find(
+            obj => (obj as FabricObjectWithId).id === objectId
+        ) as FabricObjectWithId;
+
+        if (!object) return;
+
+        // 레이아웃 부모는 그룹 변경 불가
+        if (object.isLayoutParent) return;
+
+        // 그룹 속성 업데이트
+        object.set({
+            'layoutGroup': groupId || undefined
+        });
+
+        canvas.requestRenderAll();
+        saveToHistory();
+    };
+
     // Update canUndo and canRedo when history changes
     useEffect(() => {
         setCanUndo(historyIndex > 0);
@@ -446,8 +679,18 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         updateObject,
         deleteObject,
         cloneObject,
+        moveObjectUp,
+        moveObjectDown,
+        moveObjectToTop,
+        moveObjectToBottom,
+        setObjectZIndex,
         selectObject,
         updateObjectProperty,
+        createLayoutGroup,
+        addObjectToGroup,
+        getObjectsByGroup,
+        deleteLayoutGroup,
+        moveObjectToGroup,
         showGrid,
         toggleGrid,
         zoomLevel,

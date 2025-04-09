@@ -1,5 +1,5 @@
 // src/components/DesignEditor/DesignEditor.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Undo2,
     Redo2,
@@ -16,7 +16,8 @@ import {
     AlignCenter,
     AlignRight,
     Lock,
-    Unlock
+    Unlock,
+    LayoutTemplate
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './DesignEditor.module.scss';
@@ -25,6 +26,52 @@ import ObjectsPanel from './ObjectsPanel/ObjectsPanel';
 import LibraryPanel from './LibraryPanel/LibraryPanel';
 import PropertiesPanel from './PropertiesPanel/PropertiesPanel';
 import { DesignEditorProvider, useDesignEditor } from './DesignEditorContext';
+
+// 기본 레이아웃 템플릿 정의
+const TEMPLATES = [
+    {
+        id: 'template-basic',
+        name: 'Basic Layout',
+        objects: [
+            {
+                type: 'rectangle',
+                name: 'Background',
+                properties: { width: 800, height: 600, fill: '#ffffff', selectable: true }
+            },
+            {
+                type: 'text',
+                name: 'Title',
+                properties: { text: 'Title', fontSize: 32, top: 50, left: 400, textAlign: 'center', originX: 'center' }
+            },
+            {
+                type: 'text',
+                name: 'Subtitle',
+                properties: { text: 'Subtitle', fontSize: 24, top: 100, left: 400, textAlign: 'center', originX: 'center' }
+            }
+        ]
+    },
+    {
+        id: 'template-banner',
+        name: 'Banner Layout',
+        objects: [
+            {
+                type: 'rectangle',
+                name: 'Background',
+                properties: { width: 800, height: 600, fill: '#f2f2f2', selectable: true }
+            },
+            {
+                type: 'rectangle',
+                name: 'Header',
+                properties: { width: 800, height: 100, fill: '#3b82f6', top: 0, left: 0 }
+            },
+            {
+                type: 'text',
+                name: 'Header Text',
+                properties: { text: 'Header Text', fontSize: 28, top: 50, left: 400, fill: '#ffffff', textAlign: 'center', originX: 'center', originY: 'center' }
+            }
+        ]
+    }
+];
 
 // Design Editor Inner Component (with access to context)
 const DesignEditorInner: React.FC = () => {
@@ -39,13 +86,35 @@ const DesignEditorInner: React.FC = () => {
         toggleGrid,
         selectedObject,
         deleteObject,
-        cloneObject
+        cloneObject,
+        addObject
     } = useDesignEditor();
 
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
     const [rightPanelOpen, setRightPanelOpen] = useState(true);
     const [activeTab, setActiveTab] = useState('objects');
     const [isObjectLocked, setIsObjectLocked] = useState(false);
+    const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+
+    // Template dropdown reference
+    const templateDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close template dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                templateDropdownRef.current &&
+                !templateDropdownRef.current.contains(event.target as Node)
+            ) {
+                setShowTemplateDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Refs for resizable panels
     const leftPanelRef = useRef<HTMLDivElement>(null);
@@ -105,7 +174,7 @@ const DesignEditorInner: React.FC = () => {
         }
     };
 
-    const handleLockObject = () => {
+    const handleToggleLock = () => {
         if (!canvas || !selectedObject) return;
 
         const newLockState = !isObjectLocked;
@@ -237,6 +306,45 @@ const DesignEditorInner: React.FC = () => {
         input.click();
     };
 
+    // Apply a template
+    const applyTemplate = (templateId: string) => {
+        if (!canvas) return;
+
+        // 선택한 템플릿 찾기
+        const template = TEMPLATES.find(t => t.id === templateId);
+        if (!template) return;
+
+        // 확인 대화상자
+        if (canvas.getObjects().length > 0) {
+            if (!window.confirm(t('editor.templateConfirmation'))) {
+                return;
+            }
+        }
+
+        // 현재 캔버스에 있는 모든 객체 제거
+        canvas.clear();
+
+        // 템플릿의 객체들 추가
+        template.objects.forEach(obj => {
+            // @ts-ignore - obj.type과 ObjectType 타입 일치 문제
+            addObject(obj.type, { ...obj.properties, name: obj.name });
+        });
+
+        // 템플릿 드롭다운 닫기
+        setShowTemplateDropdown(false);
+    };
+
+    // Check if selected object is locked
+    useEffect(() => {
+        if (selectedObject) {
+            setIsObjectLocked(
+                !!(selectedObject.lockMovementX && selectedObject.lockMovementY)
+            );
+        } else {
+            setIsObjectLocked(false);
+        }
+    }, [selectedObject]);
+
     return (
         <div className={styles.editorContainer}>
             {/* Top Toolbar */}
@@ -270,6 +378,32 @@ const DesignEditorInner: React.FC = () => {
                     </button>
                 </div>
 
+                {/* Templates dropdown */}
+                <div className={styles.toolGroup} ref={templateDropdownRef}>
+                    <button
+                        className={`${styles.toolButton} ${showTemplateDropdown ? styles.active : ''}`}
+                        title={t('editor.layoutTemplates')}
+                        onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                    >
+                        <LayoutTemplate size={18} />
+                    </button>
+
+                    {showTemplateDropdown && (
+                        <div className={styles.templateDropdown}>
+                            <div className={styles.dropdownTitle}>{t('editor.layoutTemplates')}</div>
+                            {TEMPLATES.map(template => (
+                                <button
+                                    key={template.id}
+                                    className={styles.templateButton}
+                                    onClick={() => applyTemplate(template.id)}
+                                >
+                                    {t(`editor.${template.id.replace('-', '')}`)}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {selectedObject && (
                     <div className={styles.toolGroup}>
                         <button
@@ -289,7 +423,7 @@ const DesignEditorInner: React.FC = () => {
                         <button
                             className={`${styles.toolButton} ${isObjectLocked ? styles.active : ''}`}
                             title={isObjectLocked ? t('editor.unlock') : t('editor.lock')}
-                            onClick={handleLockObject}
+                            onClick={handleToggleLock}
                         >
                             {isObjectLocked ? <Lock size={18} /> : <Unlock size={18} />}
                         </button>
