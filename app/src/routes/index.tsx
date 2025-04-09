@@ -6,6 +6,7 @@ import SingleLayout from '../layouts/SingleLayout';
 import UsersTable from "@/pages/UsersTable";
 import FileUploadDemo from "@/pages/FileUploadDemo";
 import FileManagerDemo from "@/pages/FileManagerDemo";
+import DesignEditor from "@/components/DesignEditor";
 
 // Loading spinner component
 const Loading = () => (
@@ -167,7 +168,14 @@ const AppRoutes: React.FC = () => (
                 }
             />
 
-
+            <Route
+                path="/editor"
+                element={
+                    <AuthLayout requireAuth>
+                        <DesignEditor />
+                    </AuthLayout>
+                }
+            />
 
 
 
