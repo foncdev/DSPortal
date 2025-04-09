@@ -28,7 +28,7 @@ const Canvas: React.FC = () => {
 
     // Initialize canvas when component mounts
     useEffect(() => {
-        if (!canvasRef.current || canvas) return;
+        if (!canvasRef.current || canvas) {return;}
 
         // Create a new fabric canvas
         const fabricCanvas = new fabric.Canvas(canvasRef.current, {
@@ -52,7 +52,7 @@ const Canvas: React.FC = () => {
 
     // Apply zoom level changes
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         canvas.setZoom(zoomLevel);
         // Center the canvas
@@ -66,7 +66,7 @@ const Canvas: React.FC = () => {
 
     // Handle keyboard shortcuts
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const handleKeyDown = (e: KeyboardEvent) => {
             // Handle keyboard shortcuts
@@ -129,7 +129,7 @@ const Canvas: React.FC = () => {
 
     // Handle mouse wheel for zooming
     useEffect(() => {
-        if (!canvas || !containerRef.current) return;
+        if (!canvas || !containerRef.current) {return;}
 
         const handleWheel = (e: WheelEvent) => {
             if (e.ctrlKey) {
@@ -142,7 +142,7 @@ const Canvas: React.FC = () => {
 
                 // Get cursor position relative to canvas
                 const container = containerRef.current;
-                if (!container) return;
+                if (!container) {return;}
 
                 const rect = container.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
@@ -167,7 +167,7 @@ const Canvas: React.FC = () => {
 
     // Handle panning with middle mouse or space+drag
     useEffect(() => {
-        if (!canvas || !containerRef.current) return;
+        if (!canvas || !containerRef.current) {return;}
 
         let isSpacePressed = false;
 
@@ -198,7 +198,7 @@ const Canvas: React.FC = () => {
             if (isPanning && canvas) {
                 e.preventDefault();
                 const vpt = canvas.viewportTransform;
-                if (!vpt) return;
+                if (!vpt) {return;}
 
                 vpt[4] += e.clientX - lastPanPoint.x;
                 vpt[5] += e.clientY - lastPanPoint.y;
@@ -237,10 +237,10 @@ const Canvas: React.FC = () => {
 
     // Zoom to a specific point on the canvas
     const zoomToPoint = (zoom: number, point: { x: number, y: number }) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const vpt = canvas.viewportTransform;
-        if (!vpt) return;
+        if (!vpt) {return;}
 
         // Set zoom
         canvas.zoomToPoint({ x: point.x, y: point.y }, zoom);
@@ -259,7 +259,7 @@ const Canvas: React.FC = () => {
     };
 
     const zoomToFit = () => {
-        if (!canvas || !containerRef.current) return;
+        if (!canvas || !containerRef.current) {return;}
 
         const container = containerRef.current;
         const containerWidth = container.clientWidth;

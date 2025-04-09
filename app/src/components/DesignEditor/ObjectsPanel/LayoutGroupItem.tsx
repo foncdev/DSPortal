@@ -69,7 +69,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Save group name
     const saveGroupName = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 현재 선택된 객체 저장
         const currentSelectedObject = canvas.getActiveObject() as FabricObjectWithId;
@@ -110,7 +110,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
         // Find parent object for positioning
         const parentObj = group.objects.find(obj => obj.isLayoutParent);
-        if (!parentObj) return;
+        if (!parentObj) {return;}
 
         // Calculate position within parent
         const left = parentObj.left || 0;

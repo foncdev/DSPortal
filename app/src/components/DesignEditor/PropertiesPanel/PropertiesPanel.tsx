@@ -67,13 +67,13 @@ const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ className }) => {
 
     // Get object type
     const getObjectType = (obj: FabricObjectWithId) => {
-        if (obj.objectType) return obj.objectType;
+        if (obj.objectType) {return obj.objectType;}
 
-        if (obj.type === 'textbox' || obj.type === 'text') return 'text';
-        if (obj.type === 'image') return 'image';
-        if (obj.type === 'rect') return 'rectangle';
-        if (obj.type === 'circle') return 'circle';
-        if (obj.type === 'triangle') return 'triangle';
+        if (obj.type === 'textbox' || obj.type === 'text') {return 'text';}
+        if (obj.type === 'image') {return 'image';}
+        if (obj.type === 'rect') {return 'rectangle';}
+        if (obj.type === 'circle') {return 'circle';}
+        if (obj.type === 'triangle') {return 'triangle';}
 
         return obj.type || 'unknown';
     };

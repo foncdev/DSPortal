@@ -175,7 +175,7 @@ const DesignEditorInner: React.FC = () => {
     };
 
     const handleToggleLock = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         const newLockState = !isObjectLocked;
         setIsObjectLocked(newLockState);
@@ -195,7 +195,7 @@ const DesignEditorInner: React.FC = () => {
 
     // Alignment functions
     const alignLeft = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         selectedObject.set({
             left: 0
@@ -204,7 +204,7 @@ const DesignEditorInner: React.FC = () => {
     };
 
     const alignCenter = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         const canvasWidth = canvas.getWidth();
         const objectWidth = selectedObject.getScaledWidth();
@@ -216,7 +216,7 @@ const DesignEditorInner: React.FC = () => {
     };
 
     const alignRight = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         const canvasWidth = canvas.getWidth();
         const objectWidth = selectedObject.getScaledWidth();
@@ -229,7 +229,7 @@ const DesignEditorInner: React.FC = () => {
 
     // Save canvas as image
     const saveAsImage = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Create a temporary link element
         const link = document.createElement('a');
@@ -249,7 +249,7 @@ const DesignEditorInner: React.FC = () => {
 
     // Export canvas as JSON
     const exportAsJSON = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Convert canvas to JSON
         const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name']));
@@ -270,7 +270,7 @@ const DesignEditorInner: React.FC = () => {
 
     // Import JSON
     const importJSON = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Create a file input element
         const input = document.createElement('input');
@@ -280,7 +280,7 @@ const DesignEditorInner: React.FC = () => {
         // Handle file selection
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
-            if (!files || files.length === 0) return;
+            if (!files || files.length === 0) {return;}
 
             const file = files[0];
             const reader = new FileReader();
@@ -308,11 +308,11 @@ const DesignEditorInner: React.FC = () => {
 
     // Apply a template
     const applyTemplate = (templateId: string) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 선택한 템플릿 찾기
         const template = TEMPLATES.find(t => t.id === templateId);
-        if (!template) return;
+        if (!template) {return;}
 
         // 확인 대화상자
         if (canvas.getObjects().length > 0) {
@@ -558,12 +558,10 @@ const DesignEditorInner: React.FC = () => {
 };
 
 // Main DesignEditor with Provider
-const DesignEditor: React.FC = () => {
-    return (
+const DesignEditor: React.FC = () => (
         <DesignEditorProvider>
             <DesignEditorInner />
         </DesignEditorProvider>
     );
-};
 
 export default DesignEditor;

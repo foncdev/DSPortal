@@ -42,7 +42,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Update objects list when canvas changes
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const updateObjectsList = () => {
             // Get all canvas objects
@@ -97,7 +97,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
         // Step 1: Find layout parent objects
         canvasObjects.forEach(obj => {
-            if (!obj.id) return;
+            if (!obj.id) {return;}
 
             const layoutTag = obj.layoutGroup as string | undefined;
             const isLayoutParent = obj.isLayoutParent as boolean | undefined;
@@ -116,7 +116,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
         // Step 2: Assign child objects
         canvasObjects.forEach(obj => {
-            if (!obj.id) return;
+            if (!obj.id) {return;}
 
             const layoutTag = obj.layoutGroup as string | undefined;
             const isLayoutParent = obj.isLayoutParent as boolean | undefined;
@@ -143,7 +143,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Create a new layout group
     const handleCreateNewLayoutGroup = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const groupId = `layout_${nextGroupId}`;
         const layoutName = `Layout ${nextGroupId}`;
@@ -181,14 +181,14 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // Handle group drop (for drag and drop)
     const handleGroupDrop = (groupId: string, e: React.DragEvent) => {
         e.preventDefault();
-        if (!canvas || !draggingId) return;
+        if (!canvas || !draggingId) {return;}
 
         // Find the dragged object
         const draggedObj = objects.find(obj => obj.id === draggingId);
-        if (!draggedObj) return;
+        if (!draggedObj) {return;}
 
         // Layout parents cannot be moved between groups
-        if (draggedObj.isLayoutParent) return;
+        if (draggedObj.isLayoutParent) {return;}
 
         // Add object to group
         draggedObj.set({
@@ -203,14 +203,14 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // Handle unassigned drop (remove from group)
     const handleUnassignedDrop = (e: React.DragEvent) => {
         e.preventDefault();
-        if (!canvas || !draggingId) return;
+        if (!canvas || !draggingId) {return;}
 
         // Find the dragged object
         const draggedObj = objects.find(obj => obj.id === draggingId);
-        if (!draggedObj || !draggedObj.layoutGroup) return;
+        if (!draggedObj || !draggedObj.layoutGroup) {return;}
 
         // Layout parents cannot be removed from their group
-        if (draggedObj.isLayoutParent) return;
+        if (draggedObj.isLayoutParent) {return;}
 
         // Remove group property
         draggedObj.set({

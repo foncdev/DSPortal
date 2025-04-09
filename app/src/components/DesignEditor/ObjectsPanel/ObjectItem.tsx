@@ -73,17 +73,17 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             case 'triangle':
                 return <Triangle size={16} />;
             default:
-                if (object.type === 'textbox') return <Text size={16} />;
-                if (object.type === 'rect') return <Square size={16} />;
-                if (object.type === 'circle') return <Circle size={16} />;
-                if (object.type === 'triangle') return <Triangle size={16} />;
+                if (object.type === 'textbox') {return <Text size={16} />;}
+                if (object.type === 'rect') {return <Square size={16} />;}
+                if (object.type === 'circle') {return <Circle size={16} />;}
+                if (object.type === 'triangle') {return <Triangle size={16} />;}
                 return <Square size={16} />;
         }
     };
 
     // Get object name or default name
     const getObjectName = () => {
-        if (object.name) return object.name;
+        if (object.name) {return object.name;}
 
         const type = object.objectType || (
             object.type === 'textbox' ? 'text' :
@@ -111,7 +111,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Save the edited name
     const saveObjectName = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 현재 선택된 객체를 저장
         const currentSelectedObject = canvas.getActiveObject();
@@ -147,7 +147,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Toggle object visibility
     const toggleVisibility = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const isVisible = object.visible !== false;
 
@@ -173,7 +173,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Toggle object lock state
     const toggleLocked = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const isLocked = object.lockMovementX && object.lockMovementY;
 
@@ -264,7 +264,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Handle drag start
     const handleDragStart = (e: React.DragEvent) => {
-        if (!object.id) return;
+        if (!object.id) {return;}
         onDragStart(object.id);
 
         // Make the element semi-transparent while dragging
@@ -276,7 +276,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Handle drag over
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        if (!object.id) return;
+        if (!object.id) {return;}
         onDragOver(object.id);
     };
 

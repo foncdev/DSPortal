@@ -189,7 +189,7 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
     // Handle file upload to add images to the library
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (!files || files.length === 0) return;
+        if (!files || files.length === 0) {return;}
 
         const newItems: LibraryItem[] = [];
         const reader = new FileReader();
@@ -244,7 +244,7 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
     // Handle creating a new collection/category
     const handleCreateCollection = () => {
         const collectionName = prompt(t('editor.enterCollectionName'));
-        if (!collectionName) return;
+        if (!collectionName) {return;}
 
         const newCategory: LibraryCategory = {
             id: `custom-${Date.now()}`,

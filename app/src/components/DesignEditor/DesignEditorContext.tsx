@@ -97,7 +97,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Save canvas state to history
     const saveToHistory = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Get canvas JSON
         const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name']));
@@ -114,7 +114,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Apply grid to canvas
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         if (showGrid) {
             // Create grid
@@ -170,7 +170,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update selected object when selection changes
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const handleSelectionCreated = (e: fabric.IEvent) => {
             const selection = e.selected?.[0] as FabricObjectWithId;
@@ -195,7 +195,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Save to history when objects are modified
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const handleObjectModified = () => {
             saveToHistory();
@@ -210,13 +210,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Get all objects from canvas
     const getObjects = (): FabricObjectWithId[] => {
-        if (!canvas) return [];
+        if (!canvas) {return [];}
         return canvas.getObjects() as FabricObjectWithId[];
     };
 
     // Add a new object to the canvas
     const addObject = (type: ObjectType, options: any = {}) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Generate a unique ID for the new object
         const newId = objectCount + 1;
@@ -323,7 +323,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update the selected object
     const updateObject = (options: Partial<FabricObjectWithId>) => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         selectedObject.set(options);
         selectedObject.setCoords(); // 객체 좌표 업데이트
@@ -333,7 +333,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Delete the selected object
     const deleteObject = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         canvas.remove(selectedObject);
         setSelectedObject(null);
@@ -343,7 +343,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Clone the selected object
     const cloneObject = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         selectedObject.clone((cloned: FabricObjectWithId) => {
             // Generate a new ID for the cloned object
@@ -368,9 +368,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object up one level
     const moveObjectUp = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.bringForward(objectToMove);
         canvas.requestRenderAll();
@@ -379,9 +379,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object down one level
     const moveObjectDown = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.sendBackwards(objectToMove);
         canvas.requestRenderAll();
@@ -390,9 +390,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to the top
     const moveObjectToTop = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.bringToFront(objectToMove);
         canvas.requestRenderAll();
@@ -401,9 +401,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to the bottom
     const moveObjectToBottom = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.sendToBack(objectToMove);
         canvas.requestRenderAll();
@@ -412,13 +412,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Set object z-index directly (for drag & drop ordering)
     const setObjectZIndex = (object: FabricObjectWithId, newIndex: number) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const objects = canvas.getObjects();
         const currentIndex = objects.indexOf(object);
 
-        if (currentIndex === -1) return; // Object not found
-        if (currentIndex === newIndex) return; // Already at target index
+        if (currentIndex === -1) {return;} // Object not found
+        if (currentIndex === newIndex) {return;} // Already at target index
 
         // Remove from current position
         canvas.remove(object);
@@ -433,7 +433,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Select an object
     const selectObject = (object: FabricObjectWithId | null) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         if (object) {
             // 객체 선택 전에 활성 객체를 초기화
@@ -451,7 +451,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update a property of the selected object
     const updateObjectProperty = <T,>(property: string, value: T) => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         // Handle nested properties (e.g., "border.color")
         if (property.includes('.')) {
@@ -477,7 +477,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Undo last action
     const undo = () => {
-        if (!canvas || !canUndo) return;
+        if (!canvas || !canUndo) {return;}
 
         const newIndex = historyIndex - 1;
         const state = history[newIndex];
@@ -492,7 +492,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Redo last undone action
     const redo = () => {
-        if (!canvas || !canRedo || historyIndex >= history.length - 1) return;
+        if (!canvas || !canRedo || historyIndex >= history.length - 1) {return;}
 
         const newIndex = historyIndex + 1;
         const state = history[newIndex];
@@ -507,7 +507,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // createLayoutGroup: 새로운 레이아웃 그룹 생성
     const createLayoutGroup = (name: string, options: any = {}) => {
-        if (!canvas) return '';
+        if (!canvas) {return '';}
 
         // 새 그룹 ID 생성
         const groupId = `layout_${Date.now()}`;
@@ -546,13 +546,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // addObjectToGroup: 그룹에 객체 추가
     const addObjectToGroup = (groupId: string, type: ObjectType, options: any = {}) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 그룹의 레이아웃 부모 객체 찾기
         const groupObjects = getObjectsByGroup(groupId);
         const parentObject = groupObjects.find(obj => obj.isLayoutParent);
 
-        if (!parentObject) return;
+        if (!parentObject) {return;}
 
         // 부모 객체 내부에 위치시키기 위한 좌표 계산
         const parentLeft = parentObject.left || 0;
@@ -609,7 +609,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // getObjectsByGroup: 그룹에 속한 객체 가져오기
     const getObjectsByGroup = (groupId: string): FabricObjectWithId[] => {
-        if (!canvas) return [];
+        if (!canvas) {return [];}
 
         return canvas.getObjects()
             .filter(obj => (obj as FabricObjectWithId).layoutGroup === groupId) as FabricObjectWithId[];
@@ -617,7 +617,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
 // deleteLayoutGroup: 레이아웃 그룹 삭제
     const deleteLayoutGroup = (groupId: string) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 그룹에 속한 모든 객체 찾기
         const groupObjects = getObjectsByGroup(groupId);
@@ -633,17 +633,17 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
 // moveObjectToGroup: 객체를 다른 그룹으로 이동
     const moveObjectToGroup = (objectId: number | string, groupId: string | null) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 이동할 객체 찾기
         const object = canvas.getObjects().find(
             obj => (obj as FabricObjectWithId).id === objectId
         ) as FabricObjectWithId;
 
-        if (!object) return;
+        if (!object) {return;}
 
         // 레이아웃 부모는 그룹 변경 불가
-        if (object.isLayoutParent) return;
+        if (object.isLayoutParent) {return;}
 
         // 그룹 속성 업데이트
         object.set({
