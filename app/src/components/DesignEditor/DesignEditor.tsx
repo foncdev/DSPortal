@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+// src/components/DesignEditor/DesignEditor.tsx
+import React, { useState, useRef } from 'react';
 import {
     Undo2,
     Redo2,
@@ -8,7 +9,14 @@ import {
     Download,
     ChevronLeft,
     ChevronRight,
-    Minus
+    Minus,
+    Copy,
+    Trash2,
+    AlignLeft,
+    AlignCenter,
+    AlignRight,
+    Lock,
+    Unlock
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './DesignEditor.module.scss';
@@ -22,17 +30,22 @@ import { DesignEditorProvider, useDesignEditor } from './DesignEditorContext';
 const DesignEditorInner: React.FC = () => {
     const { t } = useTranslation();
     const {
+        canvas,
         canUndo,
         canRedo,
         undo,
         redo,
+        showGrid,
         toggleGrid,
-        showGrid
+        selectedObject,
+        deleteObject,
+        cloneObject
     } = useDesignEditor();
 
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
     const [rightPanelOpen, setRightPanelOpen] = useState(true);
     const [activeTab, setActiveTab] = useState('objects');
+    const [isObjectLocked, setIsObjectLocked] = useState(false);
 
     // Refs for resizable panels
     const leftPanelRef = useRef<HTMLDivElement>(null);
@@ -47,7 +60,7 @@ const DesignEditorInner: React.FC = () => {
     const [rightWidth, setRightWidth] = useState(250);
 
     // Handle panel resize
-    useEffect(() => {
+    React.useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (isLeftResizing) {
                 const newWidth = e.clientX;
@@ -78,6 +91,151 @@ const DesignEditorInner: React.FC = () => {
     // Toggle panels
     const toggleLeftPanel = () => setLeftPanelOpen(!leftPanelOpen);
     const toggleRightPanel = () => setRightPanelOpen(!rightPanelOpen);
+
+    // Object manipulation functions
+    const handleDeleteObject = () => {
+        if (selectedObject) {
+            deleteObject();
+        }
+    };
+
+    const handleDuplicateObject = () => {
+        if (selectedObject) {
+            cloneObject();
+        }
+    };
+
+    const handleLockObject = () => {
+        if (!canvas || !selectedObject) return;
+
+        const newLockState = !isObjectLocked;
+        setIsObjectLocked(newLockState);
+
+        // Update the object's selectable and lockMovementX/Y properties
+        selectedObject.set({
+            selectable: !newLockState,
+            lockMovementX: newLockState,
+            lockMovementY: newLockState,
+            lockRotation: newLockState,
+            lockScalingX: newLockState,
+            lockScalingY: newLockState
+        });
+
+        canvas.renderAll();
+    };
+
+    // Alignment functions
+    const alignLeft = () => {
+        if (!canvas || !selectedObject) return;
+
+        selectedObject.set({
+            left: 0
+        });
+        canvas.renderAll();
+    };
+
+    const alignCenter = () => {
+        if (!canvas || !selectedObject) return;
+
+        const canvasWidth = canvas.getWidth();
+        const objectWidth = selectedObject.getScaledWidth();
+
+        selectedObject.set({
+            left: (canvasWidth - objectWidth) / 2
+        });
+        canvas.renderAll();
+    };
+
+    const alignRight = () => {
+        if (!canvas || !selectedObject) return;
+
+        const canvasWidth = canvas.getWidth();
+        const objectWidth = selectedObject.getScaledWidth();
+
+        selectedObject.set({
+            left: canvasWidth - objectWidth
+        });
+        canvas.renderAll();
+    };
+
+    // Save canvas as image
+    const saveAsImage = () => {
+        if (!canvas) return;
+
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.download = 'design.png';
+
+        // Convert canvas to data URL and set as link href
+        link.href = canvas.toDataURL({
+            format: 'png',
+            quality: 1
+        });
+
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Export canvas as JSON
+    const exportAsJSON = () => {
+        if (!canvas) return;
+
+        // Convert canvas to JSON
+        const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name']));
+
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.download = 'design.json';
+
+        // Convert JSON to data URL and set as link href
+        const blob = new Blob([json], { type: 'application/json' });
+        link.href = URL.createObjectURL(blob);
+
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Import JSON
+    const importJSON = () => {
+        if (!canvas) return;
+
+        // Create a file input element
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+
+        // Handle file selection
+        input.onchange = (e) => {
+            const files = (e.target as HTMLInputElement).files;
+            if (!files || files.length === 0) return;
+
+            const file = files[0];
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                const result = event.target?.result;
+                if (typeof result === 'string') {
+                    try {
+                        const json = JSON.parse(result);
+                        canvas.loadFromJSON(json, () => {
+                            canvas.renderAll();
+                        });
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                    }
+                }
+            };
+
+            reader.readAsText(file);
+        };
+
+        // Trigger file selection dialog
+        input.click();
+    };
 
     return (
         <div className={styles.editorContainer}>
@@ -112,14 +270,66 @@ const DesignEditorInner: React.FC = () => {
                     </button>
                 </div>
 
+                {selectedObject && (
+                    <div className={styles.toolGroup}>
+                        <button
+                            className={styles.toolButton}
+                            title={t('editor.delete')}
+                            onClick={handleDeleteObject}
+                        >
+                            <Trash2 size={18} />
+                        </button>
+                        <button
+                            className={styles.toolButton}
+                            title={t('editor.duplicate')}
+                            onClick={handleDuplicateObject}
+                        >
+                            <Copy size={18} />
+                        </button>
+                        <button
+                            className={`${styles.toolButton} ${isObjectLocked ? styles.active : ''}`}
+                            title={isObjectLocked ? t('editor.unlock') : t('editor.lock')}
+                            onClick={handleLockObject}
+                        >
+                            {isObjectLocked ? <Lock size={18} /> : <Unlock size={18} />}
+                        </button>
+                    </div>
+                )}
+
+                {selectedObject && (
+                    <div className={styles.toolGroup}>
+                        <button
+                            className={styles.toolButton}
+                            title={t('editor.alignLeft')}
+                            onClick={alignLeft}
+                        >
+                            <AlignLeft size={18} />
+                        </button>
+                        <button
+                            className={styles.toolButton}
+                            title={t('editor.alignCenter')}
+                            onClick={alignCenter}
+                        >
+                            <AlignCenter size={18} />
+                        </button>
+                        <button
+                            className={styles.toolButton}
+                            title={t('editor.alignRight')}
+                            onClick={alignRight}
+                        >
+                            <AlignRight size={18} />
+                        </button>
+                    </div>
+                )}
+
                 <div className={styles.toolGroup}>
-                    <button className={styles.toolButton} title={t('editor.save')}>
+                    <button className={styles.toolButton} title={t('editor.save')} onClick={saveAsImage}>
                         <Save size={18} />
                     </button>
-                    <button className={styles.toolButton} title={t('editor.import')}>
+                    <button className={styles.toolButton} title={t('editor.import')} onClick={importJSON}>
                         <Upload size={18} />
                     </button>
-                    <button className={styles.toolButton} title={t('editor.export')}>
+                    <button className={styles.toolButton} title={t('editor.export')} onClick={exportAsJSON}>
                         <Download size={18} />
                     </button>
                 </div>
@@ -215,37 +425,8 @@ const DesignEditorInner: React.FC = () => {
 
 // Main DesignEditor with Provider
 const DesignEditor: React.FC = () => {
-    // Initial objects setup
-    const initialObjects = [
-        {
-            id: 1,
-            type: 'text',
-            name: 'Heading',
-            x: 300,
-            y: 100,
-            properties: {
-                text: 'Hello World',
-                fontSize: 24,
-                color: '#000000'
-            }
-        },
-        {
-            id: 2,
-            type: 'rectangle',
-            name: 'Background',
-            x: 400,
-            y: 300,
-            properties: {
-                width: 400,
-                height: 200,
-                color: '#3b82f6',
-                radius: 8
-            }
-        }
-    ];
-
     return (
-        <DesignEditorProvider initialObjects={initialObjects}>
+        <DesignEditorProvider>
             <DesignEditorInner />
         </DesignEditorProvider>
     );

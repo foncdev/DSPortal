@@ -1,21 +1,21 @@
 // src/components/DesignEditor/ObjectsPanel/ObjectsPanel.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Text,
     Image,
-    Video,
     Square,
     Circle,
     Triangle,
     Trash2,
     Copy,
     EyeOff,
+    Eye,
     ChevronDown,
     ChevronRight,
     Layers
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDesignEditor, DesignObject } from '../DesignEditorContext';
+import { useDesignEditor, FabricObjectWithId, ObjectType } from '../DesignEditorContext';
 import styles from './ObjectsPanel.module.scss';
 
 interface ObjectsPanelProps {
@@ -25,24 +25,66 @@ interface ObjectsPanelProps {
 const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     const { t } = useTranslation();
     const {
-        objects,
+        canvas,
+        getObjects,
         selectedObject,
         selectObject,
         addObject,
-        deleteObject
+        deleteObject,
+        cloneObject,
+        updateObject
     } = useDesignEditor();
 
+    const [objects, setObjects] = useState<FabricObjectWithId[]>([]);
     const [objectsExpanded, setObjectsExpanded] = useState(true);
 
+    // Update objects list when canvas changes
+    useEffect(() => {
+        if (!canvas) return;
+
+        const updateObjectsList = () => {
+            // Get objects from canvas and reverse to show top objects first
+            const canvasObjects = getObjects().slice().reverse();
+            setObjects(canvasObjects);
+        };
+
+        // Initial update
+        updateObjectsList();
+
+        // Listen for object changes
+        const events = [
+            'object:added',
+            'object:removed',
+            'object:modified',
+            'selection:created',
+            'selection:updated',
+            'selection:cleared',
+        ];
+
+        const handleCanvasEvent = () => {
+            updateObjectsList();
+        };
+
+        events.forEach(event => {
+            canvas.on(event, handleCanvasEvent);
+        });
+
+        return () => {
+            if (canvas) {
+                events.forEach(event => {
+                    canvas.off(event, handleCanvasEvent);
+                });
+            }
+        };
+    }, [canvas, getObjects]);
+
     // Get icon for object type
-    const getObjectIcon = (type: DesignObject['type']) => {
+    const getObjectIcon = (type?: ObjectType) => {
         switch (type) {
             case 'text':
                 return <Text size={16} />;
             case 'image':
                 return <Image size={16} />;
-            case 'video':
-                return <Video size={16} />;
             case 'rectangle':
                 return <Square size={16} />;
             case 'circle':
@@ -50,38 +92,75 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
             case 'triangle':
                 return <Triangle size={16} />;
             default:
-                return null;
+                return <Square size={16} />;
         }
     };
 
     // Add a new object
-    const handleAddObject = (type: DesignObject['type']) => {
+    const handleAddObject = (type: ObjectType) => {
         addObject(type);
     };
 
     // Delete selected object
-    const handleDeleteObject = (id: number, e: React.MouseEvent) => {
+    const handleDeleteObject = (object: FabricObjectWithId, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent selecting the object when deleting
-        deleteObject(id);
+        if (canvas) {
+            selectObject(object);
+            deleteObject();
+        }
     };
 
-    // Duplicate object (not yet implemented in context)
-    const handleDuplicateObject = (object: DesignObject, e: React.MouseEvent) => {
+    // Duplicate object
+    const handleDuplicateObject = (object: FabricObjectWithId, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent selecting the object when duplicating
-        // This would need to be implemented in the context
-        console.log('Duplicate object:', object);
+        if (canvas) {
+            selectObject(object);
+            cloneObject();
+        }
     };
 
-    // Toggle object visibility (not yet implemented in context)
-    const handleToggleVisibility = (id: number, e: React.MouseEvent) => {
+    // Toggle object visibility
+    const handleToggleVisibility = (object: FabricObjectWithId, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent selecting the object when toggling visibility
-        // This would need to be implemented in the context
-        console.log('Toggle visibility for object ID:', id);
+        if (canvas) {
+            const isVisible = object.visible !== false;
+
+            // 가시성과 함께 선택 가능성(selectable)도 함께 설정
+            object.set({
+                'visible': !isVisible,
+                'selectable': !isVisible ? true : false, // 보이지 않으면 선택도 불가능하게
+                'evented': !isVisible ? true : false     // 보이지 않으면 이벤트도 받지 않게
+            });
+
+            canvas.renderAll();
+
+            // 보이지 않게 된 객체가 현재 선택된 상태라면 선택 해제
+            if (isVisible && selectedObject && selectedObject.id === object.id) {
+                canvas.discardActiveObject();
+                canvas.requestRenderAll();
+            }
+
+            // 목록 업데이트
+            setObjects([...getObjects()].reverse());
+        }
     };
 
     // Toggle objects section expanded state
     const toggleObjectsExpanded = () => {
         setObjectsExpanded(!objectsExpanded);
+    };
+
+    // Get object name or default name based on type
+    const getObjectName = (object: FabricObjectWithId) => {
+        if (object.name) return object.name;
+
+        const type = object.objectType || (
+            object.type === 'textbox' ? 'text' :
+                object.type === 'rect' ? 'rectangle' :
+                    object.type
+        );
+
+        return type ? `${type.charAt(0).toUpperCase()}${type.slice(1)}` : 'Object';
     };
 
     return (
@@ -101,13 +180,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                     title={t('editor.addImage')}
                 >
                     <Image size={18} />
-                </button>
-                <button
-                    className={styles.objectToolButton}
-                    onClick={() => handleAddObject('video')}
-                    title={t('editor.addVideo')}
-                >
-                    <Video size={18} />
                 </button>
                 <button
                     className={styles.objectToolButton}
@@ -157,18 +229,18 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                             >
                                 <div className={styles.objectInfo}>
                                     <div className={styles.objectIcon}>
-                                        {getObjectIcon(object.type)}
+                                        {getObjectIcon(object.objectType)}
                                     </div>
-                                    <span className={styles.objectName}>{object.name}</span>
+                                    <span className={styles.objectName}>{getObjectName(object)}</span>
                                 </div>
 
                                 <div className={styles.objectActions}>
                                     <button
                                         className={styles.objectAction}
-                                        onClick={(e) => handleToggleVisibility(object.id, e)}
+                                        onClick={(e) => handleToggleVisibility(object, e)}
                                         title={t('editor.toggleVisibility')}
                                     >
-                                        <EyeOff size={14} />
+                                        {object.visible === false ? <Eye size={14} /> : <EyeOff size={14} />}
                                     </button>
                                     <button
                                         className={styles.objectAction}
@@ -179,7 +251,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                     </button>
                                     <button
                                         className={`${styles.objectAction} ${styles.deleteAction}`}
-                                        onClick={(e) => handleDeleteObject(object.id, e)}
+                                        onClick={(e) => handleDeleteObject(object, e)}
                                         title={t('editor.delete')}
                                     >
                                         <Trash2 size={14} />

@@ -3,13 +3,18 @@ import React, { useState } from 'react';
 import {
     Upload,
     Search,
-    Grid,
     Plus,
     ChevronDown,
     ChevronRight,
-    Layout
+    Layout,
+    Image as ImageIcon,
+    Square,
+    Circle,
+    Triangle,
+    Type
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useDesignEditor, ObjectType } from '../DesignEditorContext';
 import styles from './LibraryPanel.module.scss';
 
 interface LibraryPanelProps {
@@ -20,6 +25,7 @@ interface LibraryPanelProps {
 interface LibraryCategory {
     id: string;
     name: string;
+    icon: React.ReactNode;
     items: LibraryItem[];
     expanded?: boolean;
 }
@@ -28,53 +34,123 @@ interface LibraryCategory {
 interface LibraryItem {
     id: string;
     name: string;
-    type: 'text' | 'shape' | 'image' | 'template';
+    type: ObjectType;
     thumbnail: string;
     properties: any;
 }
 
 const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
     const { t } = useTranslation();
+    const { addObject } = useDesignEditor();
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Sample placeholder images for our library
+    const placeholderImages = [
+        '/api/placeholder/200/200?text=Image+1',
+        '/api/placeholder/200/200?text=Image+2',
+        '/api/placeholder/200/200?text=Image+3',
+        '/api/placeholder/200/200?text=Image+4'
+    ];
+
+    // Initial categories
     const [categories, setCategories] = useState<LibraryCategory[]>([
-        {
-            id: 'templates',
-            name: t('editor.templates'),
-            expanded: true,
-            items: [
-                {
-                    id: 'temp1',
-                    name: 'Social Media Post',
-                    type: 'template',
-                    thumbnail: '/api/placeholder/120/80',
-                    properties: {}
-                },
-                {
-                    id: 'temp2',
-                    name: 'Banner',
-                    type: 'template',
-                    thumbnail: '/api/placeholder/120/80',
-                    properties: {}
-                },
-            ]
-        },
         {
             id: 'shapes',
             name: t('editor.shapes'),
+            icon: <Square size={16} />,
+            expanded: true,
+            items: [
+                {
+                    id: 'rect1',
+                    name: 'Square',
+                    type: 'rectangle',
+                    thumbnail: '/api/placeholder/100/100?text=Square',
+                    properties: { width: 100, height: 100, fill: '#3b82f6' }
+                },
+                {
+                    id: 'rect2',
+                    name: 'Rectangle',
+                    type: 'rectangle',
+                    thumbnail: '/api/placeholder/120/80?text=Rectangle',
+                    properties: { width: 150, height: 100, fill: '#10b981' }
+                },
+                {
+                    id: 'circle1',
+                    name: 'Circle',
+                    type: 'circle',
+                    thumbnail: '/api/placeholder/100/100?text=Circle',
+                    properties: { radius: 50, fill: '#f59e0b' }
+                },
+                {
+                    id: 'triangle1',
+                    name: 'Triangle',
+                    type: 'triangle',
+                    thumbnail: '/api/placeholder/100/100?text=Triangle',
+                    properties: { width: 100, height: 100, fill: '#ef4444' }
+                }
+            ]
+        },
+        {
+            id: 'text',
+            name: t('editor.textStyles'),
+            icon: <Type size={16} />,
             expanded: false,
             items: [
                 {
-                    id: 'shape1',
-                    name: 'Basic Shapes',
-                    type: 'shape',
-                    thumbnail: '/api/placeholder/120/80',
-                    properties: {}
+                    id: 'heading',
+                    name: 'Heading',
+                    type: 'text',
+                    thumbnail: '/api/placeholder/120/80?text=Heading',
+                    properties: {
+                        text: 'Heading',
+                        fontSize: 32,
+                        fontWeight: 'bold',
+                        fontFamily: 'Arial'
+                    }
+                },
+                {
+                    id: 'subheading',
+                    name: 'Subheading',
+                    type: 'text',
+                    thumbnail: '/api/placeholder/120/80?text=Subheading',
+                    properties: {
+                        text: 'Subheading',
+                        fontSize: 24,
+                        fontWeight: 'normal',
+                        fontFamily: 'Arial'
+                    }
+                },
+                {
+                    id: 'paragraph',
+                    name: 'Paragraph',
+                    type: 'text',
+                    thumbnail: '/api/placeholder/120/80?text=Paragraph',
+                    properties: {
+                        text: 'This is a sample paragraph text. Click to edit.',
+                        fontSize: 16,
+                        fontWeight: 'normal',
+                        fontFamily: 'Arial'
+                    }
                 }
             ]
         },
         {
             id: 'images',
             name: t('editor.images'),
+            icon: <ImageIcon size={16} />,
+            expanded: false,
+            items: placeholderImages.map((url, index) => ({
+                id: `image${index}`,
+                name: `Placeholder ${index + 1}`,
+                type: 'image' as ObjectType,
+                thumbnail: url,
+                properties: { src: url }
+            }))
+        },
+        {
+            id: 'templates',
+            name: t('editor.templates'),
+            icon: <Layout size={16} />,
             expanded: false,
             items: []
         }
@@ -107,14 +183,78 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
 
     // Add item to canvas
     const addItemToCanvas = (item: LibraryItem) => {
-        // This would be implemented via the DesignEditorContext
-        console.log('Add item to canvas:', item);
+        addObject(item.type, item.properties);
     };
 
-    // Handle file upload
+    // Handle file upload to add images to the library
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // This would be implemented to upload files to the library
-        console.log('Files selected:', e.target.files);
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const newItems: LibraryItem[] = [];
+        const reader = new FileReader();
+
+        // Process uploaded files
+        const processFile = (index: number) => {
+            if (index >= files.length) {
+                // All files processed, update the images category
+                setCategories(categories.map(category => {
+                    if (category.id === 'images') {
+                        return {
+                            ...category,
+                            items: [...category.items, ...newItems],
+                            expanded: true
+                        };
+                    }
+                    return category;
+                }));
+                return;
+            }
+
+            const file = files[index];
+
+            // Skip non-image files
+            if (!file.type.startsWith('image/')) {
+                processFile(index + 1);
+                return;
+            }
+
+            reader.onload = (e) => {
+                const src = e.target?.result as string;
+
+                newItems.push({
+                    id: `upload-${Date.now()}-${index}`,
+                    name: file.name,
+                    type: 'image',
+                    thumbnail: src,
+                    properties: { src }
+                });
+
+                // Process next file
+                processFile(index + 1);
+            };
+
+            reader.readAsDataURL(file);
+        };
+
+        // Start processing files
+        processFile(0);
+    };
+
+    // Handle creating a new collection/category
+    const handleCreateCollection = () => {
+        const collectionName = prompt(t('editor.enterCollectionName'));
+        if (!collectionName) return;
+
+        const newCategory: LibraryCategory = {
+            id: `custom-${Date.now()}`,
+            name: collectionName,
+            icon: <Folder size={16} />,
+            expanded: true,
+            items: []
+        };
+
+        setCategories([...categories, newCategory]);
     };
 
     const filteredCategories = getFilteredCategories();
@@ -156,7 +296,7 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
                                 onClick={() => toggleCategory(category.id)}
                             >
                                 {category.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                <Layout size={16} className={styles.categoryIcon} />
+                                <span className={styles.categoryIcon}>{category.icon}</span>
                                 <span className={styles.categoryName}>{category.name}</span>
                                 <span className={styles.itemCount}>{category.items.length}</span>
                             </div>
@@ -205,7 +345,7 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
                     <span>{t('editor.uploadToLibrary')}</span>
                 </label>
 
-                <button className={styles.createCollectionButton}>
+                <button className={styles.createCollectionButton} onClick={handleCreateCollection}>
                     <Plus size={16} />
                     <span>{t('editor.newCollection')}</span>
                 </button>
@@ -213,5 +353,22 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({ className }) => {
         </div>
     );
 };
+
+// Import necessary icon
+const Folder = (props: any) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={props.size || 24}
+        height={props.size || 24}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+    </svg>
+);
 
 export default LibraryPanel;

@@ -1,45 +1,52 @@
 // src/components/DesignEditor/DesignEditorContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { fabric } from 'fabric';
 
 // Define object types
-export interface DesignObject {
-    id: number;
-    type: 'text' | 'image' | 'video' | 'rectangle' | 'circle' | 'triangle';
-    name: string;
-    x?: number;
-    y?: number;
-    properties: {
-        [key: string]: any;
-    };
+export type ObjectType = 'text' | 'image' | 'video' | 'rectangle' | 'circle' | 'triangle';
+
+// Define fabric object with custom properties
+export interface FabricObjectWithId extends fabric.Object {
+    id?: number;
+    objectType?: ObjectType;
+    name?: string;
 }
 
 // Define context type
 interface DesignEditorContextType {
-    // Canvas state
-    objects: DesignObject[];
-    selectedObject: DesignObject | null;
+    // Canvas
+    canvas: fabric.Canvas | null;
+    setCanvas: (canvas: fabric.Canvas) => void;
     canvasWidth: number;
     canvasHeight: number;
 
-    // Actions
-    addObject: (type: DesignObject['type']) => void;
-    updateObject: (id: number, data: Partial<DesignObject>) => void;
-    deleteObject: (id: number) => void;
-    selectObject: (object: DesignObject | null) => void;
-    updateObjectProperty: (id: number, property: string, value: any) => void;
-    moveObject: (id: number, x: number, y: number) => void;
+    // Objects
+    selectedObject: FabricObjectWithId | null;
+    getObjects: () => FabricObjectWithId[];
 
-    // History handling
-    undo: () => void;
-    redo: () => void;
-    canUndo: boolean;
-    canRedo: boolean;
+    // Actions
+    addObject: (type: ObjectType, options?: any) => void;
+    updateObject: (options: Partial<FabricObjectWithId>) => void;
+    deleteObject: () => void;
+    cloneObject: () => void;
+
+    // Selection
+    selectObject: (object: FabricObjectWithId | null) => void;
+
+    // Property updates
+    updateObjectProperty: <T>(property: string, value: T) => void;
 
     // Canvas settings
     showGrid: boolean;
     toggleGrid: () => void;
     zoomLevel: number;
     setZoomLevel: (level: number) => void;
+
+    // History
+    undo: () => void;
+    redo: () => void;
+    canUndo: boolean;
+    canRedo: boolean;
 }
 
 // Create context with default values
@@ -48,225 +55,390 @@ const DesignEditorContext = createContext<DesignEditorContextType | undefined>(u
 // Provider component
 interface DesignEditorProviderProps {
     children: ReactNode;
-    initialObjects?: DesignObject[];
     width?: number;
     height?: number;
 }
 
 export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                                                                               children,
-                                                                              initialObjects = [],
                                                                               width = 800,
                                                                               height = 600
                                                                           }) => {
-    // State management
-    const [objects, setObjects] = useState<DesignObject[]>(initialObjects);
-    const [selectedObject, setSelectedObject] = useState<DesignObject | null>(null);
-    const [history, setHistory] = useState<DesignObject[][]>([initialObjects]);
-    const [historyIndex, setHistoryIndex] = useState(0);
+    // Canvas ref and state
+    const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+    const [selectedObject, setSelectedObject] = useState<FabricObjectWithId | null>(null);
+    const [objectCount, setObjectCount] = useState(0);
+
+    // History states
+    const [history, setHistory] = useState<string[]>([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
+    const [canUndo, setCanUndo] = useState(false);
+    const [canRedo, setCanRedo] = useState(false);
+
+    // Canvas settings
     const [showGrid, setShowGrid] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
 
-    // Computed properties
-    const canUndo = historyIndex > 0;
-    const canRedo = historyIndex < history.length - 1;
+    // Save canvas state to history
+    const saveToHistory = () => {
+        if (!canvas) return;
 
-    // Add a new state to the history stack
-    const addToHistory = (newObjects: DesignObject[]) => {
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push([...newObjects]);
+        // Get canvas JSON
+        const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name']));
+
+        // Add to history, removing any future states if we're not at the end
+        const newHistory = [...history.slice(0, historyIndex + 1), json];
+        const newIndex = newHistory.length - 1;
+
         setHistory(newHistory);
-        setHistoryIndex(historyIndex + 1);
+        setHistoryIndex(newIndex);
+        setCanUndo(newIndex > 0);
+        setCanRedo(false);
     };
 
-    // Actions
-    const addObject = (type: DesignObject['type']) => {
-        const newId = objects.length ? Math.max(...objects.map(o => o.id)) + 1 : 1;
+    // Apply grid to canvas
+    useEffect(() => {
+        if (!canvas) return;
 
-        let newObject: DesignObject = {
-            id: newId,
-            type,
-            name: `${type} ${newId}`,
-            x: Math.floor(Math.random() * (width - 100)) + 50,
-            y: Math.floor(Math.random() * (height - 100)) + 50,
-            properties: {}
+        if (showGrid) {
+            // Create grid
+            const gridSize = 20;
+            const gridLines: fabric.Line[] = [];
+
+            // Create vertical lines
+            for (let i = 0; i <= width; i += gridSize) {
+                gridLines.push(new fabric.Line([i, 0, i, height], {
+                    stroke: '#ccc',
+                    strokeWidth: 0.5,
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true
+                }));
+            }
+
+            // Create horizontal lines
+            for (let i = 0; i <= height; i += gridSize) {
+                gridLines.push(new fabric.Line([0, i, width, i], {
+                    stroke: '#ccc',
+                    strokeWidth: 0.5,
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true
+                }));
+            }
+
+            // Create a group for all grid lines
+            const gridGroup = new fabric.Group(gridLines, {
+                selectable: false,
+                evented: false,
+                excludeFromExport: true
+            });
+
+            // Add grid to canvas
+            canvas.add(gridGroup);
+            gridGroup.sendToBack();
+
+            // Store grid reference for removal
+            (canvas as any)._gridGroup = gridGroup;
+        } else {
+            // Remove grid if exists
+            const gridGroup = (canvas as any)._gridGroup;
+            if (gridGroup) {
+                canvas.remove(gridGroup);
+                (canvas as any)._gridGroup = null;
+            }
+        }
+
+        canvas.renderAll();
+    }, [canvas, showGrid, width, height]);
+
+    // Update selected object when selection changes
+    useEffect(() => {
+        if (!canvas) return;
+
+        const handleSelectionCreated = (e: fabric.IEvent) => {
+            const selection = e.selected?.[0] as FabricObjectWithId;
+            setSelectedObject(selection || null);
         };
 
-        // Set default properties based on type
+        const handleSelectionCleared = () => {
+            setSelectedObject(null);
+        };
+
+        canvas.on('selection:created', handleSelectionCreated);
+        canvas.on('selection:updated', handleSelectionCreated);
+        canvas.on('selection:cleared', handleSelectionCleared);
+
+        return () => {
+            canvas.off('selection:created', handleSelectionCreated);
+            canvas.off('selection:updated', handleSelectionCreated);
+            canvas.off('selection:cleared', handleSelectionCleared);
+        };
+    }, [canvas]);
+
+
+    // Save to history when objects are modified
+    useEffect(() => {
+        if (!canvas) return;
+
+        const handleObjectModified = () => {
+            saveToHistory();
+        };
+
+        canvas.on('object:modified', handleObjectModified);
+
+        return () => {
+            canvas.off('object:modified', handleObjectModified);
+        };
+    }, [canvas, history, historyIndex]);
+
+    // Get all objects from canvas
+    const getObjects = (): FabricObjectWithId[] => {
+        if (!canvas) return [];
+        return canvas.getObjects() as FabricObjectWithId[];
+    };
+
+    // Add a new object to the canvas
+    const addObject = (type: ObjectType, options: any = {}) => {
+        if (!canvas) return;
+
+        // Generate a unique ID for the new object
+        const newId = objectCount + 1;
+        setObjectCount(newId);
+
+        let object: FabricObjectWithId | null = null;
+
+        // Create the object based on type
         switch (type) {
             case 'text':
-                newObject.properties = { text: 'New Text', fontSize: 16, color: '#000000' };
+                object = new fabric.Textbox(options.text || 'New Text', {
+                    left: options.left || Math.random() * (width - 200) + 100,
+                    top: options.top || Math.random() * (height - 200) + 100,
+                    fontFamily: options.fontFamily || 'Arial',
+                    fontSize: options.fontSize || 24,
+                    fill: options.fill || '#000000',
+                    width: options.width || 200,
+                    editable: true
+                });
                 break;
-            case 'image':
-                newObject.properties = { src: '/api/placeholder/200/200', width: 200, height: 200 };
-                break;
-            case 'video':
-                newObject.properties = { src: '', width: 320, height: 240 };
-                break;
+
             case 'rectangle':
-                newObject.properties = { width: 100, height: 100, color: '#e5e7eb', radius: 0 };
+                object = new fabric.Rect({
+                    left: options.left || Math.random() * (width - 200) + 100,
+                    top: options.top || Math.random() * (height - 200) + 100,
+                    width: options.width || 150,
+                    height: options.height || 100,
+                    fill: options.fill || '#3b82f6',
+                    rx: options.rx || 0,
+                    ry: options.ry || 0
+                });
                 break;
+
             case 'circle':
-                newObject.properties = { radius: 50, color: '#e5e7eb' };
+                object = new fabric.Circle({
+                    left: options.left || Math.random() * (width - 200) + 100,
+                    top: options.top || Math.random() * (height - 200) + 100,
+                    radius: options.radius || 50,
+                    fill: options.fill || '#10b981'
+                });
                 break;
+
             case 'triangle':
-                newObject.properties = { width: 100, height: 100, color: '#e5e7eb' };
+                object = new fabric.Triangle({
+                    left: options.left || Math.random() * (width - 200) + 100,
+                    top: options.top || Math.random() * (height - 200) + 100,
+                    width: options.width || 100,
+                    height: options.height || 100,
+                    fill: options.fill || '#f59e0b'
+                });
+                break;
+
+            case 'image':
+                // Create a placeholder image
+                fabric.Image.fromURL(options.src || '/api/placeholder/200/200', (img) => {
+                    img.set({
+                        left: options.left || Math.random() * (width - 200) + 100,
+                        top: options.top || Math.random() * (height - 200) + 100,
+                        id: newId,
+                        objectType: type,
+                        name: options.name || `Image ${newId}`
+                    });
+
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                    saveToHistory();
+                });
+                return;
+
+            case 'video':
+                // Videos require additional implementation - placeholder for now
+                object = new fabric.Rect({
+                    left: options.left || Math.random() * (width - 200) + 100,
+                    top: options.top || Math.random() * (height - 200) + 100,
+                    width: options.width || 320,
+                    height: options.height || 240,
+                    fill: '#000000'
+                });
                 break;
         }
 
-        const newObjects = [...objects, newObject];
-        setObjects(newObjects);
-        setSelectedObject(newObject);
-        addToHistory(newObjects);
+        if (object) {
+            // Add custom properties
+            object.set({
+                id: newId,
+                objectType: type,
+                name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${newId}`
+            });
+
+            // Add to canvas, select it, and save to history
+            // canvas.add(object);
+            // canvas.setActiveObject(object);
+            // saveToHistory();
+
+            canvas.add(object);
+            console.log("Object added:", object);
+            canvas.renderAll(); // 강제 렌더링 추가
+            saveToHistory();
+        }
     };
 
-    const updateObject = (id: number, data: Partial<DesignObject>) => {
-        const newObjects = objects.map(obj =>
-            obj.id === id ? { ...obj, ...data } : obj
-        );
+    // Update the selected object
+    const updateObject = (options: Partial<FabricObjectWithId>) => {
+        if (!canvas || !selectedObject) return;
 
-        setObjects(newObjects);
+        selectedObject.set(options);
+        canvas.renderAll();
+        saveToHistory();
+    };
 
-        // Update selected object if it was modified
-        if (selectedObject && selectedObject.id === id) {
-            setSelectedObject({ ...selectedObject, ...data });
+    // Delete the selected object
+    const deleteObject = () => {
+        if (!canvas || !selectedObject) return;
+
+        canvas.remove(selectedObject);
+        setSelectedObject(null);
+        saveToHistory();
+    };
+
+    // Clone the selected object
+    const cloneObject = () => {
+        if (!canvas || !selectedObject) return;
+
+        selectedObject.clone((cloned: FabricObjectWithId) => {
+            // Generate a new ID for the cloned object
+            const newId = objectCount + 1;
+            setObjectCount(newId);
+
+            // Offset the cloned object
+            cloned.set({
+                left: (selectedObject.left || 0) + 20,
+                top: (selectedObject.top || 0) + 20,
+                id: newId,
+                name: `${selectedObject.name || 'Object'} (Copy)`
+            });
+
+            canvas.add(cloned);
+            canvas.setActiveObject(cloned);
+            saveToHistory();
+        });
+    };
+
+    // Select an object
+    const selectObject = (object: FabricObjectWithId | null) => {
+        if (!canvas) return;
+
+        if (object) {
+            canvas.setActiveObject(object);
+        } else {
+            canvas.discardActiveObject();
         }
 
-        addToHistory(newObjects);
-    };
-
-    const deleteObject = (id: number) => {
-        const newObjects = objects.filter(obj => obj.id !== id);
-        setObjects(newObjects);
-
-        // Deselect if the selected object was deleted
-        if (selectedObject && selectedObject.id === id) {
-            setSelectedObject(null);
-        }
-
-        addToHistory(newObjects);
-    };
-
-    const selectObject = (object: DesignObject | null) => {
+        canvas.renderAll();
         setSelectedObject(object);
     };
 
-    const updateObjectProperty = (id: number, property: string, value: any) => {
-        const newObjects = objects.map(obj => {
-            if (obj.id === id) {
-                return {
-                    ...obj,
-                    properties: {
-                        ...obj.properties,
-                        [property]: value
-                    }
-                };
-            }
-            return obj;
-        });
+    // Update a property of the selected object
+    const updateObjectProperty = <T,>(property: string, value: T) => {
+        if (!canvas || !selectedObject) return;
 
-        setObjects(newObjects);
-
-        // Update selected object if its property was modified
-        if (selectedObject && selectedObject.id === id) {
-            setSelectedObject({
-                ...selectedObject,
-                properties: {
-                    ...selectedObject.properties,
-                    [property]: value
-                }
-            });
+        // Handle nested properties (e.g., "border.color")
+        if (property.includes('.')) {
+            const [parent, child] = property.split('.');
+            (selectedObject as any)[parent] = {
+                ...(selectedObject as any)[parent],
+                [child]: value
+            };
+        } else {
+            (selectedObject as any)[property] = value;
         }
 
-        addToHistory(newObjects);
+        canvas.renderAll();
+        saveToHistory();
     };
 
-    const moveObject = (id: number, x: number, y: number) => {
-        const newObjects = objects.map(obj => {
-            if (obj.id === id) {
-                return { ...obj, x, y };
-            }
-            return obj;
-        });
-
-        setObjects(newObjects);
-
-        // Update selected object position if it was moved
-        if (selectedObject && selectedObject.id === id) {
-            setSelectedObject({ ...selectedObject, x, y });
-        }
-
-        // We don't add this to history for every move to avoid history pollution
-        // Usually, we'd add to history on mouse up instead
-    };
-
-    const finalizeMove = () => {
-        // Add current state to history after movement is complete
-        addToHistory(objects);
-    };
-
-    // History navigation
-    const undo = () => {
-        if (canUndo) {
-            const prevIndex = historyIndex - 1;
-            const prevState = history[prevIndex];
-            setObjects(prevState);
-            setHistoryIndex(prevIndex);
-
-            // Update selected object or deselect if it no longer exists
-            if (selectedObject) {
-                const objectInPrevState = prevState.find(obj => obj.id === selectedObject.id);
-                setSelectedObject(objectInPrevState || null);
-            }
-        }
-    };
-
-    const redo = () => {
-        if (canRedo) {
-            const nextIndex = historyIndex + 1;
-            const nextState = history[nextIndex];
-            setObjects(nextState);
-            setHistoryIndex(nextIndex);
-
-            // Update selected object or deselect if it no longer exists
-            if (selectedObject) {
-                const objectInNextState = nextState.find(obj => obj.id === selectedObject.id);
-                setSelectedObject(objectInNextState || null);
-            }
-        }
-    };
-
-    // Canvas settings
+    // Toggle grid display
     const toggleGrid = () => {
         setShowGrid(!showGrid);
     };
 
+    // Undo last action
+    const undo = () => {
+        if (!canvas || !canUndo) return;
+
+        const newIndex = historyIndex - 1;
+        const state = history[newIndex];
+
+        canvas.loadFromJSON(state, () => {
+            setHistoryIndex(newIndex);
+            setCanUndo(newIndex > 0);
+            setCanRedo(true);
+            canvas.renderAll();
+        });
+    };
+
+    // Redo last undone action
+    const redo = () => {
+        if (!canvas || !canRedo || historyIndex >= history.length - 1) return;
+
+        const newIndex = historyIndex + 1;
+        const state = history[newIndex];
+
+        canvas.loadFromJSON(state, () => {
+            setHistoryIndex(newIndex);
+            setCanUndo(true);
+            setCanRedo(newIndex < history.length - 1);
+            canvas.renderAll();
+        });
+    };
+
+    // Update canUndo and canRedo when history changes
+    useEffect(() => {
+        setCanUndo(historyIndex > 0);
+        setCanRedo(historyIndex < history.length - 1);
+    }, [historyIndex, history]);
+
+    // Context value
     const contextValue: DesignEditorContextType = {
-        // State
-        objects,
-        selectedObject,
+        canvas,
+        setCanvas,
         canvasWidth: width,
         canvasHeight: height,
-
-        // Actions
+        selectedObject,
+        getObjects,
         addObject,
         updateObject,
         deleteObject,
+        cloneObject,
         selectObject,
         updateObjectProperty,
-        moveObject,
-
-        // History
-        undo,
-        redo,
-        canUndo,
-        canRedo,
-
-        // Canvas settings
         showGrid,
         toggleGrid,
         zoomLevel,
-        setZoomLevel
+        setZoomLevel,
+        undo,
+        redo,
+        canUndo,
+        canRedo
     };
 
     return (
