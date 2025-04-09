@@ -143,8 +143,7 @@ export const finalizeUpload = async (
 };
 
 // 파일 정보에서 API 전송용 메타데이터 추출 유틸리티 함수
-export const extractUploadMetadata = (fileInfo: FileInfo): UploadMetadata => {
-  return {
+export const extractUploadMetadata = (fileInfo: FileInfo): UploadMetadata => ({
     width: fileInfo.metadata?.width,
     height: fileInfo.metadata?.height,
     duration: fileInfo.metadata?.duration,
@@ -155,5 +154,4 @@ export const extractUploadMetadata = (fileInfo: FileInfo): UploadMetadata => {
     extension: fileInfo.extension,
     size: fileInfo.size,
     lastModified: fileInfo.lastModified,
-  };
-};
+  });

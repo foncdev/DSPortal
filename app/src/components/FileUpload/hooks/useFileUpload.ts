@@ -244,7 +244,7 @@ export const useFileUpload = ({
       const finalizeResponse = await finalizeUpload(response.uploadId, fileInfo.name, 1, fileInfo);
 
       setFileInfo((prev: any) => {
-        if (!prev) return null;
+        if (!prev) {return null;}
         const updated: any = {
           ...prev,
           status: 'completed',
@@ -289,7 +289,7 @@ export const useFileUpload = ({
       const metadata = extractUploadMetadata(fileInfo);
 
       setFileInfo((prev) => {
-        if (!prev) return null;
+        if (!prev) {return null;}
 
         return {
           ...prev,
@@ -342,7 +342,7 @@ export const useFileUpload = ({
 
           setUploadProgress(progress);
           setFileInfo((prev) => {
-            if (!prev) return null;
+            if (!prev) {return null;}
 
             const updated = {
               ...prev,
@@ -391,7 +391,7 @@ export const useFileUpload = ({
       );
 
       setFileInfo((prev: any) => {
-        if (!prev) return null;
+        if (!prev) {return null;}
 
         const updated: any = {
           ...prev,

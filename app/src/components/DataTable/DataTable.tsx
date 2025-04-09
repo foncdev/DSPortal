@@ -12,9 +12,7 @@ import Pagination from './components/Pagination';
 // @ts-ignore
 import styles from './DataTable.module.scss';
 
-const isDevelopment = () => {
-    return false;
-};
+const isDevelopment = () => false;
 /**
  * DataTable - 기능적이고 유연한 데이터 테이블 컴포넌트
  *

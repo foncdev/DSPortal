@@ -67,7 +67,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     }, [resetUpload]);
 
     const renderUploadControls = () => {
-        if (!fileInfo) return null;
+        if (!fileInfo) {return null;}
 
         switch (fileInfo.status) {
             case 'pending':

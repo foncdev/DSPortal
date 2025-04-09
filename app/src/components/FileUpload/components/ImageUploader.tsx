@@ -17,8 +17,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                                                                 onUploadComplete,
                                                                 onUploadProgress,
                                                                 onUploadError,
-                                                            }) => {
-    return (
+                                                            }) => (
         <div className={className}>
             <h2 className={styles.uploaderTitle}>이미지 업로드</h2>
             <p className={styles.uploaderDescription}>
@@ -34,4 +33,3 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             />
         </div>
     );
-};

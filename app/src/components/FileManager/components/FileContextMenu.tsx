@@ -67,7 +67,7 @@ const FileContextMenu: React.FC<FileContextMenuProps> = ({ x, y, item, onClose }
 
   // Rename item
   const handleRename = () => {
-    if (!item) return;
+    if (!item) {return;}
 
     const newName = prompt('Enter new name:', item.name);
     if (newName && newName.trim() !== '' && newName !== item.name) {
@@ -103,7 +103,7 @@ const FileContextMenu: React.FC<FileContextMenuProps> = ({ x, y, item, onClose }
 
   // View item
   const handleView = () => {
-    if (!item) return;
+    if (!item) {return;}
 
     console.log('Preview file:', item.name);
     onClose();

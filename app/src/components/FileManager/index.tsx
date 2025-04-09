@@ -66,12 +66,10 @@ const FileManagerContainer: React.FC = () => {
 };
 
 // Main file manager component with provider
-export const FileManager: React.FC<FileManagerContainerProps> = ({ initialFolderId = null }) => {
-    return (
+export const FileManager: React.FC<FileManagerContainerProps> = ({ initialFolderId = null }) => (
         <FileManagerProvider initialFolderId={initialFolderId}>
             <FileManagerContainer />
         </FileManagerProvider>
     );
-};
 
 export default FileManager;

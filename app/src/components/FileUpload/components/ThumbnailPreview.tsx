@@ -81,14 +81,14 @@ export const ThumbnailPreview: React.FC<ThumbnailPreviewProps> = ({ fileInfo, cl
     // 썸네일 생성 함수
     const generateThumbnailFromCurrentTime = () => {
       const video = document.getElementById('preview-video') as HTMLVideoElement;
-      if (!video) return;
+      if (!video) {return;}
 
       const canvas = document.createElement('canvas');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {return;}
 
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 

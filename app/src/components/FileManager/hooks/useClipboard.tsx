@@ -15,26 +15,26 @@ export const useClipboard = () => {
   /**
    * Copy selected items to clipboard
    */
-  const copy = () => {
+  const copy = () => 
     // const { selectedItems } = useFileManager().state;
     // if (selectedItems.length > 0) {
     //   copyItems(selectedItems);
     //   return true;
     // }
-    return false;
-  };
+     false
+  ;
 
   /**
    * Cut selected items to clipboard
    */
-  const cut = () => {
+  const cut = () => 
     // const { selectedItems } = useFileManager().state;
     // if (selectedItems.length > 0) {
     //   cutItems(selectedItems);
     //   return true;
     // }
-    return false;
-  };
+     false
+  ;
 
   /**
    * Paste items from clipboard to current folder

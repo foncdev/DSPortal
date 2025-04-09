@@ -17,8 +17,7 @@ export const ArchiveUploader: React.FC<ArchiveUploaderProps> = ({
                                                                     onUploadComplete,
                                                                     onUploadProgress,
                                                                     onUploadError,
-                                                                }) => {
-    return (
+                                                                }) => (
         <div className={className}>
             <h2 className={styles.uploaderTitle}>압축 파일 업로드</h2>
             <p className={styles.uploaderDescription}>
@@ -34,4 +33,3 @@ export const ArchiveUploader: React.FC<ArchiveUploaderProps> = ({
             />
         </div>
     );
-};

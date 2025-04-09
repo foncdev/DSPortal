@@ -21,12 +21,9 @@ export const Dropzone: React.FC<DropzoneProps> = ({
                                                   }) => {
     const [isDragging, setIsDragging] = useState(false);
 
-    const getAcceptString = (): string => {
-        return acceptedTypes.map((type) => FILE_TYPE_CONFIGS[type].accept).join(',');
-    };
+    const getAcceptString = (): string => acceptedTypes.map((type) => FILE_TYPE_CONFIGS[type].accept).join(',');
 
-    const getAcceptedFileTypes = (): string => {
-        return acceptedTypes
+    const getAcceptedFileTypes = (): string => acceptedTypes
             .map((type) => {
                 switch(type) {
                     case 'image': return '이미지';
@@ -38,14 +35,13 @@ export const Dropzone: React.FC<DropzoneProps> = ({
                 }
             })
             .join(', ');
-    };
 
     const handleDragOver = useCallback(
         (e: React.DragEvent<HTMLDivElement>) => {
             e.preventDefault();
             e.stopPropagation();
 
-            if (disabled) return;
+            if (disabled) {return;}
 
             setIsDragging(true);
         },
@@ -66,7 +62,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
 
             setIsDragging(false);
 
-            if (disabled) return;
+            if (disabled) {return;}
 
             if (e.dataTransfer.files?.length) {
                 const file = e.dataTransfer.files[0]; // We only accept one file at a time
@@ -78,7 +74,7 @@ export const Dropzone: React.FC<DropzoneProps> = ({
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            if (disabled) return;
+            if (disabled) {return;}
 
             const files = e.target.files;
             if (files?.length) {

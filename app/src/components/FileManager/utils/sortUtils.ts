@@ -17,8 +17,8 @@ export const sortFiles = (files: FileItem[], sortOption: SortOption): FileItem[]
     const aIsFolder = a.isFolder || a.type === 'folder';
     const bIsFolder = b.isFolder || b.type === 'folder';
 
-    if (aIsFolder && !bIsFolder) return -1;
-    if (!aIsFolder && bIsFolder) return 1;
+    if (aIsFolder && !bIsFolder) {return -1;}
+    if (!aIsFolder && bIsFolder) {return 1;}
 
     // Both are folders or both are files, sort based on the selected option
     const { field, direction } = sortOption;

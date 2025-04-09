@@ -17,8 +17,7 @@ export const ApplicationUploader: React.FC<ApplicationUploaderProps> = ({
                                                                             onUploadComplete,
                                                                             onUploadProgress,
                                                                             onUploadError,
-                                                                        }) => {
-    return (
+                                                                        }) => (
         <div className={className}>
             <h2 className={styles.uploaderTitle}>애플리케이션 업로드</h2>
             <p className={styles.uploaderDescription}>
@@ -34,4 +33,3 @@ export const ApplicationUploader: React.FC<ApplicationUploaderProps> = ({
             />
         </div>
     );
-};

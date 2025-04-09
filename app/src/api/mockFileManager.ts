@@ -392,16 +392,16 @@ export const createFolder = async (name: string, parentId: string | null): Promi
 };
 
 // Rename a folder
-export const renameFolder = async (folderId: string, newName: string): Promise<FileItem> => {
+export const renameFolder = async (folderId: string, newName: string): Promise<FileItem> => 
   // Same implementation as renameFile
-  return renameFile(folderId, newName);
-};
+   renameFile(folderId, newName)
+;
 
 // Delete folders
-export const deleteFolders = async (folderIds: string[]): Promise<void> => {
+export const deleteFolders = async (folderIds: string[]): Promise<void> => 
   // Same implementation as deleteFiles (which already handles recursive deletion)
-  return deleteFiles(folderIds);
-};
+   deleteFiles(folderIds)
+;
 
 // Get folder path
 export const getFolderPath = async (folderId: string): Promise<{ id: string; name: string }[]> => {
@@ -412,7 +412,7 @@ export const getFolderPath = async (folderId: string): Promise<{ id: string; nam
 
   while (currentId) {
     const folder = mockDatabase.find((file) => file.id === currentId);
-    if (!folder) break;
+    if (!folder) {break;}
 
     path.unshift({ id: '' + folder.id, name: folder.name });
     currentId = '' + folder.parentId || '';

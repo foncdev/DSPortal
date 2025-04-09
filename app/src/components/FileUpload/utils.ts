@@ -1,9 +1,7 @@
 import { FileInfo, FileType } from './types';
 import { FILE_TYPE_CONFIGS } from './config';
 
-export const getFileExtension = (filename: string): string => {
-  return filename.split('.').pop()?.toLowerCase() || '';
-};
+export const getFileExtension = (filename: string): string => filename.split('.').pop()?.toLowerCase() || '';
 
 export const getFileType = (file: File): FileType | null => {
   const extension = getFileExtension(file.name);
@@ -65,7 +63,7 @@ export const validateFile = (
 };
 
 export const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) {return '0 Bytes';}
 
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
@@ -78,8 +76,7 @@ export const generateThumbnail = async (
   file: File,
   maxWidth: number,
   maxHeight: number,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
+): Promise<string> => new Promise((resolve, reject) => {
     if (file.type.startsWith('image/')) {
       const img = new Image();
       img.onload = () => {
@@ -198,10 +195,8 @@ export const generateThumbnail = async (
       reject(new Error('Unsupported file type for thumbnail generation'));
     }
   });
-};
 
-export const extractVideoMetadata = (file: File): Promise<FileInfo['metadata']> => {
-  return new Promise((resolve) => {
+export const extractVideoMetadata = (file: File): Promise<FileInfo['metadata']> => new Promise((resolve) => {
     const video = document.createElement('video');
     video.preload = 'metadata';
 
@@ -222,10 +217,8 @@ export const extractVideoMetadata = (file: File): Promise<FileInfo['metadata']> 
 
     video.src = URL.createObjectURL(file);
   });
-};
 
-export const extractImageMetadata = (file: File): Promise<FileInfo['metadata']> => {
-  return new Promise((resolve) => {
+export const extractImageMetadata = (file: File): Promise<FileInfo['metadata']> => new Promise((resolve) => {
     const img = new Image();
 
     img.onload = () => {
@@ -243,14 +236,12 @@ export const extractImageMetadata = (file: File): Promise<FileInfo['metadata']> 
 
     img.src = URL.createObjectURL(file);
   });
-};
 
 export const generateVideoThumbnail = (
   video: HTMLVideoElement,
   width: number,
   height: number,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
+): Promise<string> => new Promise((resolve, reject) => {
     try {
       // 비디오 크기를 가져옴
       const videoWidth = video.videoWidth;
@@ -301,4 +292,3 @@ export const generateVideoThumbnail = (
       reject(err);
     }
   });
-};

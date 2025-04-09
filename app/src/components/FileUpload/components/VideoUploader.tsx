@@ -17,8 +17,7 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
                                                                 onUploadComplete,
                                                                 onUploadProgress,
                                                                 onUploadError,
-                                                            }) => {
-    return (
+                                                            }) => (
         <div className={className}>
             <h2 className={styles.uploaderTitle}>동영상 업로드</h2>
             <p className={styles.uploaderDescription}>
@@ -34,4 +33,3 @@ export const VideoUploader: React.FC<VideoUploaderProps> = ({
             />
         </div>
     );
-};

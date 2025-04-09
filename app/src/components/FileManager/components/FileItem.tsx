@@ -182,13 +182,9 @@ const FileItem: React.FC<FileItemProps> = ({ item, viewMode }) => {
   };
 
   // 생성 및 수정 날짜 가져오기
-  const getCreationDate = () => {
-    return item.createdAt || item.createAt || '';
-  };
+  const getCreationDate = () => item.createdAt || item.createAt || '';
 
-  const getModificationDate = () => {
-    return item.modifiedAt || item.modifiedDate || '';
-  };
+  const getModificationDate = () => item.modifiedAt || item.modifiedDate || '';
 
   // 파일 타입에 따른 아이콘 가져오기
   const getFileIcon = () => {

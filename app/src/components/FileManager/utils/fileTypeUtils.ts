@@ -60,6 +60,4 @@ export const getFileIconByType = (type: FileType): string => {
  * Check if a file is viewable (image, pdf, video)
  * @param type - File type
  */
-export const isViewableFile = (type: FileType): boolean => {
-  return ['image', 'pdf', 'video'].includes(type);
-};
+export const isViewableFile = (type: FileType): boolean => ['image', 'pdf', 'video'].includes(type);
