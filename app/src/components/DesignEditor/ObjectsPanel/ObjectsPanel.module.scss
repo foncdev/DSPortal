@@ -80,7 +80,7 @@
   padding: 0.5rem;
 }
 
-// 레이아웃 그룹 스타일
+// Layout group styles
 .layoutGroupsList {
   display: flex;
   flex-direction: column;
@@ -136,22 +136,23 @@
         text-overflow: ellipsis;
         display: flex;
         align-items: center;
-        gap: 0.25rem;
+        gap: 0.5rem; // 이름과 편집 버튼 사이 간격 확대
 
         .editNameButton {
-          opacity: 0;
+          padding: 0.25rem; // 클릭 영역 확대
           background: none;
           border: none;
-          padding: 0;
           cursor: pointer;
           color: var(--color-text-tertiary);
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all var(--transition-fast) ease;
+          opacity: 0.7; // 항상 약간 보이게 설정
 
           &:hover {
             color: var(--color-primary);
+            opacity: 1;
           }
         }
 
@@ -159,23 +160,35 @@
           opacity: 1;
         }
       }
+
+      .nameInput {
+        font-size: 0.875rem;
+        border: none;
+        border-bottom: 1px solid var(--color-primary);
+        background: transparent;
+        color: var(--color-text-primary);
+        padding: 0.25rem 0;
+        outline: none;
+        flex: 1;
+        width: 100%;
+      }
     }
 
     .layoutGroupActions {
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.5rem; // 버튼 간격 증가
 
       .objectTypeButtons {
         display: flex;
-        gap: 0.25rem;
-        margin-right: 0.5rem;
+        gap: 0.5rem; // 버튼 간격 증가
+        margin-right: 0.75rem;
         border-right: 1px solid var(--color-border);
-        padding-right: 0.5rem;
+        padding-right: 0.75rem;
 
         .objectTypeButton {
-          width: 1.5rem;
-          height: 1.5rem;
+          width: 2rem; // 버튼 크기 증가
+          height: 2rem; // 버튼 크기 증가
           display: flex;
           align-items: center;
           justify-content: center;
@@ -197,8 +210,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2rem; // 버튼 크기 증가
+        height: 2rem; // 버튼 크기 증가
         border-radius: 0.25rem;
         background: transparent;
         border: none;
@@ -220,11 +233,18 @@
   }
 
   .layoutGroupContent {
-    padding: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  .emptyGroupMessage {
+    padding: 1rem;
+    text-align: center;
+    color: var(--color-text-tertiary);
+    font-size: 0.875rem;
   }
 }
 
-// 일반적인 객체 아이템 스타일
+// Object item styles
 .objectItem {
   display: flex;
   align-items: center;
@@ -272,7 +292,7 @@
       .objectAction {
         color: var(--color-primary-contrast);
 
-        &:hover {
+        &:hover, &.active {
           background-color: rgba(255, 255, 255, 0.2);
         }
 
@@ -288,7 +308,7 @@
     background-color: rgba(59, 130, 246, 0.1);
   }
 
-  // 그룹 자식 객체 스타일
+  // Group child object style
   &.groupChild {
     padding-left: 1.5rem;
     background-color: var(--color-bg-secondary);
@@ -299,7 +319,7 @@
   .objectInfo {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.75rem; // 아이콘과 이름 사이 간격 확대
     overflow: hidden;
     flex: 1;
 
@@ -317,23 +337,24 @@
       color: var(--color-text-primary);
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.5rem; // 이름과 편집 버튼 사이 간격 확대
       flex: 1;
 
       .editNameButton {
-        opacity: 0;
+        padding: 0.25rem; // 클릭 영역 확대
         background: none;
         border: none;
-        padding: 0;
         cursor: pointer;
         color: var(--color-text-tertiary);
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all var(--transition-fast) ease;
+        opacity: 0.7; // 항상 약간 보이게 설정
 
         &:hover {
           color: var(--color-primary);
+          opacity: 1;
         }
       }
 
@@ -349,7 +370,7 @@
       background: transparent;
       color: var(--color-text-primary);
       width: 100%;
-      padding: 0.125rem 0;
+      padding: 0.25rem 0;
       outline: none;
       flex: 1;
 
@@ -362,28 +383,16 @@
 
   .objectActions {
     display: flex;
-    gap: 0.125rem;
-    opacity: 0;
+    gap: 0.375rem; // 버튼 간격 증가
+    opacity: 0.8; // 기본 상태에서도 약간 보이게 설정
     transition: opacity var(--transition-fast) ease;
-
-    .layerActions {
-      display: flex;
-      gap: 0.125rem;
-      margin-right: 0.25rem;
-      border-right: 1px solid var(--color-border);
-      padding-right: 0.25rem;
-
-      .selected & {
-        border-right-color: rgba(255, 255, 255, 0.3);
-      }
-    }
 
     .objectAction {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 1.5rem;
-      height: 1.5rem;
+      width: 2rem; // 버튼 크기 증가
+      height: 2rem; // 버튼 크기 증가
       border-radius: 0.25rem;
       background: transparent;
       border: none;
@@ -391,7 +400,7 @@
       cursor: pointer;
       transition: all var(--transition-fast) ease;
 
-      &:hover {
+      &:hover, &.active {
         background-color: var(--color-bg-inset);
         color: var(--color-text-primary);
       }
@@ -401,10 +410,59 @@
         color: white;
       }
     }
+
+    // Actions menu container
+    .actionsMenuContainer {
+      position: relative;
+
+      .actionsDropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 200px; // 드롭다운 너비 증가
+        max-height: 80vh; // 최대 높이 제한
+        overflow-y: auto; // 내용이 많으면 스크롤 가능하게
+        background-color: var(--color-bg-primary);
+        border: 1px solid var(--color-border);
+        border-radius: 0.375rem;
+        box-shadow: var(--shadow-md);
+        z-index: 100;
+
+        .actionItem {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          padding: 0.625rem 0.75rem; // 패딩 증가
+          background: none;
+          border: none;
+          text-align: left;
+          color: var(--color-text-primary);
+          cursor: pointer;
+          font-size: 0.8125rem;
+          gap: 0.5rem;
+          transition: all var(--transition-fast) ease;
+
+          &:hover {
+            background-color: var(--color-bg-tertiary);
+          }
+
+          &.deleteAction:hover {
+            background-color: var(--color-error);
+            color: white;
+          }
+        }
+
+        .actionDivider {
+          height: 1px;
+          background-color: var(--color-border);
+          margin: 0.25rem 0;
+        }
+      }
+    }
   }
 }
 
-// 비그룹 객체 섹션
+// Ungrouped section styles
 .ungroupedSection {
   margin-top: 0.5rem;
   border: 1px solid var(--color-border);
@@ -438,7 +496,7 @@
   }
 
   .ungroupedList {
-    padding: 0.25rem;
+    padding: 0.5rem;
   }
 }
 
