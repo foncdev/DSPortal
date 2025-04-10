@@ -186,53 +186,99 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Toggle layer lock state
     const toggleLayerLock = (e: React.MouseEvent) => {
+        // 이벤트 전파 중지
+        e.preventDefault();
         e.stopPropagation();
+
         if (!canvas || isProcessingRef.current) return;
 
+        // 처리 중 플래그 설정
         isProcessingRef.current = true;
         setErrorMessage(null);
 
         try {
-            // Find all objects in this group
+            console.log("toggleLayerLock - 현재 상태:", isLayerLocked);
+            console.log("toggleLayerLock - 그룹 ID:", group.id);
+
+            // 그룹 객체가 없으면 종료
             const groupObjects = group.objects;
             if (!groupObjects.length) {
+                console.warn("toggleLayerLock - 그룹에 객체가 없음");
                 isProcessingRef.current = false;
                 return;
             }
 
-            // Toggle lock state
+            // 새 잠금 상태 계산
             const newLockState = !isLayerLocked;
+            console.log("toggleLayerLock - 새 상태:", newLockState);
 
-            // Update all objects in the group
+            // 캔버스에서 최신 객체 참조 가져오기
+            const latestObjects = canvas.getObjects() as FabricObjectWithId[];
+
+            // 모든 그룹 객체 업데이트
+            let updatedCount = 0;
             groupObjects.forEach(obj => {
-                obj.set({
-                    'lockMovementX': newLockState,
-                    'lockMovementY': newLockState,
-                    'lockRotation': newLockState,
-                    'lockScalingX': newLockState,
-                    'lockScalingY': newLockState,
-                    'selectable': !newLockState
-                });
-                obj.setCoords();
+                // 객체 ID로 최신 객체 참조 찾기
+                const targetObj = obj.id ?
+                    latestObjects.find(o => o.id === obj.id) :
+                    null;
+
+                if (targetObj) {
+                    // 잠금 속성 설정
+                    targetObj.set({
+                        'lockMovementX': newLockState,
+                        'lockMovementY': newLockState,
+                        'lockRotation': newLockState,
+                        'lockScalingX': newLockState,
+                        'lockScalingY': newLockState,
+                        // 객체는 여전히 선택 가능하게 유지
+                        'selectable': isLayerVisible
+                    });
+
+                    targetObj.setCoords();
+                    updatedCount++;
+                }
             });
 
-            // Update lock state
+            console.log(`toggleLayerLock - ${updatedCount}개 객체 업데이트됨`);
+
+            // 캔버스 갱신
+            canvas.requestRenderAll();
+
+            // UI 상태 업데이트
             setIsLayerLocked(newLockState);
 
-            // Deselect if currently selected object is in this group and we're locking it
-            if (newLockState) {
-                const selectedObj = canvas.getActiveObject() as FabricObjectWithId;
-                if (selectedObj && groupObjects.some(obj => obj.id === selectedObj.id)) {
-                    canvas.discardActiveObject();
-                    selectObject(null);
+            // 현재 선택된 객체가 이 그룹에 있고, 잠금 상태가 변경된 경우 처리
+            const selectedObj = canvas.getActiveObject() as FabricObjectWithId;
+            if (selectedObj && groupObjects.some(obj => obj.id === selectedObj.id)) {
+                // 객체는 여전히 선택 가능하게 유지, 하지만 수정은 잠금 상태에 따라 제한
+                if (newLockState) {
+                    // 선택은 유지하지만 이동은 불가능하게 함
+                    selectedObj.set({
+                        lockMovementX: true,
+                        lockMovementY: true,
+                        lockRotation: true,
+                        lockScalingX: true,
+                        lockScalingY: true
+                    });
+                } else {
+                    // 잠금 해제 시 모든 조작 가능
+                    selectedObj.set({
+                        lockMovementX: false,
+                        lockMovementY: false,
+                        lockRotation: false,
+                        lockScalingX: false,
+                        lockScalingY: false
+                    });
                 }
+                selectedObj.setCoords();
+                canvas.requestRenderAll();
             }
-
-            canvas.requestRenderAll();
         } catch (error) {
-            console.error('Error toggling layer lock state:', error);
-            setErrorMessage('Failed to toggle layer lock state');
+            console.error("toggleLayerLock 에러:", error);
+            setErrorMessage("레이어 잠금 상태 변경에 실패했습니다");
         } finally {
+            // 처리 플래그 초기화
             isProcessingRef.current = false;
         }
     };

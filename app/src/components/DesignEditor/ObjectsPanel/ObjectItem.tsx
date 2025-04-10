@@ -64,8 +64,17 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Update visibility and lock states when object properties change
     useEffect(() => {
-        setIsVisible(object.visible !== false);
-        setIsLocked(!!object.lockMovementX && !!object.lockMovementY);
+        const newVisibleState = object.visible !== false;
+        const newLockedState = !!object.lockMovementX && !!object.lockMovementY;
+
+        // 상태가 변경된 경우에만 업데이트
+        if (isVisible !== newVisibleState) {
+            setIsVisible(newVisibleState);
+        }
+
+        if (isLocked !== newLockedState) {
+            setIsLocked(newLockedState);
+        }
     }, [object]);
 
     // Get object type icon
@@ -173,38 +182,49 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Toggle object visibility
     const toggleVisibility = (e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
-        if (!canvas || isProcessingRef.current) return;
+
+        if (!canvas || !object || isProcessingRef.current) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
         setShowActionsMenu(false);
 
         try {
+            // 새 가시성 상태 계산
             const newVisibility = !isVisible;
 
-            // Update object properties
-            object.set({
+            // 객체 ID로 직접 캔버스에서 객체 찾기
+            const targetObj = object.id ?
+                canvas.getObjects().find(obj => (obj as FabricObjectWithId).id === object.id) as FabricObjectWithId :
+                null;
+
+            if (!targetObj) {
+                throw new Error("객체를 찾을 수 없습니다");
+            }
+
+            // 객체 속성 업데이트
+            targetObj.set({
                 'visible': newVisibility,
-                'selectable': newVisibility ? !isLocked : false,
-                'evented': newVisibility ? !isLocked : false
+                'evented': newVisibility
             });
 
-            object.setCoords();
-            canvas.requestRenderAll();
-
-            // Update state
-            setIsVisible(newVisibility);
-
-            // Deselect if hiding currently selected object
+            // 보이지 않는 상태로 변경 시 선택 해제
             if (!newVisibility && isSelected) {
                 canvas.discardActiveObject();
                 canvas.requestRenderAll();
                 selectObject(null);
             }
+
+            targetObj.setCoords();
+            canvas.requestRenderAll();
+
+            // UI 상태 업데이트
+            setIsVisible(newVisibility);
         } catch (error) {
             console.error('Error toggling visibility:', error);
-            setErrorMessage('Failed to toggle visibility');
+            setErrorMessage('가시성 전환에 실패했습니다');
         } finally {
             isProcessingRef.current = false;
         }
@@ -212,41 +232,52 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Toggle object lock state
     const toggleLocked = (e: React.MouseEvent) => {
+        // 이벤트 전파 중지
+        e.preventDefault();
         e.stopPropagation();
-        if (!canvas || isProcessingRef.current) return;
 
+        if (!canvas || !object || isProcessingRef.current) return;
+
+        // 처리 중 플래그 설정
         isProcessingRef.current = true;
         setErrorMessage(null);
         setShowActionsMenu(false);
 
         try {
+            // 새 잠금 상태 계산
             const newLockState = !isLocked;
 
-            // Update object properties
-            object.set({
-                'lockMovementX': newLockState,
-                'lockMovementY': newLockState,
-                'lockRotation': newLockState,
-                'lockScalingX': newLockState,
-                'lockScalingY': newLockState,
-                'selectable': isVisible ? !newLockState : false
+            // 객체 ID로 직접 캔버스에서 객체 찾기
+            const targetObj = object.id ?
+                canvas.getObjects().find(obj => (obj as FabricObjectWithId).id === object.id) as FabricObjectWithId :
+                null;
+
+            if (!targetObj) {
+                throw new Error("객체를 찾을 수 없습니다");
+            }
+
+            // 잠금 속성 설정
+            targetObj.set({
+                lockMovementX: newLockState,
+                lockMovementY: newLockState,
+                lockRotation: newLockState,
+                lockScalingX: newLockState,
+                lockScalingY: newLockState,
+                // 중요: 객체는 여전히 선택 가능하게 유지
+                selectable: true
             });
 
+            // 캔버스 업데이트
+            targetObj.setCoords();
             canvas.requestRenderAll();
 
-            // Update state
+            // UI 상태 업데이트
             setIsLocked(newLockState);
-
-            // Deselect if locking currently selected object
-            if (newLockState && isSelected) {
-                canvas.discardActiveObject();
-                canvas.requestRenderAll();
-                selectObject(null);
-            }
         } catch (error) {
-            console.error('Error toggling lock state:', error);
-            setErrorMessage('Failed to toggle lock state');
+            console.error("toggleLocked 에러:", error);
+            setErrorMessage("잠금 상태 변경에 실패했습니다");
         } finally {
+            // 처리 플래그 초기화
             isProcessingRef.current = false;
         }
     };
@@ -468,7 +499,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                     <>
                         {/* Z-index control actions */}
                         <button
-                            className="global-actions-dropdown actionItem"
+                            className="actionItem"
                             onClick={handleMoveToTop}
                             title={t('editor.moveObjectToTop')}
                             disabled={isProcessingRef.current}
@@ -478,7 +509,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         </button>
 
                         <button
-                            className="global-actions-dropdown actionItem"
+                            className="actionItem"
                             onClick={handleMoveUp}
                             title={t('editor.moveObjectUp')}
                             disabled={isProcessingRef.current}
@@ -488,7 +519,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         </button>
 
                         <button
-                            className="global-actions-dropdown actionItem"
+                            className="actionItem"
                             onClick={handleMoveDown}
                             title={t('editor.moveObjectDown')}
                             disabled={isProcessingRef.current}
@@ -498,7 +529,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         </button>
 
                         <button
-                            className="global-actions-dropdown actionItem"
+                            className="actionItem"
                             onClick={handleMoveToBottom}
                             title={t('editor.moveObjectToBottom')}
                             disabled={isProcessingRef.current}
@@ -507,11 +538,11 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             <span>{t('editor.moveObjectToBottom')}</span>
                         </button>
 
-                        <div className="global-actions-dropdown actionDivider"></div>
+                        <div className="actionDivider"></div>
 
                         {/* Duplicate action */}
                         <button
-                            className="global-actions-dropdown actionItem"
+                            className="actionItem"
                             onClick={handleDuplicate}
                             title={t('editor.duplicate')}
                             disabled={isProcessingRef.current}
@@ -524,7 +555,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
                 {/* Delete action */}
                 <button
-                    className="global-actions-dropdown actionItem deleteAction"
+                    className="actionItem deleteAction"
                     onClick={handleDelete}
                     title={t('editor.delete')}
                     disabled={isProcessingRef.current || object.isLayoutParent}
@@ -604,11 +635,11 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         title={isVisible ? t('editor.hideObject') : t('editor.showObject')}
                         disabled={isProcessingRef.current}
                     >
-                        {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
 
                     <button
-                        className={styles.objectAction}
+                        className={`${styles.objectAction} ${isLocked ? styles.active : ''}`}
                         onClick={toggleLocked}
                         title={isLocked ? t('editor.unlockObject') : t('editor.lockObject')}
                         disabled={isProcessingRef.current || !isVisible}

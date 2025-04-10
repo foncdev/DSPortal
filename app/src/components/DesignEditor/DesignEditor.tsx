@@ -182,22 +182,50 @@ const DesignEditorInner: React.FC = () => {
     };
 
     const handleToggleLock = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
 
-        const newLockState = !isObjectLocked;
-        setIsObjectLocked(newLockState);
+        try {
+            console.log("handleToggleLock - 현재 상태:", isObjectLocked);
+            console.log("handleToggleLock - 객체 ID:", selectedObject.id);
 
-        // Update the object's selectable and lockMovementX/Y properties
-        selectedObject.set({
-            selectable: !newLockState,
-            lockMovementX: newLockState,
-            lockMovementY: newLockState,
-            lockRotation: newLockState,
-            lockScalingX: newLockState,
-            lockScalingY: newLockState
-        });
+            // 새 잠금 상태 계산
+            const newLockState = !isObjectLocked;
+            console.log("handleToggleLock - 새 상태:", newLockState);
 
-        canvas.renderAll();
+            // 캔버스에서 최신 객체 참조 가져오기
+            const targetObj = selectedObject.id ?
+                canvas.getObjects().find(obj => (obj as FabricObjectWithId).id === selectedObject.id) as FabricObjectWithId :
+                selectedObject;
+
+            if (!targetObj) {
+                console.error("handleToggleLock - 객체를 찾을 수 없음:", selectedObject.id);
+                throw new Error("객체를 찾을 수 없습니다");
+            }
+
+            // 잠금 속성 설정
+            targetObj.set({
+                lockMovementX: newLockState,
+                lockMovementY: newLockState,
+                lockRotation: newLockState,
+                lockScalingX: newLockState,
+                lockScalingY: newLockState,
+                // 중요: 객체는 여전히 선택 가능하게 유지
+                selectable: true
+            });
+
+            // UI 상태 업데이트
+            setIsObjectLocked(newLockState);
+
+            // 캔버스 갱신
+            targetObj.setCoords();
+            canvas.renderAll();
+
+            console.log("handleToggleLock - 잠금 상태 변경 완료:", newLockState);
+        } catch (error) {
+            console.error("handleToggleLock 에러:", error);
+            // 오류 시 상태 롤백 및 알림
+            alert("객체 잠금 상태 변경에 실패했습니다.");
+        }
     };
 
     // Alignment functions
