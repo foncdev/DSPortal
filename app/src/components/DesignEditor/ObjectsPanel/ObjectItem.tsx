@@ -4,7 +4,7 @@ import {
     Text, Image, Square, Circle, Triangle, Trash2, Copy,
     Eye, EyeOff, Lock, Unlock, Edit2, Monitor, Film,
     ChevronUp, ChevronDown, ChevronsUp, ChevronsDown,
-    MoreHorizontal
+    MoreHorizontal, AlertTriangle
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -49,10 +49,24 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const [isEditingName, setIsEditingName] = useState(false);
     const [editingName, setEditingName] = useState(object.name || '');
     const [showActionsMenu, setShowActionsMenu] = useState(false);
+    const [isVisible, setIsVisible] = useState(object.visible !== false);
+    const [isLocked, setIsLocked] = useState(!!object.lockMovementX && !!object.lockMovementY);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // Refs for DOM elements
     const nameInputRef = useRef<HTMLInputElement>(null);
     const actionsMenuRef = useRef<HTMLDivElement>(null);
     const actionsButtonRef = useRef<HTMLButtonElement>(null);
+    const isProcessingRef = useRef(false);
+
+    // State for menu position
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+    // Update visibility and lock states when object properties change
+    useEffect(() => {
+        setIsVisible(object.visible !== false);
+        setIsLocked(!!object.lockMovementX && !!object.lockMovementY);
+    }, [object]);
 
     // Get object type icon
     const getObjectIcon = () => {
@@ -76,17 +90,17 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             case 'triangle':
                 return <Triangle size={16} />;
             default:
-                if (object.type === 'textbox') {return <Text size={16} />;}
-                if (object.type === 'rect') {return <Square size={16} />;}
-                if (object.type === 'circle') {return <Circle size={16} />;}
-                if (object.type === 'triangle') {return <Triangle size={16} />;}
+                if (object.type === 'textbox') return <Text size={16} />;
+                if (object.type === 'rect') return <Square size={16} />;
+                if (object.type === 'circle') return <Circle size={16} />;
+                if (object.type === 'triangle') return <Triangle size={16} />;
                 return <Square size={16} />;
         }
     };
 
     // Get object name or default name
     const getObjectName = () => {
-        if (object.name) {return object.name;}
+        if (object.name) return object.name;
 
         const type = object.objectType || (
             object.type === 'textbox' ? 'text' :
@@ -102,6 +116,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         e.stopPropagation();
         setIsEditingName(true);
         setEditingName(getObjectName());
+        setErrorMessage(null);
 
         // Focus input after rendering
         setTimeout(() => {
@@ -114,23 +129,32 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Save the edited name
     const saveObjectName = () => {
-        if (!canvas) {return;}
+        if (!canvas || isProcessingRef.current) return;
 
-        // 현재 선택된 객체를 저장
-        const currentSelectedObject = canvas.getActiveObject();
+        isProcessingRef.current = true;
+        setErrorMessage(null);
 
-        // 이름을 변경할 객체 선택
-        selectObject(object);
+        try {
+            // Store current selected object
+            const currentSelectedObject = canvas.getActiveObject();
 
-        // 이름 업데이트
-        updateObjectProperty('name', editingName);
+            // Select the object to rename
+            selectObject(object);
 
-        // 이전에 선택했던 객체를 다시 선택
-        if (currentSelectedObject) {
-            selectObject(currentSelectedObject as FabricObjectWithId);
+            // Update name property
+            updateObjectProperty('name', editingName);
+
+            // Restore previous selection
+            if (currentSelectedObject) {
+                selectObject(currentSelectedObject as FabricObjectWithId);
+            }
+        } catch (error) {
+            console.error('Error saving object name:', error);
+            setErrorMessage('Failed to update object name');
+        } finally {
+            setIsEditingName(false);
+            isProcessingRef.current = false;
         }
-
-        setIsEditingName(false);
     };
 
     // Handle keyboard input for name editing
@@ -142,7 +166,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         }
     };
 
-    // 이름 입력 창 클릭 시 이벤트 전파 방지
+    // Prevent event propagation when clicking on input field
     const handleNameInputClick = (e: React.MouseEvent) => {
         e.stopPropagation();
     };
@@ -150,108 +174,223 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Toggle object visibility
     const toggleVisibility = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!canvas) {return;}
+        if (!canvas || isProcessingRef.current) return;
 
-        const isVisible = object.visible !== false;
-
-        object.set({
-            'visible': !isVisible,
-            'selectable': isVisible ? false : object.selectable,
-            'evented': isVisible ? false : object.evented
-        });
-
-        object.setCoords();
-        canvas.requestRenderAll();
-
-        // Deselect if hiding currently selected object
-        if (isVisible && isSelected) {
-            canvas.discardActiveObject();
-            canvas.requestRenderAll();
-            selectObject(null);
-        }
-
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            const newVisibility = !isVisible;
+
+            // Update object properties
+            object.set({
+                'visible': newVisibility,
+                'selectable': newVisibility ? !isLocked : false,
+                'evented': newVisibility ? !isLocked : false
+            });
+
+            object.setCoords();
+            canvas.requestRenderAll();
+
+            // Update state
+            setIsVisible(newVisibility);
+
+            // Deselect if hiding currently selected object
+            if (!newVisibility && isSelected) {
+                canvas.discardActiveObject();
+                canvas.requestRenderAll();
+                selectObject(null);
+            }
+        } catch (error) {
+            console.error('Error toggling visibility:', error);
+            setErrorMessage('Failed to toggle visibility');
+        } finally {
+            isProcessingRef.current = false;
+        }
     };
 
     // Toggle object lock state
     const toggleLocked = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!canvas) {return;}
+        if (!canvas || isProcessingRef.current) return;
 
-        const isLocked = object.lockMovementX && object.lockMovementY;
-
-        object.set({
-            'lockMovementX': !isLocked,
-            'lockMovementY': !isLocked,
-            'lockRotation': !isLocked,
-            'lockScalingX': !isLocked,
-            'lockScalingY': !isLocked,
-            'selectable': isLocked
-        });
-
-        canvas.requestRenderAll();
-
-        // Deselect if locking currently selected object
-        if (!isLocked && isSelected) {
-            canvas.discardActiveObject();
-            canvas.requestRenderAll();
-            selectObject(null);
-        }
-
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            const newLockState = !isLocked;
+
+            // Update object properties
+            object.set({
+                'lockMovementX': newLockState,
+                'lockMovementY': newLockState,
+                'lockRotation': newLockState,
+                'lockScalingX': newLockState,
+                'lockScalingY': newLockState,
+                'selectable': isVisible ? !newLockState : false
+            });
+
+            canvas.requestRenderAll();
+
+            // Update state
+            setIsLocked(newLockState);
+
+            // Deselect if locking currently selected object
+            if (newLockState && isSelected) {
+                canvas.discardActiveObject();
+                canvas.requestRenderAll();
+                selectObject(null);
+            }
+        } catch (error) {
+            console.error('Error toggling lock state:', error);
+            setErrorMessage('Failed to toggle lock state');
+        } finally {
+            isProcessingRef.current = false;
+        }
     };
 
     // Delete this object
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        selectObject(object);
-        deleteObject();
+        if (isProcessingRef.current) return;
+
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            // Check if this is a layout parent - then prevent deletion
+            if (object.isLayoutParent) {
+                alert(t('editor.cannotDeleteParent'));
+                isProcessingRef.current = false;
+                return;
+            }
+
+            // Select and delete the object
+            selectObject(object);
+            deleteObject();
+        } catch (error) {
+            console.error('Error deleting object:', error);
+            setErrorMessage('Failed to delete object');
+            isProcessingRef.current = false;
+        }
     };
 
     // Duplicate this object
     const handleDuplicate = (e: React.MouseEvent) => {
         e.stopPropagation();
-        selectObject(object);
-        cloneObject();
+        if (isProcessingRef.current) return;
+
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            // Check if this is a layout parent - then prevent duplication
+            if (object.isLayoutParent) {
+                alert(t('editor.cannotDuplicateParent'));
+                isProcessingRef.current = false;
+                return;
+            }
+
+            // Select and clone the object
+            selectObject(object);
+            cloneObject();
+        } catch (error) {
+            console.error('Error duplicating object:', error);
+            setErrorMessage('Failed to duplicate object');
+            isProcessingRef.current = false;
+        }
     };
 
     // Move this object up one level
     const handleMoveUp = (e: React.MouseEvent) => {
         e.stopPropagation();
-        moveObjectUp(object);
+        if (isProcessingRef.current) return;
+
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            moveObjectUp(object);
+        } catch (error) {
+            console.error('Error moving object up:', error);
+            setErrorMessage('Failed to move object up');
+        } finally {
+            isProcessingRef.current = false;
+        }
     };
 
     // Move this object to the top
     const handleMoveToTop = (e: React.MouseEvent) => {
         e.stopPropagation();
-        moveObjectToTop(object);
+        if (isProcessingRef.current) return;
+
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            moveObjectToTop(object);
+        } catch (error) {
+            console.error('Error moving object to top:', error);
+            setErrorMessage('Failed to move object to top');
+        } finally {
+            isProcessingRef.current = false;
+        }
     };
 
     // Move this object down one level
     const handleMoveDown = (e: React.MouseEvent) => {
         e.stopPropagation();
-        moveObjectDown(object);
+        if (isProcessingRef.current) return;
+
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            moveObjectDown(object);
+        } catch (error) {
+            console.error('Error moving object down:', error);
+            setErrorMessage('Failed to move object down');
+        } finally {
+            isProcessingRef.current = false;
+        }
     };
 
     // Move this object to the bottom
     const handleMoveToBottom = (e: React.MouseEvent) => {
         e.stopPropagation();
-        moveObjectToBottom(object);
+        if (isProcessingRef.current) return;
+
+        isProcessingRef.current = true;
+        setErrorMessage(null);
         setShowActionsMenu(false);
+
+        try {
+            moveObjectToBottom(object);
+        } catch (error) {
+            console.error('Error moving object to bottom:', error);
+            setErrorMessage('Failed to move object to bottom');
+        } finally {
+            isProcessingRef.current = false;
+        }
     };
 
     // Toggle the actions menu
     const toggleActionsMenu = (e: React.MouseEvent) => {
         e.stopPropagation();
+        setErrorMessage(null);
 
         // Calculate menu position relative to the button and screen
         if (actionsButtonRef.current) {
             const buttonRect = actionsButtonRef.current.getBoundingClientRect();
+
+            // Position menu below the button
             const menuLeft = buttonRect.left;
             const menuTop = buttonRect.bottom;
 
@@ -282,7 +421,8 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Handle drag start
     const handleDragStart = (e: React.DragEvent) => {
-        if (!object.id) {return;}
+        if (!object.id || isLocked || !isVisible || object.isLayoutParent) return;
+
         onDragStart(object.id);
 
         // Make the element semi-transparent while dragging
@@ -294,7 +434,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Handle drag over
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        if (!object.id) {return;}
+        if (!object.id) return;
         onDragOver(object.id);
     };
 
@@ -305,12 +445,6 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         }
         onDragEnd();
     };
-
-    // Check if object is locked
-    const isLocked = object.lockMovementX && object.lockMovementY;
-
-    // Check if object is visible
-    const isVisible = object.visible !== false;
 
     // Render actions menu as a portal
     const renderActionsMenu = () => {
@@ -327,75 +461,73 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         return createPortal(
             <div
                 ref={actionsMenuRef}
-                className={`global-actions-dropdown`}
-                style={{
-                    ...menuStyle,
-                    backgroundColor: 'var(--color-bg-primary)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '0.375rem',
-                    boxShadow: 'var(--shadow-md)',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    padding: '5px'
-                }}
+                className="global-actions-dropdown"
+                style={menuStyle}
             >
                 {!object.isLayoutParent && (
                     <>
+                        {/* Z-index control actions */}
                         <button
-                            className={`global-actions-dropdown actionItem`}
+                            className="global-actions-dropdown actionItem"
                             onClick={handleMoveToTop}
                             title={t('editor.moveObjectToTop')}
+                            disabled={isProcessingRef.current}
                         >
                             <ChevronsUp size={16} />
                             <span>{t('editor.moveObjectToTop')}</span>
                         </button>
 
                         <button
-                            className={`global-actions-dropdown actionItem`}
+                            className="global-actions-dropdown actionItem"
                             onClick={handleMoveUp}
                             title={t('editor.moveObjectUp')}
+                            disabled={isProcessingRef.current}
                         >
                             <ChevronUp size={16} />
                             <span>{t('editor.moveObjectUp')}</span>
                         </button>
 
                         <button
-                            className={`global-actions-dropdown actionItem`}
+                            className="global-actions-dropdown actionItem"
                             onClick={handleMoveDown}
                             title={t('editor.moveObjectDown')}
+                            disabled={isProcessingRef.current}
                         >
                             <ChevronDown size={16} />
                             <span>{t('editor.moveObjectDown')}</span>
                         </button>
 
                         <button
-                            className={`global-actions-dropdown actionItem`}
+                            className="global-actions-dropdown actionItem"
                             onClick={handleMoveToBottom}
                             title={t('editor.moveObjectToBottom')}
+                            disabled={isProcessingRef.current}
                         >
                             <ChevronsDown size={16} />
                             <span>{t('editor.moveObjectToBottom')}</span>
                         </button>
 
-                        <div className={`global-actions-dropdown actionDivider`}></div>
+                        <div className="global-actions-dropdown actionDivider"></div>
+
+                        {/* Duplicate action */}
+                        <button
+                            className="global-actions-dropdown actionItem"
+                            onClick={handleDuplicate}
+                            title={t('editor.duplicate')}
+                            disabled={isProcessingRef.current}
+                        >
+                            <Copy size={16} />
+                            <span>{t('editor.duplicate')}</span>
+                        </button>
                     </>
                 )}
 
-                {!object.isLayoutParent && (
-                    <button
-                        className={`global-actions-dropdown actionItem`}
-                        onClick={handleDuplicate}
-                        title={t('editor.duplicate')}
-                    >
-                        <Copy size={16} />
-                        <span>{t('editor.duplicate')}</span>
-                    </button>
-                )}
-
+                {/* Delete action */}
                 <button
-                    className={`global-actions-dropdown actionItem deleteAction`}
+                    className="global-actions-dropdown actionItem deleteAction"
                     onClick={handleDelete}
                     title={t('editor.delete')}
+                    disabled={isProcessingRef.current || object.isLayoutParent}
                 >
                     <Trash2 size={16} />
                     <span>{t('editor.delete')}</span>
@@ -405,81 +537,102 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         );
     };
 
+    // Determine if this object can be dragged
+    const isDraggable = !object.isLayoutParent && isVisible && !isLocked;
+
     return (
-        <div
-            className={`${styles.objectItem} 
-                      ${isGroupChild ? styles.groupChild : ''} 
-                      ${isSelected ? styles.selected : ''} 
-                      ${isDragOver ? styles.dragOver : ''}`}
-            onClick={onSelect}
-            draggable={!object.isLayoutParent}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-        >
-            <div className={styles.objectInfo}>
-                <div className={styles.objectIcon}>
-                    {getObjectIcon()}
+        <>
+            {/* Error message display */}
+            {errorMessage && (
+                <div className={styles.errorMessage}>
+                    <AlertTriangle size={14} />
+                    <span>{errorMessage}</span>
+                    <button onClick={() => setErrorMessage(null)}>×</button>
+                </div>
+            )}
+
+            <div
+                className={`${styles.objectItem} 
+                    ${isGroupChild ? styles.groupChild : ''} 
+                    ${isSelected ? styles.selected : ''} 
+                    ${isDragOver ? styles.dragOver : ''}
+                    ${!isVisible ? styles.hidden : ''}
+                    ${isLocked ? styles.locked : ''}`}
+                onClick={onSelect}
+                draggable={isDraggable}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDragEnd={handleDragEnd}
+            >
+                <div className={styles.objectInfo}>
+                    <div className={styles.objectIcon}>
+                        {getObjectIcon()}
+                    </div>
+
+                    {isEditingName ? (
+                        <input
+                            ref={nameInputRef}
+                            type="text"
+                            className={styles.nameInput}
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onBlur={saveObjectName}
+                            onKeyDown={handleNameKeyPress}
+                            onClick={handleNameInputClick}
+                        />
+                    ) : (
+                        <span className={styles.objectName}>
+                            {getObjectName()}
+                            {!object.isLayoutParent && (
+                                <button
+                                    className={styles.editNameButton}
+                                    onClick={startEditingName}
+                                    title={t('editor.renameObject')}
+                                >
+                                    <Edit2 size={14} />
+                                </button>
+                            )}
+                        </span>
+                    )}
                 </div>
 
-                {isEditingName ? (
-                    <input
-                        ref={nameInputRef}
-                        type="text"
-                        className={styles.nameInput}
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onBlur={saveObjectName}
-                        onKeyDown={handleNameKeyPress}
-                        onClick={handleNameInputClick}
-                    />
-                ) : (
-                    <span className={styles.objectName}>
-                        {getObjectName()}
-                        <button
-                            className={styles.editNameButton}
-                            onClick={startEditingName}
-                            title={t('editor.renameObject')}
-                        >
-                            <Edit2 size={14} /> {/* 아이콘 크기 증가 */}
-                        </button>
-                    </span>
-                )}
-            </div>
-
-            <div className={styles.objectActions}>
-                {/* Limited action buttons that are always visible */}
-                <button
-                    className={styles.objectAction}
-                    onClick={toggleVisibility}
-                    title={isVisible ? t('editor.toggleVisibility') : t('editor.toggleVisibility')}
-                >
-                    {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-
-                <button
-                    className={styles.objectAction}
-                    onClick={toggleLocked}
-                    title={isLocked ? t('editor.unlockObject') : t('editor.lockObject')}
-                >
-                    {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
-                </button>
-
-                {/* More actions button with dropdown menu */}
-                <div className={styles.actionsMenuContainer}>
+                <div className={styles.objectActions}>
+                    {/* Limited action buttons that are always visible */}
                     <button
-                        ref={actionsButtonRef}
-                        className={`${styles.objectAction} ${showActionsMenu ? styles.active : ''}`}
-                        onClick={toggleActionsMenu}
-                        title={t('editor.moreActions')}
+                        className={styles.objectAction}
+                        onClick={toggleVisibility}
+                        title={isVisible ? t('editor.hideObject') : t('editor.showObject')}
+                        disabled={isProcessingRef.current}
                     >
-                        <MoreHorizontal size={16} />
+                        {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
 
-                    {renderActionsMenu()}
+                    <button
+                        className={styles.objectAction}
+                        onClick={toggleLocked}
+                        title={isLocked ? t('editor.unlockObject') : t('editor.lockObject')}
+                        disabled={isProcessingRef.current || !isVisible}
+                    >
+                        {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
+                    </button>
+
+                    {/* More actions button with dropdown menu */}
+                    <div className={styles.actionsMenuContainer}>
+                        <button
+                            ref={actionsButtonRef}
+                            className={`${styles.objectAction} ${showActionsMenu ? styles.active : ''}`}
+                            onClick={toggleActionsMenu}
+                            title={t('editor.moreActions')}
+                            disabled={isProcessingRef.current}
+                        >
+                            <MoreHorizontal size={16} />
+                        </button>
+
+                        {renderActionsMenu()}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
