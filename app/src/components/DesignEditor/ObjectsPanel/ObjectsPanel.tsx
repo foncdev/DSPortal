@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { useDesignEditor, FabricObjectWithId } from '../DesignEditorContext';
 import ObjectToolbar from './ObjectToolbar';
 import LayoutGroupItem from './LayoutGroupItem';
-import ObjectItem from './ObjectItem';
 import styles from './ObjectsPanel.module.scss';
 
 interface ObjectsPanelProps {
@@ -29,13 +28,13 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         getObjects,
         selectedObject,
         selectObject,
-        addObject
+        addObject,
+        createLayoutGroup
     } = useDesignEditor();
 
     const [objects, setObjects] = useState<FabricObjectWithId[]>([]);
     const [objectsExpanded, setObjectsExpanded] = useState(true);
     const [layoutGroups, setLayoutGroups] = useState<LayoutGroup[]>([]);
-    const [ungroupedObjects, setUngroupedObjects] = useState<FabricObjectWithId[]>([]);
     const [nextGroupId, setNextGroupId] = useState(1);
     const [draggingId, setDraggingId] = useState<number | string | null>(null);
     const [dragOverId, setDragOverId] = useState<number | string | null>(null);
@@ -44,10 +43,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // 중복 처리 방지를 위한 플래그
     const isProcessingRef = useRef(false);
     const initialLoadDoneRef = useRef(false);
-
-
-    // TODO layoutGroups 자동 생성 옵션이 있으면 기본 레이어 생성한다.
-
 
     // Update objects list when canvas changes
     useEffect(() => {
@@ -129,7 +124,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
             // Process objects with layout tags
             const layouts: Record<string, LayoutGroup> = {};
-            const unassigned: FabricObjectWithId[] = [];
 
             // Step 1: Find layout parent objects
             canvasObjects.forEach(obj => {
@@ -152,18 +146,36 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
             // Step 2: Assign child objects
             canvasObjects.forEach(obj => {
-                if (!obj.id) {return;}
+                if (!obj.id || obj.isLayoutParent) {return;}
 
                 const layoutTag = obj.layoutGroup as string | undefined;
-                const isLayoutParent = obj.isLayoutParent as boolean | undefined;
 
-                if (!isLayoutParent) {
-                    if (layoutTag && layouts[layoutTag]) {
-                        // Child object belonging to a layout
-                        layouts[layoutTag].objects.push(obj);
+                if (layoutTag && layouts[layoutTag]) {
+                    // Child object belonging to a layout
+                    layouts[layoutTag].objects.push(obj);
+                } else {
+                    // Set to first layout group if exists
+                    const firstGroupId = Object.keys(layouts)[0];
+                    if (firstGroupId) {
+                        obj.set({
+                            'layoutGroup': firstGroupId
+                        });
+                        layouts[firstGroupId].objects.push(obj);
                     } else {
-                        // Independent object
-                        unassigned.push(obj);
+                        // Create a default layout group
+                        const newGroupId = `layout_${Date.now()}`;
+                        const newLayoutGroup = createLayoutGroup(`레이어 1`);
+
+                        obj.set({
+                            'layoutGroup': newGroupId
+                        });
+
+                        layouts[newGroupId] = {
+                            id: newGroupId,
+                            name: `레이어 1`,
+                            expanded: true,
+                            objects: [obj]
+                        };
                     }
                 }
             });
@@ -184,7 +196,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
             }
 
             setLayoutGroups(groupsArray);
-            setUngroupedObjects(unassigned);
 
             // Update next group ID
             if (Object.keys(layouts).length > 0) {
@@ -204,8 +215,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
             // Get unique layout name
             const layoutName = `레이어 ${nextGroupId}`;
 
-            // Use the createLayoutGroup function from context
-            const { createLayoutGroup } = useDesignEditor();
             createLayoutGroup(layoutName);
 
             // Increment next group ID
@@ -215,7 +224,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
             isProcessingRef.current = false;
         }
     };
-
 
     // Toggle layout group expanded state
     const toggleLayoutGroupExpanded = (groupId: string) => {
@@ -231,108 +239,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // Toggle objects section expanded state
     const toggleObjectsExpanded = () => {
         setObjectsExpanded(!objectsExpanded);
-    };
-
-    // 그룹 내 오브젝트 순서 변경
-    const handleReorderObjectWithinGroup = (groupId: string, objectId: number | string, targetIndex: number) => {
-        if (!canvas) return;
-
-        // 현재 그룹 찾기
-        const group = layoutGroups.find(g => g.id === groupId);
-        if (!group) return;
-
-        // 움직이려는 객체 찾기
-        const objectToMove = group.objects.find(o => o.id === objectId);
-        if (!objectToMove) return;
-
-        // 현재 객체의 인덱스
-        const currentIndex = group.objects.indexOf(objectToMove);
-        if (currentIndex === targetIndex) return; // 위치 변화 없음
-
-        // 캔버스에서 객체 재정렬
-        // 먼저 모든 그룹 객체의 zIndex 가져오기
-        const groupObjects = canvas.getObjects().filter(
-            obj => (obj as FabricObjectWithId).layoutGroup === groupId
-        ) as FabricObjectWithId[];
-
-        // 객체 재정렬
-        if (currentIndex < targetIndex) {
-            // 아래로 이동
-            for (let i = currentIndex; i < targetIndex; i++) {
-                canvas.bringForward(objectToMove);
-            }
-        } else {
-            // 위로 이동
-            for (let i = currentIndex; i > targetIndex; i--) {
-                canvas.sendBackwards(objectToMove);
-            }
-        }
-
-        canvas.requestRenderAll();
-    };
-
-    // Handle group drop (for drag and drop)
-    const handleGroupDrop = (groupId: string, e: React.DragEvent) => {
-        e.preventDefault();
-        if (!canvas || !draggingId) {return;}
-
-        // Find the dragged object
-        const draggedObj = objects.find(obj => obj.id === draggingId);
-        if (!draggedObj) {return;}
-
-        // Layout parents cannot be moved between groups
-        if (draggedObj.isLayoutParent) {return;}
-
-        // Add object to group
-        draggedObj.set({
-            'layoutGroup': groupId
-        });
-
-        canvas.requestRenderAll();
-        setDragOverId(null);
-        setDragOverIndex(null);
-        setDraggingId(null);
-    };
-
-    // Handle unassigned drop (remove from group)
-    const handleUnassignedDrop = (e: React.DragEvent) => {
-        e.preventDefault();
-        if (!canvas || !draggingId) {return;}
-
-        // Find the dragged object
-        const draggedObj = objects.find(obj => obj.id === draggingId);
-        if (!draggedObj || !draggedObj.layoutGroup) {return;}
-
-        // Layout parents cannot be removed from their group
-        if (draggedObj.isLayoutParent) {return;}
-
-        // Remove group property
-        draggedObj.set({
-            'layoutGroup': undefined
-        });
-
-        canvas.requestRenderAll();
-        setDragOverId(null);
-        setDragOverIndex(null);
-        setDraggingId(null);
-    };
-
-    // Handle object drop within group (reordering)
-    const handleObjectDropWithinGroup = (groupId: string, targetIndex: number, e: React.DragEvent) => {
-        e.preventDefault();
-        if (!canvas || !draggingId) return;
-
-        const group = layoutGroups.find(g => g.id === groupId);
-        if (!group) return;
-
-        const draggedObj = group.objects.find(o => o.id === draggingId);
-        if (!draggedObj) return;
-
-        handleReorderObjectWithinGroup(groupId, draggingId, targetIndex);
-
-        setDragOverId(null);
-        setDragOverIndex(null);
-        setDraggingId(null);
     };
 
     return (
@@ -384,7 +290,23 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                         e.preventDefault();
                                         setDragOverId(`group_${group.id}`);
                                     }}
-                                    onDrop={(e) => handleGroupDrop(group.id, e)}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        if (!canvas || !draggingId) {return;}
+
+                                        // Find the dragged object
+                                        const draggedObj = objects.find(obj => obj.id === draggingId);
+                                        if (!draggedObj || draggedObj.isLayoutParent) {return;}
+
+                                        // Update object's group
+                                        draggedObj.set({
+                                            'layoutGroup': group.id
+                                        });
+
+                                        canvas.requestRenderAll();
+                                        setDragOverId(null);
+                                        setDraggingId(null);
+                                    }}
                                     onDragStart={setDraggingId}
                                     onDragEnd={() => {
                                         setDraggingId(null);
@@ -393,50 +315,51 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                     }}
                                     onDragOver={setDragOverId}
                                     onDragOverIndex={setDragOverIndex}
-                                    onDropAtIndex={(index, e) => handleObjectDropWithinGroup(group.id, index, e)}
+                                    onDropAtIndex={(index, e) => {
+                                        e.preventDefault();
+                                        if (!canvas || !draggingId) return;
+
+                                        const group = layoutGroups.find(g => g.id === group.id);
+                                        if (!group) return;
+
+                                        const draggedObj = group.objects.find(o => o.id === draggingId);
+                                        if (!draggedObj) return;
+
+                                        // Reorder objects within the group
+                                        const currentIndex = group.objects.indexOf(draggedObj);
+                                        if (currentIndex === index) return;
+
+                                        const newObjects = [...group.objects];
+                                        newObjects.splice(currentIndex, 1);
+                                        newObjects.splice(index, 0, draggedObj);
+
+                                        setLayoutGroups(prev => prev.map(g =>
+                                            g.id === group.id ? {...g, objects: newObjects} : g
+                                        ));
+
+                                        // Update z-index in the canvas
+                                        if (canvas) {
+                                            const canvasObjects = canvas.getObjects();
+                                            const startIndex = canvasObjects.indexOf(draggedObj);
+
+                                            if (startIndex !== -1) {
+                                                canvas.remove(draggedObj);
+                                                canvas.insertAt(draggedObj, index);
+                                                canvas.requestRenderAll();
+                                            }
+                                        }
+
+                                        setDragOverId(null);
+                                        setDragOverIndex(null);
+                                        setDraggingId(null);
+                                    }}
                                 />
                             ))}
                         </div>
                     )}
 
-                    {/* Ungrouped objects */}
-                    {ungroupedObjects.length > 0 && (
-                        <div
-                            className={`${styles.ungroupedSection} ${dragOverId === 'unassigned' ? styles.dragOver : ''}`}
-                            onDragOver={(e) => {
-                                e.preventDefault();
-                                setDragOverId('unassigned');
-                            }}
-                            onDrop={handleUnassignedDrop}
-                        >
-                            <div className={styles.ungroupedHeader}>
-                                <span>{t('editor.ungroupedObjects')}</span>
-                                <div className={styles.objectCount}>{ungroupedObjects.length}</div>
-                            </div>
-
-                            <div className={styles.ungroupedList}>
-                                {ungroupedObjects.map((object) => (
-                                    <ObjectItem
-                                        key={object.id}
-                                        object={object}
-                                        isSelected={selectedObject?.id === object.id}
-                                        isDragOver={dragOverId === object.id}
-                                        onSelect={() => selectObject(object)}
-                                        onDragStart={(id) => setDraggingId(id)}
-                                        onDragEnd={() => {
-                                            setDraggingId(null);
-                                            setDragOverId(null);
-                                            setDragOverIndex(null);
-                                        }}
-                                        onDragOver={(id) => setDragOverId(id)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     {/* Empty state */}
-                    {layoutGroups.length === 0 && ungroupedObjects.length === 0 && (
+                    {layoutGroups.length === 0 && (
                         <div className={styles.emptyState}>
                             {t('editor.noObjects')}
                         </div>
