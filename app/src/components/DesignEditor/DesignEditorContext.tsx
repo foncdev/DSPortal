@@ -218,8 +218,6 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const addObject = (type: ObjectType, options: any = {}) => {
         if (!canvas) {return;}
 
-        // TODO 활성화되어 있는 레이아웃 그룹에 추가한다.
-
         // Generate a unique ID for the new object
         const newId = objectCount + 1;
         setObjectCount(newId);
@@ -283,7 +281,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                         top: options.top || Math.random() * (height - 200) + 100,
                         id: newId,
                         objectType: type,
-                        name: options.name || `Image ${newId}`
+                        name: options.name || `Image ${newId}`,
+                        layoutGroup: options.layoutGroup || undefined
                     });
 
                     canvas.add(img);
@@ -314,11 +313,25 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                 name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${newId}`
             });
 
+            // If no specific layout group provided, try to add to active group
+            if (!options.layoutGroup) {
+                const activeGroupId = getActiveLayoutGroupId();
+                if (activeGroupId) {
+                    object.set({
+                        'layoutGroup': activeGroupId
+                    });
+                }
+            } else {
+                object.set({
+                    'layoutGroup': options.layoutGroup
+                });
+            }
+
             // Add to canvas, select it, and save to history
             canvas.add(object);
             canvas.setActiveObject(object);
-            canvas.requestRenderAll(); // renderAll 대신 requestRenderAll 사용
-            setSelectedObject(object); // 선택된 객체 상태 업데이트
+            canvas.requestRenderAll();
+            setSelectedObject(object);
             saveToHistory();
         }
     };
@@ -541,7 +554,15 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
         // 캔버스에 추가
         canvas.add(layoutObject);
+
+        // 활성 객체로 설정 (선택)
+        canvas.setActiveObject(layoutObject);
         canvas.requestRenderAll();
+
+        // 선택된 객체 상태 업데이트
+        setSelectedObject(layoutObject as FabricObjectWithId);
+
+        // 캔버스 상태 저장
         saveToHistory();
 
         return groupId;
@@ -679,6 +700,38 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         saveToHistory();
     };
 
+    const getActiveLayoutGroupId = (): string | null => {
+        if (!canvas) return null;
+
+        // If a selected object is part of a layout group, use that group
+        if (selectedObject && selectedObject.layoutGroup) {
+            return selectedObject.layoutGroup as string;
+        }
+
+        // Otherwise, find the first layout group
+        const objects = canvas.getObjects() as FabricObjectWithId[];
+        const layoutParents = objects.filter(obj => obj.isLayoutParent && obj.layoutGroup);
+
+        if (layoutParents.length > 0) {
+            return layoutParents[0].layoutGroup as string;
+        }
+
+        return null;
+    };
+
+    // Move object to active layout group (if exists)
+    const moveToActiveLayoutGroup = (object: FabricObjectWithId): void => {
+        if (!canvas || object.isLayoutParent) return;
+
+        const activeGroupId = getActiveLayoutGroupId();
+        if (activeGroupId) {
+            object.set({
+                'layoutGroup': activeGroupId
+            });
+        }
+    };
+
+
     // Update canUndo and canRedo when history changes
     useEffect(() => {
         setCanUndo(historyIndex > 0);
@@ -716,6 +769,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         getObjectsByGroup,
         deleteLayoutGroup,
         moveObjectToGroup,
+        moveToActiveLayoutGroup,
         showGrid,
         toggleGrid,
         zoomLevel,

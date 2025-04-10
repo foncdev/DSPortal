@@ -331,10 +331,29 @@ const DesignEditorInner: React.FC = () => {
         // 현재 캔버스에 있는 모든 객체 제거
         canvas.clear();
 
+        // 새 레이아웃 그룹 생성
+        const layoutGroupId = `layout_${Date.now()}`;
+        let layoutObject: FabricObjectWithId | null = null;
+
         // 템플릿의 객체들 추가
-        template.objects.forEach(obj => {
+        template.objects.forEach((obj, index) => {
+            const objOptions = {
+                ...obj.properties,
+                name: obj.name
+            };
+
+            // 템플릿의 첫 번째 객체를 레이아웃 부모로 설정 (보통 배경 객체)
+            if (index === 0 && obj.type === 'rectangle') {
+                // Add layout parent flag
+                objOptions.isLayoutParent = true;
+                objOptions.layoutGroup = layoutGroupId;
+            } else if (index > 0) {
+                // Add child objects to layout group
+                objOptions.layoutGroup = layoutGroupId;
+            }
+
             // @ts-ignore - obj.type과 ObjectType 타입 일치 문제
-            addObject(obj.type, { ...obj.properties, name: obj.name });
+            addObject(obj.type, objOptions);
         });
 
         // 템플릿 드롭다운 닫기

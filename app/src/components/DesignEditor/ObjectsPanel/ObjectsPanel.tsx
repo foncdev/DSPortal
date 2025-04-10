@@ -172,9 +172,14 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
             // 레이아웃 그룹이 없을 경우 자동으로 생성
             if (groupsArray.length === 0 && canvasObjects.length > 0 && !isProcessingRef.current) {
-                // 재귀 호출 방지
-                isProcessingRef.current = false;
-                handleCreateNewLayoutGroup();
+                // Set flag to prevent recursive call
+                isProcessingRef.current = true;
+
+                // Create default layout group with slight delay to avoid state update conflicts
+                setTimeout(() => {
+                    handleCreateNewLayoutGroup();
+                    isProcessingRef.current = false;
+                }, 100);
                 return;
             }
 
@@ -195,14 +200,22 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         if (!canvas || isProcessingRef.current) {return;}
         isProcessingRef.current = true;
 
-        // 고유한 ID 생성
-        const timestamp = Date.now();
-        const groupId = `layout_${timestamp}`;
-        const layoutName = `레이어 ${nextGroupId}`;
+        try {
+            // Get unique layout name
+            const layoutName = `레이어 ${nextGroupId}`;
 
-        // TODO layoutGroups 추가한다.
+            // Use the createLayoutGroup function from context
+            const { createLayoutGroup } = useDesignEditor();
+            createLayoutGroup(layoutName);
 
+            // Increment next group ID
+            setNextGroupId(prevId => prevId + 1);
+        } finally {
+            // Reset processing flag
+            isProcessingRef.current = false;
+        }
     };
+
 
     // Toggle layout group expanded state
     const toggleLayoutGroupExpanded = (groupId: string) => {
