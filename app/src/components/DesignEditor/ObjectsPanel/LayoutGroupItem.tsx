@@ -235,33 +235,6 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                 </div>
 
                 <div className={styles.layoutGroupActions}>
-                    <div className={styles.objectTypeButtons}>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => addObjectToGroup('text', e)}
-                            title={t('editor.addTextToGroup')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Text size={14} />
-                        </button>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => addObjectToGroup('image', e)}
-                            title={t('editor.addImageToGroup')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Image size={14} />
-                        </button>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => addObjectToGroup('video', e)}
-                            title={t('editor.addVideoToGroup')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Film size={14} />
-                        </button>
-                    </div>
-
                     <button
                         className={`${styles.objectAction} ${styles.deleteAction}`}
                         onClick={handleDeleteGroup}
