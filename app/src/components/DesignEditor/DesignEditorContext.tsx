@@ -7,13 +7,17 @@ export type ObjectType = 'text' | 'image' | 'video' | 'rectangle' | 'circle' | '
 
 // Define fabric object with custom properties
 export interface FabricObjectWithId extends fabric.Object {
-    id?: number;
+    id?: number | string;
     objectType?: ObjectType;
     name?: string;
     // 계층 구조를 위한 추가 속성
     layoutGroup?: string;      // 이 객체가 속한 레이아웃 그룹 ID
     isLayoutParent?: boolean;  // 이 객체가 레이아웃의 부모 객체인지 여부
     groupOrder?: number;       // 그룹 내에서의 순서
+
+    // 이동 처리를 위한 임시 속성 추가
+    __oldLeft?: number;        // 이동 전 left 위치
+    __oldTop?: number;         // 이동 전 top 위치
 }
 
 // Define context type
@@ -34,6 +38,7 @@ interface DesignEditorContextType {
     getObjectsByGroup: (groupId: string) => FabricObjectWithId[];
     deleteLayoutGroup: (groupId: string) => void;
     moveObjectToGroup: (objectId: number | string, groupId: string | null) => void;
+    moveGroupTogether: (groupId: string, deltaX: number, deltaY: number) => void;
 
     // Actions
     addObject: (type: ObjectType, options?: any) => void;
@@ -50,7 +55,7 @@ interface DesignEditorContextType {
     selectObject: (object: FabricObjectWithId | null) => void;
 
     // Property updates
-    updateObjectProperty: <T>(property: string, value: T) => void;
+    updateObjectProperty: <T extends unknown>(property: string, value: T) => void;
 
     // Canvas settings
     showGrid: boolean;
@@ -172,23 +177,95 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     useEffect(() => {
         if (!canvas) {return;}
 
-        const handleSelectionCreated = (e: fabric.IEvent) => {
-            const selection = e.selected?.[0] as FabricObjectWithId;
-            setSelectedObject(selection || null);
+        const handleObjectMoving = (e: fabric.IEvent) => {
+            const movedObject = e.target as FabricObjectWithId;
+
+            // 현재 이동 중인 객체가 레이어 부모인지 확인
+            if (movedObject && movedObject.isLayoutParent) {
+                // 이전 위치와 현재 위치의 차이 계산
+                const oldLeft = movedObject.__oldLeft || 0;
+                const oldTop = movedObject.__oldTop || 0;
+                const newLeft = movedObject.left || 0;
+                const newTop = movedObject.top || 0;
+
+                // 이동한 거리 계산
+                const deltaX = newLeft - oldLeft;
+                const deltaY = newTop - oldTop;
+
+                // 이동량이 없으면 처리하지 않음
+                if (deltaX === 0 && deltaY === 0) return;
+
+                // 레이어 그룹 ID 가져오기
+                const groupId = movedObject.layoutGroup;
+                if (!groupId) return;
+
+                // 해당 그룹의 모든 자식 객체 찾기 (부모 제외)
+                const childObjects = canvas.getObjects().filter(obj => {
+                    const fabricObj = obj as FabricObjectWithId;
+                    return fabricObj.layoutGroup === groupId && !fabricObj.isLayoutParent;
+                }) as FabricObjectWithId[];
+
+                // 모든 자식 객체 함께 이동
+                childObjects.forEach(child => {
+                    child.set({
+                        left: (child.left || 0) + deltaX,
+                        top: (child.top || 0) + deltaY
+                    });
+                    child.setCoords();
+                });
+
+                // 현재 위치를 이전 위치로 저장 (다음 이동 계산용)
+                movedObject.__oldLeft = newLeft;
+                movedObject.__oldTop = newTop;
+
+                // 캔버스 렌더링
+                canvas.requestRenderAll();
+            }
         };
 
-        const handleSelectionCleared = () => {
-            setSelectedObject(null);
+        const handleObjectModified = (e: fabric.IEvent) => {
+            const modifiedObject = e.target as FabricObjectWithId;
+
+            // 객체가 수정 완료되면 이전 위치 정보 삭제
+            if (modifiedObject) {
+                delete modifiedObject.__oldLeft;
+                delete modifiedObject.__oldTop;
+            }
         };
 
-        canvas.on('selection:created', handleSelectionCreated);
-        canvas.on('selection:updated', handleSelectionCreated);
-        canvas.on('selection:cleared', handleSelectionCleared);
+        const handleBeforeSelectionCleared = (e: fabric.IEvent) => {
+            // 선택이 해제되기 전에 이전 위치 기록 삭제
+            const activeObjects = canvas.getActiveObjects() as FabricObjectWithId[];
+            activeObjects.forEach(obj => {
+                delete obj.__oldLeft;
+                delete obj.__oldTop;
+            });
+        };
 
+        const handleObjectSelected = (e: fabric.IEvent) => {
+            const selectedObject = e.target as FabricObjectWithId;
+
+            if (selectedObject && selectedObject.isLayoutParent) {
+                // 선택 시 현재 위치 저장
+                selectedObject.__oldLeft = selectedObject.left;
+                selectedObject.__oldTop = selectedObject.top;
+            }
+        };
+
+        // 이벤트 리스너 등록
+        canvas.on('object:moving', handleObjectMoving);
+        canvas.on('object:modified', handleObjectModified);
+        canvas.on('before:selection:cleared', handleBeforeSelectionCleared);
+        canvas.on('selection:created', handleObjectSelected);
+        canvas.on('selection:updated', handleObjectSelected);
+
+        // 정리 함수
         return () => {
-            canvas.off('selection:created', handleSelectionCreated);
-            canvas.off('selection:updated', handleSelectionCreated);
-            canvas.off('selection:cleared', handleSelectionCleared);
+            canvas.off('object:moving', handleObjectMoving);
+            canvas.off('object:modified', handleObjectModified);
+            canvas.off('before:selection:cleared', handleBeforeSelectionCleared);
+            canvas.off('selection:created', handleObjectSelected);
+            canvas.off('selection:updated', handleObjectSelected);
         };
     }, [canvas]);
 
@@ -522,27 +599,30 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // createLayoutGroup: 새로운 레이아웃 그룹 생성
     const createLayoutGroup = (name: string, options: any = {}) => {
-        if (!canvas) {return '';}
+        if (!canvas) return '';
 
         // 타임스탬프 기반 고유 ID 생성
         const timestamp = Date.now();
         const groupId = `layout_${timestamp}`;
 
-        const width = canvas.getWidth();
-        const height = canvas.getHeight();
+        const width = options.width || canvas.getWidth();
+        const height = options.height || canvas.getHeight();
 
         // 레이아웃 부모 객체 생성 (배경 사각형)
         const layoutObject = new fabric.Rect({
-            left: 0,
-            top: 0,
+            left: options.left || 0,
+            top: options.top || 0,
             width: width,
             height: height,
             fill: options.fill || '#f0f0f0',
             opacity: options.opacity || 0.5,
             rx: options.rx || 0,
-            ry: options.ry || 0
+            ry: options.ry || 0,
+            selectable: true,
+            hasControls: true,
+            hasBorders: true
         });
-        //
+
         // 커스텀 속성 추가
         layoutObject.set({
             id: objectCount + 1,
@@ -552,21 +632,63 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             layoutGroup: groupId
         });
 
+        // 객체 움직임 이벤트 핸들러 설정
+        layoutObject.on('moving', (e) => {
+            const movedObj = e.target as FabricObjectWithId;
+
+            // 현재 위치
+            const currentLeft = movedObj.left || 0;
+            const currentTop = movedObj.top || 0;
+
+            // 이전 위치가 없는 경우 초기화
+            if (movedObj.__oldLeft === undefined) {
+                movedObj.__oldLeft = currentLeft;
+            }
+            if (movedObj.__oldTop === undefined) {
+                movedObj.__oldTop = currentTop;
+            }
+
+            // 이동 거리 계산
+            const deltaX = currentLeft - movedObj.__oldLeft;
+            const deltaY = currentTop - movedObj.__oldTop;
+
+            // 이동량이 있는 경우에만 자식 객체 이동
+            if (deltaX !== 0 || deltaY !== 0) {
+                // 자식 객체들 이동
+                const childObjects = canvas.getObjects().filter(obj => {
+                    const childObj = obj as FabricObjectWithId;
+                    return childObj.layoutGroup === groupId && !childObj.isLayoutParent;
+                }) as FabricObjectWithId[];
+
+                childObjects.forEach(child => {
+                    child.set({
+                        left: (child.left || 0) + deltaX,
+                        top: (child.top || 0) + deltaY
+                    });
+                    child.setCoords();
+                });
+
+                // 이전 위치 업데이트
+                movedObj.__oldLeft = currentLeft;
+                movedObj.__oldTop = currentTop;
+            }
+        });
+
         // ID 카운터 업데이트
-         setObjectCount(objectCount + 1);
+        setObjectCount(objectCount + 1);
 
         // 캔버스에 추가
-         canvas.add(layoutObject);
+        canvas.add(layoutObject);
 
         // 활성 객체로 설정 (선택)
-         canvas.setActiveObject(layoutObject);
-         canvas.requestRenderAll();
+        canvas.setActiveObject(layoutObject);
+        canvas.requestRenderAll();
 
         // 선택된 객체 상태 업데이트
-         setSelectedObject(layoutObject as FabricObjectWithId);
+        setSelectedObject(layoutObject as FabricObjectWithId);
 
         // 캔버스 상태 저장
-         saveToHistory();
+        saveToHistory();
 
         return groupId;
     };
@@ -701,6 +823,26 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
         canvas.requestRenderAll();
         saveToHistory();
+    };
+
+    const moveGroupTogether = (groupId: string, deltaX: number, deltaY: number) => {
+        if (!canvas) return;
+
+        const groupObjects = canvas.getObjects().filter(obj => {
+            const fabricObj = obj as FabricObjectWithId;
+            return fabricObj.layoutGroup === groupId;
+        }) as FabricObjectWithId[];
+
+        // 모든 그룹 객체 이동
+        groupObjects.forEach(obj => {
+            obj.set({
+                left: (obj.left || 0) + deltaX,
+                top: (obj.top || 0) + deltaY
+            });
+            obj.setCoords();
+        });
+
+        canvas.requestRenderAll();
     };
 
     const getActiveLayoutGroupId = (): string | null => {
