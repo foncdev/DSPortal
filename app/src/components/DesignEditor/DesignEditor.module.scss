@@ -1,78 +1,18 @@
-// src/components/DesignEditor/DesignEditor.module.scss
-
-.global-actions-dropdown {
-  position: fixed;
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
-  box-shadow: var(--shadow-md);
-  min-width: 200px;
-  max-width: 250px;
-  z-index: 1000;
-  overflow: hidden;
-  animation: fadeIn 0.2s ease-out;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .actionItem {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 0.625rem 0.75rem;
-    background: none;
-    border: none;
-    text-align: left;
-    color: var(--color-text-primary);
-    cursor: pointer;
-    font-size: 0.875rem;
-    gap: 0.5rem;
-    transition: all var(--transition-fast) ease;
-
-    svg {
-      color: var(--color-text-secondary);
-      margin-right: 0.5rem;
-    }
-
-    &:hover {
-      background-color: var(--color-bg-tertiary);
-      color: var(--color-text-primary);
-
-      svg {
-        color: var(--color-primary);
-      }
-    }
-
-    &.deleteAction:hover {
-      background-color: var(--color-error);
-      color: var(--color-primary-contrast);
-
-      svg {
-        color: var(--color-primary-contrast);
-      }
-    }
-  }
-
-  .actionDivider {
-    height: 1px;
-    background-color: var(--color-border);
-    margin: 0.25rem 0;
-  }
+// 전역 정의 변수
+:root {
+  --spacing-xs: 0.25rem;   // 4px
+  --spacing-sm: 0.375rem;  // 6px
+  --spacing-md: 0.5rem;    // 8px
+  --spacing-lg: 0.75rem;   // 12px
+  --button-size-sm: 1.75rem; // 28px
+  --button-size: 2rem;     // 32px
+  --panel-width: 250px;    // 기본 패널 너비
 }
-
 
 .editorContainer {
   display: flex;
   flex-direction: column;
-  height: 80vh;
+  height: 85vh;
   width: 100%;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
@@ -83,17 +23,18 @@
 .toolbar {
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
-  height: 3rem;
+  height: 2.5rem;
   justify-content: space-between;
   flex-shrink: 0;
   transition: all var(--transition-normal) ease;
+  gap: var(--spacing-sm);
 
   .toolGroup {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--spacing-xs);
     position: relative; // 템플릿 드롭다운 위치 기준점
   }
 
@@ -101,9 +42,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.375rem;
+    width: var(--button-size);
+    height: var(--button-size);
+    border-radius: 0.25rem;
     border: none;
     background-color: var(--color-bg-primary);
     color: var(--color-text-secondary);
@@ -140,18 +81,18 @@
     position: absolute;
     top: 100%;
     left: 0;
-    width: 180px;
+    width: 160px;
     background-color: var(--color-bg-primary);
     border: 1px solid var(--color-border);
-    border-radius: 0.375rem;
+    border-radius: 0.25rem;
     box-shadow: var(--shadow-md);
     z-index: 100;
-    margin-top: 0.5rem;
+    margin-top: var(--spacing-sm);
     overflow: hidden;
 
     .dropdownTitle {
-      padding: 0.625rem 0.75rem;
-      font-size: 0.875rem;
+      padding: var(--spacing-xs) var(--spacing-md);
+      font-size: 0.75rem;
       font-weight: 500;
       border-bottom: 1px solid var(--color-border);
       background-color: var(--color-bg-tertiary);
@@ -161,11 +102,11 @@
       display: block;
       width: 100%;
       text-align: left;
-      padding: 0.5rem 0.75rem;
+      padding: var(--spacing-xs) var(--spacing-md);
       border: none;
       background: none;
       color: var(--color-text-primary);
-      font-size: 0.875rem;
+      font-size: 0.75rem;
       cursor: pointer;
       transition: background-color var(--transition-fast) ease;
 
@@ -183,7 +124,7 @@
   position: relative;
 }
 
-// Left panel styles
+// 왼쪽 패널 스타일
 .leftPanel {
   display: flex;
   flex-direction: column;
@@ -192,6 +133,7 @@
   position: relative;
   transition: width var(--transition-normal) ease;
   overflow: hidden;
+  width: var(--panel-width);
 
   &.collapsed {
     width: 0 !important;
@@ -204,7 +146,7 @@
   background-color: var(--color-bg-tertiary);
 
   .tab {
-    padding: 0.75rem 1rem;
+    padding: var(--spacing-sm) var(--spacing-md);
     border: none;
     background: none;
     color: var(--color-text-secondary);
@@ -213,7 +155,8 @@
     transition: all var(--transition-fast) ease;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-xs);
+    font-size: 0.75rem;
 
     .tabIcon {
       color: inherit;
@@ -230,100 +173,7 @@
   }
 }
 
-.panelHeading {
-  font-size: 0.875rem;
-  padding: 0.75rem 1rem;
-  margin: 0;
-  color: var(--color-text-primary);
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-bg-tertiary);
-}
-
-.objectTools {
-  display: flex;
-  padding: 0.75rem 0.5rem;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--color-border);
-
-  .objectToolButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.375rem;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-bg-primary);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all var(--transition-fast) ease;
-
-    &:hover {
-      background-color: var(--color-bg-tertiary);
-      color: var(--color-text-primary);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-}
-
-.objectsList {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.5rem 0;
-
-  .objectItem {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    transition: all var(--transition-fast) ease;
-    color: var(--color-text-secondary);
-
-    &:hover {
-      background-color: var(--color-bg-tertiary);
-    }
-
-    &.selected {
-      background-color: var(--color-primary);
-      color: var(--color-primary-contrast);
-    }
-
-    .objectIcon {
-      margin-right: 0.75rem;
-      display: flex;
-      align-items: center;
-    }
-
-    .objectName {
-      font-size: 0.875rem;
-    }
-  }
-}
-
-.libraryContent {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.5rem;
-}
-
-.libraryPlaceholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 10rem;
-  background-color: var(--color-bg-tertiary);
-  border-radius: 0.375rem;
-  color: var(--color-text-tertiary);
-  font-size: 0.875rem;
-  text-align: center;
-  padding: 1rem;
-}
-
-// Right panel styles
+// 오른쪽 패널 스타일
 .rightPanel {
   display: flex;
   flex-direction: column;
@@ -332,103 +182,31 @@
   position: relative;
   transition: width var(--transition-normal) ease;
   overflow: hidden;
+  width: var(--panel-width);
 
   &.collapsed {
     width: 0 !important;
   }
 }
 
-.propertiesContent {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-}
-
-.emptyState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 10rem;
-  background-color: var(--color-bg-tertiary);
-  border-radius: 0.375rem;
-  color: var(--color-text-tertiary);
-  font-size: 0.875rem;
-  text-align: center;
-  padding: 1rem;
-}
-
-.propertyGroup {
-  margin-bottom: 1.5rem;
-
-  h3 {
-    font-size: 0.875rem;
-    margin: 0 0 1rem 0;
-    color: var(--color-text-primary);
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 0.5rem;
-  }
-
-  .propertyRow {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 0.75rem;
-
-    label {
-      font-size: 0.75rem;
-      color: var(--color-text-secondary);
-      margin-bottom: 0.25rem;
-    }
-
-    input {
-      padding: 0.5rem;
-      border: 1px solid var(--color-border);
-      border-radius: 0.25rem;
-      background-color: var(--color-bg-primary);
-      color: var(--color-text-primary);
-
-      &:focus {
-        border-color: var(--color-primary);
-        outline: none;
-      }
-    }
-  }
-}
-
-// Content area
+// 컨텐츠 영역
 .contentArea {
   flex: 1;
   overflow: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--spacing-md);
   background-color: var(--color-bg-tertiary);
 }
 
-.canvas {
-  background-color: #ffffff;
-  box-shadow: var(--shadow-md);
-  width: 800px;
-  height: 600px;
-  position: relative;
-
-  .canvasPlaceholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    font-size: 1rem;
-    color: var(--color-text-tertiary);
-  }
-}
-
-// Common panel controls
+// 공통 패널 컨트롤
 .toggleButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 1.5rem;
-  height: 5rem;
+  width: 1.25rem;
+  height: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -445,13 +223,13 @@
   }
 
   .leftPanel & {
-    right: -1.5rem;
+    right: -1.25rem;
     border-left: none;
     border-radius: 0 0.25rem 0.25rem 0;
   }
 
   .rightPanel & {
-    left: -1.5rem;
+    left: -1.25rem;
     border-right: none;
     border-radius: 0.25rem 0 0 0.25rem;
   }
@@ -460,18 +238,15 @@
 .resizeHandle {
   position: absolute;
   cursor: col-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 5;
 
   .leftPanel & {
     top: 0;
     right: 0;
-    width: 4px;
+    width: 3px;
     height: 100%;
 
-    &:hover {
+    &:hover, &:active {
       background-color: var(--color-primary);
     }
 
@@ -483,10 +258,10 @@
   .rightPanel & {
     top: 0;
     left: 0;
-    width: 4px;
+    width: 3px;
     height: 100%;
 
-    &:hover {
+    &:hover, &:active {
       background-color: var(--color-primary);
     }
 
@@ -500,18 +275,18 @@
 .toolbarToggleContainer {
   position: absolute;
   top: 0;
-  right: 1rem;
+  right: var(--spacing-md);
   z-index: 100;
 }
 
 // 툴바 토글 버튼
 .toolbarToggleButton {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--button-size);
+  height: var(--button-size);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0 0 0.5rem 0.5rem;
+  border-radius: 0 0 0.25rem 0.25rem;
   background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-top: none;
@@ -522,5 +297,74 @@
   &:hover {
     background-color: var(--color-bg-tertiary);
     color: var(--color-text-primary);
+  }
+}
+
+// 글로벌 액션 드롭다운 (재작성)
+.global-actions-dropdown {
+  position: fixed;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+  box-shadow: var(--shadow-md);
+  min-width: 180px;
+  max-width: 220px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .actionItem {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: none;
+    border: none;
+    text-align: left;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    font-size: 0.75rem;
+    gap: var(--spacing-sm);
+    transition: all var(--transition-fast) ease;
+
+    svg {
+      color: var(--color-text-secondary);
+      margin-right: var(--spacing-xs);
+    }
+
+    &:hover {
+      background-color: var(--color-bg-tertiary);
+      color: var(--color-text-primary);
+
+      svg {
+        color: var(--color-primary);
+      }
+    }
+
+    &.deleteAction:hover {
+      background-color: var(--color-error);
+      color: var(--color-primary-contrast);
+
+      svg {
+        color: var(--color-primary-contrast);
+      }
+    }
+  }
+
+  .actionDivider {
+    height: 1px;
+    background-color: var(--color-border);
+    margin: 0.25rem 0;
   }
 }

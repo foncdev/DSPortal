@@ -7,20 +7,20 @@
   background-color: var(--color-bg-secondary);
 }
 
-// Error message styling
+// 에러 메시지 스타일
 .errorMessage {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  margin: 0.5rem;
+  padding: 4px 6px;
+  margin: 4px;
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid var(--color-error);
-  border-radius: 0.375rem;
+  border-radius: 4px;
   color: var(--color-error);
-  font-size: 0.75rem;
+  font-size: 11px;
 
   svg {
-    margin-right: 0.5rem;
+    margin-right: 4px;
     flex-shrink: 0;
   }
 
@@ -33,9 +33,9 @@
     border: none;
     color: var(--color-error);
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 14px;
     line-height: 1;
-    padding: 0 0.25rem;
+    padding: 0 2px;
     opacity: 0.7;
 
     &:hover {
@@ -44,21 +44,23 @@
   }
 }
 
+// 객체 도구 컨테이너
 .objectToolsContainer {
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid var(--color-border);
 
+  // 경고 메시지
   .warningMessage {
     display: flex;
     align-items: center;
-    padding: 0.5rem 0.75rem;
-    margin: 0 0.5rem 0.5rem 0.5rem;
+    padding: 4px 6px;
+    margin: 0 4px 4px 4px;
     background-color: rgba(245, 158, 11, 0.1);
     border: 1px solid var(--color-warning);
-    border-radius: 0.375rem;
+    border-radius: 4px;
     color: var(--color-warning);
-    font-size: 0.75rem;
+    font-size: 11px;
     animation: fadeIn 0.3s ease-out;
 
     @keyframes fadeIn {
@@ -67,7 +69,7 @@
     }
 
     svg {
-      margin-right: 0.5rem;
+      margin-right: 4px;
       flex-shrink: 0;
     }
 
@@ -80,9 +82,9 @@
       border: none;
       color: var(--color-warning);
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 14px;
       line-height: 1;
-      padding: 0 0.25rem;
+      padding: 0 2px;
       opacity: 0.7;
 
       &:hover {
@@ -92,24 +94,26 @@
   }
 }
 
+// 객체 도구 버튼 영역
 .objectTools {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: 4px;
+  padding: 6px;
 
+  // 객체 도구 버튼
   .objectToolButton {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.375rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
     border: 1px solid var(--color-border);
     background-color: var(--color-bg-primary);
     color: var(--color-text-secondary);
     cursor: pointer;
-    transition: all var(--transition-fast) ease;
+    transition: all 150ms ease;
 
     &:hover {
       background-color: var(--color-bg-tertiary);
@@ -140,22 +144,22 @@
   }
 }
 
-// Add Layer button
+// 레이어 추가 버튼
 .addLayerButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 6px;
   width: 100%;
-  padding: 0.625rem;
-  margin: 0.5rem 0;
-  border-radius: 0.375rem;
+  padding: 6px;
+  margin: 4px 0;
+  border-radius: 4px;
   border: 1px dashed var(--color-border);
   background-color: var(--color-bg-secondary);
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: 12px;
   cursor: pointer;
-  transition: all var(--transition-fast) ease;
+  transition: all 150ms ease;
 
   &:hover {
     background-color: var(--color-bg-tertiary);
@@ -181,11 +185,12 @@
   }
 }
 
+// 섹션 헤더
 .sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
+  padding: 6px 8px;
   border-bottom: 1px solid var(--color-border);
   background-color: var(--color-bg-tertiary);
   cursor: pointer;
@@ -198,10 +203,10 @@
   .sectionTitle {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 4px;
     color: var(--color-text-primary);
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: 12px;
 
     .sectionIcon {
       color: var(--color-text-secondary);
@@ -211,31 +216,34 @@
   .objectCount {
     background-color: var(--color-bg-inset);
     color: var(--color-text-tertiary);
-    font-size: 0.75rem;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
+    font-size: 11px;
+    padding: 2px 4px;
+    border-radius: 4px;
   }
 }
 
+// 객체 컨테이너
 .objectsContainer {
   flex: 1;
   overflow-y: auto;
-  padding: 0.5rem;
+  padding: 4px;
 }
 
+// 레이아웃 그룹 목록
 .layoutGroupsList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: 4px;
+  margin-bottom: 4px;
 }
 
+// 레이아웃 그룹
 .layoutGroup {
   border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border-radius: 4px;
   overflow: hidden;
   background-color: var(--color-bg-secondary);
-  transition: all var(--transition-fast) ease;
+  transition: all 150ms ease;
 
   &.dragOver {
     border: 1px dashed var(--color-primary);
@@ -243,11 +251,12 @@
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
   }
 
+  // 레이아웃 그룹 헤더
   .layoutGroupHeader {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 0.75rem;
+    padding: 4px 8px;
     background-color: var(--color-bg-tertiary);
     cursor: pointer;
     border-bottom: 1px solid var(--color-border);
@@ -260,7 +269,7 @@
     .layoutGroupInfo {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 6px;
       flex: 1;
       overflow: hidden;
 
@@ -270,7 +279,7 @@
       }
 
       .layoutGroupName {
-        font-size: 0.875rem;
+        font-size: 12px;
         font-weight: 500;
         color: var(--color-text-primary);
         white-space: nowrap;
@@ -278,7 +287,7 @@
         text-overflow: ellipsis;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 6px;
 
         &.hidden {
           opacity: 0.5;
@@ -286,7 +295,7 @@
         }
 
         .editNameButton {
-          padding: 0.25rem;
+          padding: 2px;
           background: none;
           border: none;
           cursor: pointer;
@@ -294,9 +303,9 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all var(--transition-fast) ease;
+          transition: all 150ms ease;
           opacity: 0.7;
-          border-radius: 0.25rem;
+          border-radius: 2px;
 
           &:hover {
             color: var(--color-primary);
@@ -310,12 +319,12 @@
         }
 
         .nameInput {
-          font-size: 0.875rem;
+          font-size: 12px;
           border: none;
           border-bottom: 1px solid var(--color-primary);
           background: transparent;
           color: var(--color-text-primary);
-          padding: 0.25rem 0;
+          padding: 2px 0;
           outline: none;
           flex: 1;
           width: 100%;
@@ -326,27 +335,27 @@
     .layoutGroupActions {
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 2px;
 
       .objectTypeButtons {
         display: flex;
-        gap: 0.25rem;
-        margin-right: 0.5rem;
+        gap: 2px;
+        margin-right: 4px;
         border-right: 1px solid var(--color-border);
-        padding-right: 0.5rem;
+        padding-right: 4px;
 
         .objectTypeButton {
-          width: 1.75rem;
-          height: 1.75rem;
+          width: 24px;
+          height: 24px;
           display: flex;
           align-items: center;
           justify-content: center;
           background-color: transparent;
           border: 1px solid var(--color-border);
-          border-radius: 0.25rem;
+          border-radius: 2px;
           color: var(--color-text-secondary);
           cursor: pointer;
-          transition: all var(--transition-fast) ease;
+          transition: all 150ms ease;
 
           &:hover {
             background-color: var(--color-bg-primary);
@@ -369,14 +378,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 0.25rem;
+        width: 24px;
+        height: 24px;
+        border-radius: 2px;
         background: transparent;
         border: none;
         color: var(--color-text-secondary);
         cursor: pointer;
-        transition: all var(--transition-fast) ease;
+        transition: all 150ms ease;
 
         &:hover {
           background-color: var(--color-bg-inset);
@@ -402,43 +411,45 @@
   }
 
   .layoutGroupContent {
-    padding: 0.5rem;
+    padding: 4px;
     background-color: var(--color-bg-secondary);
 
-    // Object reordering drop zone
+    // 객체 재정렬 드롭존
     .dropZone {
-      height: 4px;
-      margin: 2px 0;
-      border-radius: 2px;
+      height: 3px;
+      margin: 1px 0;
+      border-radius: 1px;
       background-color: transparent;
-      transition: all var(--transition-fast) ease;
+      transition: all 150ms ease;
 
       &.active {
-        height: 8px;
+        height: 6px;
         background-color: var(--color-primary);
-        margin: 4px 0;
+        margin: 2px 0;
       }
     }
 
+    // 빈 그룹 메시지
     .emptyGroupMessage {
-      padding: 1rem;
+      padding: 8px;
       text-align: center;
       color: var(--color-text-tertiary);
-      font-size: 0.875rem;
+      font-size: 12px;
       font-style: italic;
     }
   }
 }
 
+// 객체 아이템
 .objectItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.25rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 2px;
   cursor: grab;
-  transition: all var(--transition-fast) ease;
+  transition: all 150ms ease;
   border: 1px solid transparent;
   background-color: var(--color-bg-primary);
 
@@ -450,10 +461,11 @@
     }
   }
 
+  // 선택된 객체
   &.selected {
     background-color: var(--color-primary);
     border-color: var(--color-primary-dark);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 
     .objectInfo {
       .objectIcon {
@@ -494,16 +506,18 @@
     }
   }
 
+  // 드래그 오버 상태
   &.dragOver {
     border: 1px dashed var(--color-primary);
     background-color: rgba(59, 130, 246, 0.1);
   }
 
+  // 그룹 자식 객체
   &.groupChild {
-    padding-left: 1.5rem;
+    padding-left: 20px;
     background-color: var(--color-bg-tertiary);
     border-left: 2px solid var(--color-border);
-    margin-left: 0.5rem;
+    margin-left: 4px;
 
     &:hover {
       background-color: var(--color-bg-inset);
@@ -515,6 +529,7 @@
     }
   }
 
+  // 숨겨진 객체
   &.hidden {
     opacity: 0.5;
 
@@ -523,6 +538,7 @@
     }
   }
 
+  // 잠긴 객체
   &.locked {
     cursor: not-allowed;
 
@@ -537,10 +553,11 @@
     }
   }
 
+  // 객체 정보 영역
   .objectInfo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 8px;
     overflow: hidden;
     flex: 1;
 
@@ -551,18 +568,18 @@
     }
 
     .objectName {
-      font-size: 0.875rem;
+      font-size: 12px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--color-text-primary);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 4px;
       flex: 1;
 
       .editNameButton {
-        padding: 0.25rem;
+        padding: 2px;
         background: none;
         border: none;
         cursor: pointer;
@@ -570,9 +587,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all var(--transition-fast) ease;
+        transition: all 150ms ease;
         opacity: 0.7;
-        border-radius: 0.25rem;
+        border-radius: 2px;
 
         &:hover {
           color: var(--color-primary);
@@ -586,13 +603,13 @@
       }
 
       .nameInput {
-        font-size: 0.875rem;
+        font-size: 12px;
         border: none;
         border-bottom: 1px solid var(--color-primary);
         background: transparent;
         color: var(--color-text-primary);
         width: 100%;
-        padding: 0.25rem 0;
+        padding: 2px 0;
         outline: none;
         flex: 1;
 
@@ -604,24 +621,25 @@
     }
   }
 
+  // 객체 액션 버튼 영역
   .objectActions {
     display: flex;
-    gap: 0.375rem;
+    gap: 4px;
     opacity: 0.8;
-    transition: opacity var(--transition-fast) ease;
+    transition: opacity 150ms ease;
 
     .objectAction {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 1.75rem;
-      height: 1.75rem;
-      border-radius: 0.25rem;
+      width: 24px;
+      height: 24px;
+      border-radius: 2px;
       background: transparent;
       border: none;
       color: var(--color-text-secondary);
       cursor: pointer;
-      transition: all var(--transition-fast) ease;
+      transition: all 150ms ease;
 
       &:hover, &.active {
         background-color: var(--color-bg-inset);
@@ -650,10 +668,11 @@
   }
 }
 
+// 그룹화되지 않은 객체 섹션
 .ungroupedSection {
-  margin-top: 0.5rem;
+  margin-top: 4px;
   border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
+  border-radius: 4px;
   overflow: hidden;
   background-color: var(--color-bg-secondary);
 
@@ -667,9 +686,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 0.75rem;
+    padding: 4px 8px;
     background-color: var(--color-bg-tertiary);
-    font-size: 0.875rem;
+    font-size: 12px;
     font-weight: 500;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-text-primary);
@@ -677,23 +696,24 @@
     .objectCount {
       background-color: var(--color-bg-inset);
       color: var(--color-text-tertiary);
-      font-size: 0.75rem;
-      padding: 0.125rem 0.375rem;
-      border-radius: 0.25rem;
+      font-size: 11px;
+      padding: 2px 4px;
+      border-radius: 2px;
     }
   }
 
   .ungroupedList {
-    padding: 0.5rem;
+    padding: 4px;
   }
 }
 
+// 빈 상태 표시
 .emptyState {
-  padding: 1.5rem 1rem;
+  padding: 16px 12px;
   text-align: center;
   color: var(--color-text-tertiary);
-  font-size: 0.875rem;
+  font-size: 12px;
   background-color: var(--color-bg-secondary);
-  border-radius: 0.375rem;
-  margin-top: 0.5rem;
+  border-radius: 4px;
+  margin-top: 4px;
 }
