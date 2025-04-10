@@ -269,6 +269,7 @@
 
   .layoutGroupContent {
     padding: 0.5rem;
+    background-color: var(--color-bg-secondary);
 
     // 객체 사이의 드롭 영역
     .dropZone {
@@ -316,21 +317,25 @@
 
   &.selected {
     background-color: var(--color-primary);
+    border-color: var(--color-primary-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
     .objectInfo {
       .objectIcon {
-        color: var(--color-primary-contrast);
+        color: white;
       }
 
       .objectName {
-        color: var(--color-primary-contrast);
-      }
+        color: white;
+        font-weight: 500;
 
-      .editNameButton {
-        color: rgba(255, 255, 255, 0.7);
+        .editNameButton {
+          color: rgba(255, 255, 255, 0.8);
 
-        &:hover {
-          color: var(--color-primary-contrast);
+          &:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+          }
         }
       }
     }
@@ -339,14 +344,16 @@
       opacity: 1;
 
       .objectAction {
-        color: var(--color-primary-contrast);
+        color: white;
 
         &:hover, &.active {
           background-color: rgba(255, 255, 255, 0.2);
+          color: white;
         }
 
         &.deleteAction:hover {
           background-color: var(--color-error);
+          color: white;
         }
       }
     }
@@ -359,9 +366,18 @@
 
   &.groupChild {
     padding-left: 1.5rem;
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-bg-tertiary);
     border-left: 2px solid var(--color-border);
     margin-left: 0.5rem;
+
+    &:hover {
+      background-color: var(--color-bg-inset);
+    }
+
+    &.selected {
+      background-color: var(--color-primary);
+      border-left: 2px solid var(--color-primary-dark);
+    }
   }
 
   .objectInfo {
@@ -399,10 +415,12 @@
         justify-content: center;
         transition: all var(--transition-fast) ease;
         opacity: 0.7;
+        border-radius: 0.25rem;
 
         &:hover {
           color: var(--color-primary);
           opacity: 1;
+          background-color: var(--color-bg-primary);
         }
       }
 
@@ -422,8 +440,8 @@
         flex: 1;
 
         .selected & {
-          color: var(--color-primary-contrast);
-          border-bottom-color: var(--color-primary-contrast);
+          color: white;
+          border-bottom-color: white;
         }
       }
     }
@@ -487,6 +505,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
 
     .objectCount {
       background-color: var(--color-bg-inset);
