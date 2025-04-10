@@ -6,6 +6,7 @@ import {
     ChevronUp, ChevronDown, ChevronsUp, ChevronsDown,
     MoreHorizontal
 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useDesignEditor, FabricObjectWithId } from '../DesignEditorContext';
 import styles from './ObjectsPanel.module.scss';
@@ -50,6 +51,8 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const [showActionsMenu, setShowActionsMenu] = useState(false);
     const nameInputRef = useRef<HTMLInputElement>(null);
     const actionsMenuRef = useRef<HTMLDivElement>(null);
+    const actionsButtonRef = useRef<HTMLButtonElement>(null);
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
     // Get object type icon
     const getObjectIcon = () => {
@@ -245,13 +248,28 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Toggle the actions menu
     const toggleActionsMenu = (e: React.MouseEvent) => {
         e.stopPropagation();
+
+        // Calculate menu position relative to the button and screen
+        if (actionsButtonRef.current) {
+            const buttonRect = actionsButtonRef.current.getBoundingClientRect();
+            const menuLeft = buttonRect.left;
+            const menuTop = buttonRect.bottom;
+
+            setMenuPosition({ top: menuTop, left: menuLeft });
+        }
+
         setShowActionsMenu(!showActionsMenu);
     };
 
     // Handle click outside to close actions menu
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
+            if (
+                actionsMenuRef.current &&
+                !actionsMenuRef.current.contains(event.target as Node) &&
+                actionsButtonRef.current &&
+                !actionsButtonRef.current.contains(event.target as Node)
+            ) {
                 setShowActionsMenu(false);
             }
         };
@@ -293,6 +311,99 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Check if object is visible
     const isVisible = object.visible !== false;
+
+    // Render actions menu as a portal
+    const renderActionsMenu = () => {
+        if (!showActionsMenu) return null;
+
+        const menuStyle: React.CSSProperties = {
+            position: 'fixed',
+            top: `${menuPosition.top}px`,
+            left: `${menuPosition.left}px`,
+            zIndex: 1000,
+            transform: 'translateY(5px)'  // Slight offset from the button
+        };
+
+        return createPortal(
+            <div
+                ref={actionsMenuRef}
+                className={`global-actions-dropdown`}
+                style={{
+                    ...menuStyle,
+                    backgroundColor: 'var(--color-bg-primary)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '0.375rem',
+                    boxShadow: 'var(--shadow-md)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    padding: '5px'
+                }}
+            >
+                {!object.isLayoutParent && (
+                    <>
+                        <button
+                            className={`global-actions-dropdown actionItem`}
+                            onClick={handleMoveToTop}
+                            title={t('editor.moveObjectToTop')}
+                        >
+                            <ChevronsUp size={16} />
+                            <span>{t('editor.moveObjectToTop')}</span>
+                        </button>
+
+                        <button
+                            className={`global-actions-dropdown actionItem`}
+                            onClick={handleMoveUp}
+                            title={t('editor.moveObjectUp')}
+                        >
+                            <ChevronUp size={16} />
+                            <span>{t('editor.moveObjectUp')}</span>
+                        </button>
+
+                        <button
+                            className={`global-actions-dropdown actionItem`}
+                            onClick={handleMoveDown}
+                            title={t('editor.moveObjectDown')}
+                        >
+                            <ChevronDown size={16} />
+                            <span>{t('editor.moveObjectDown')}</span>
+                        </button>
+
+                        <button
+                            className={`global-actions-dropdown actionItem`}
+                            onClick={handleMoveToBottom}
+                            title={t('editor.moveObjectToBottom')}
+                        >
+                            <ChevronsDown size={16} />
+                            <span>{t('editor.moveObjectToBottom')}</span>
+                        </button>
+
+                        <div className={`global-actions-dropdown actionDivider`}></div>
+                    </>
+                )}
+
+                {!object.isLayoutParent && (
+                    <button
+                        className={`global-actions-dropdown actionItem`}
+                        onClick={handleDuplicate}
+                        title={t('editor.duplicate')}
+                    >
+                        <Copy size={16} />
+                        <span>{t('editor.duplicate')}</span>
+                    </button>
+                )}
+
+                <button
+                    className={`global-actions-dropdown actionItem deleteAction`}
+                    onClick={handleDelete}
+                    title={t('editor.delete')}
+                >
+                    <Trash2 size={16} />
+                    <span>{t('editor.delete')}</span>
+                </button>
+            </div>,
+            document.body
+        );
+    };
 
     return (
         <div
@@ -357,6 +468,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                 {/* More actions button with dropdown menu */}
                 <div className={styles.actionsMenuContainer}>
                     <button
+                        ref={actionsButtonRef}
                         className={`${styles.objectAction} ${showActionsMenu ? styles.active : ''}`}
                         onClick={toggleActionsMenu}
                         title={t('editor.moreActions')}
@@ -364,71 +476,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         <MoreHorizontal size={16} />
                     </button>
 
-                    {showActionsMenu && (
-                        <div className={styles.actionsDropdown} ref={actionsMenuRef}>
-                            {!object.isLayoutParent && (
-                                <>
-                                    <button
-                                        className={styles.actionItem}
-                                        onClick={handleMoveToTop}
-                                        title={t('editor.moveObjectToTop')}
-                                    >
-                                        <ChevronsUp size={16} />
-                                        <span>{t('editor.moveObjectToTop')}</span>
-                                    </button>
-
-                                    <button
-                                        className={styles.actionItem}
-                                        onClick={handleMoveUp}
-                                        title={t('editor.moveObjectUp')}
-                                    >
-                                        <ChevronUp size={16} />
-                                        <span>{t('editor.moveObjectUp')}</span>
-                                    </button>
-
-                                    <button
-                                        className={styles.actionItem}
-                                        onClick={handleMoveDown}
-                                        title={t('editor.moveObjectDown')}
-                                    >
-                                        <ChevronDown size={16} />
-                                        <span>{t('editor.moveObjectDown')}</span>
-                                    </button>
-
-                                    <button
-                                        className={styles.actionItem}
-                                        onClick={handleMoveToBottom}
-                                        title={t('editor.moveObjectToBottom')}
-                                    >
-                                        <ChevronsDown size={16} />
-                                        <span>{t('editor.moveObjectToBottom')}</span>
-                                    </button>
-
-                                    <div className={styles.actionDivider}></div>
-                                </>
-                            )}
-
-                            {!object.isLayoutParent && (
-                                <button
-                                    className={styles.actionItem}
-                                    onClick={handleDuplicate}
-                                    title={t('editor.duplicate')}
-                                >
-                                    <Copy size={16} />
-                                    <span>{t('editor.duplicate')}</span>
-                                </button>
-                            )}
-
-                            <button
-                                className={`${styles.actionItem} ${styles.deleteAction}`}
-                                onClick={handleDelete}
-                                title={t('editor.delete')}
-                            >
-                                <Trash2 size={16} />
-                                <span>{t('editor.delete')}</span>
-                            </button>
-                        </div>
-                    )}
+                    {renderActionsMenu()}
                 </div>
             </div>
         </div>
