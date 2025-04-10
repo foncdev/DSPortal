@@ -212,10 +212,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         isProcessingRef.current = true;
 
         try {
-            // Get unique layout name
-            const layoutName = `레이어 ${nextGroupId}`;
-
-            createLayoutGroup(layoutName);
+            createLayoutGroup('');
 
             // Increment next group ID
             setNextGroupId(prevId => prevId + 1);

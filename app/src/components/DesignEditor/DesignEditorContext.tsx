@@ -528,18 +528,21 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         const timestamp = Date.now();
         const groupId = `layout_${timestamp}`;
 
+        const width = canvas.getWidth();
+        const height = canvas.getHeight();
+
         // 레이아웃 부모 객체 생성 (배경 사각형)
         const layoutObject = new fabric.Rect({
-            left: options.left || Math.random() * 300 + 150,
-            top: options.top || Math.random() * 200 + 100,
-            width: options.width || 500,
-            height: options.height || 300,
+            left: 0,
+            top: 0,
+            width: width,
+            height: height,
             fill: options.fill || '#f0f0f0',
             opacity: options.opacity || 0.5,
             rx: options.rx || 0,
             ry: options.ry || 0
         });
-
+        //
         // 커스텀 속성 추가
         layoutObject.set({
             id: objectCount + 1,
@@ -550,20 +553,20 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         });
 
         // ID 카운터 업데이트
-        setObjectCount(objectCount + 1);
+         setObjectCount(objectCount + 1);
 
         // 캔버스에 추가
-        canvas.add(layoutObject);
+         canvas.add(layoutObject);
 
         // 활성 객체로 설정 (선택)
-        canvas.setActiveObject(layoutObject);
-        canvas.requestRenderAll();
+         canvas.setActiveObject(layoutObject);
+         canvas.requestRenderAll();
 
         // 선택된 객체 상태 업데이트
-        setSelectedObject(layoutObject as FabricObjectWithId);
+         setSelectedObject(layoutObject as FabricObjectWithId);
 
         // 캔버스 상태 저장
-        saveToHistory();
+         saveToHistory();
 
         return groupId;
     };
