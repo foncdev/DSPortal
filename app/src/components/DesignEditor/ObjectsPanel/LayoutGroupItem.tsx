@@ -416,34 +416,6 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                         {isLayerLocked ? <Unlock size={16} /> : <Lock size={16} />}
                     </button>
 
-                    {/* Quick add object buttons */}
-                    <div className={styles.objectTypeButtons}>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => addObjectToGroup('text', e)}
-                            title={t('editor.addTextToGroup')}
-                            disabled={isProcessingRef.current || !isLayerVisible}
-                        >
-                            <Text size={14} />
-                        </button>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => addObjectToGroup('rectangle', e)}
-                            title={t('editor.addShapeToGroup')}
-                            disabled={isProcessingRef.current || !isLayerVisible}
-                        >
-                            <Square size={14} />
-                        </button>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => addObjectToGroup('image', e)}
-                            title={t('editor.addImageToGroup')}
-                            disabled={isProcessingRef.current || !isLayerVisible}
-                        >
-                            <Image size={14} />
-                        </button>
-                    </div>
-
                     {/* Delete layer button */}
                     <button
                         className={`${styles.objectAction} ${styles.deleteAction}`}
