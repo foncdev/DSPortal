@@ -1,7 +1,7 @@
 // src/components/DesignEditor/ObjectsPanel/ObjectsPanel.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-    Layers, ChevronDown, ChevronRight, Monitor
+    Layers, ChevronDown, ChevronRight, Monitor, Plus
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDesignEditor, FabricObjectWithId } from '../DesignEditorContext';
@@ -39,18 +39,43 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     const [nextGroupId, setNextGroupId] = useState(1);
     const [draggingId, setDraggingId] = useState<number | string | null>(null);
     const [dragOverId, setDragOverId] = useState<number | string | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+    // 중복 처리 방지를 위한 플래그
+    const isProcessingRef = useRef(false);
+    const initialLoadDoneRef = useRef(false);
 
     // Update objects list when canvas changes
     useEffect(() => {
         if (!canvas) {return;}
 
         const updateObjectsList = () => {
-            // Get all canvas objects
-            const canvasObjects = getObjects();
-            setObjects(canvasObjects);
+            // 중복 처리 방지
+            if (isProcessingRef.current) return;
+            isProcessingRef.current = true;
 
-            // Organize objects into groups
-            organizeObjectsIntoGroups(canvasObjects);
+            try {
+                // Get all canvas objects
+                const canvasObjects = getObjects();
+                setObjects(canvasObjects);
+
+                // 첫 로드 후에 객체를 정리
+                if (initialLoadDoneRef.current) {
+                    // Organize objects into groups
+                    organizeObjectsIntoGroups(canvasObjects);
+                } else {
+                    // 첫 로드 시에는 단순히 객체만 설정
+                    initialLoadDoneRef.current = true;
+
+                    // 첫 로드 이후에 그룹 구성
+                    setTimeout(() => {
+                        const objects = getObjects();
+                        organizeObjectsIntoGroups(objects);
+                    }, 100);
+                }
+            } finally {
+                isProcessingRef.current = false;
+            }
         };
 
         // Initial update
@@ -67,7 +92,8 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         ];
 
         const handleCanvasEvent = () => {
-            updateObjectsList();
+            // 이벤트 발생 시 일정 시간 후에 처리 (연속 이벤트 방지)
+            setTimeout(updateObjectsList, 50);
         };
 
         events.forEach(event => {
@@ -80,86 +106,116 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                     canvas.off(event, handleCanvasEvent);
                 });
             }
+            initialLoadDoneRef.current = false;
         };
     }, [canvas, getObjects]);
 
     // Organize objects into layout groups
     const organizeObjectsIntoGroups = (canvasObjects: FabricObjectWithId[]) => {
-        // Preserve expanded state of existing groups
-        const expandedStates: Record<string, boolean> = {};
-        layoutGroups.forEach(group => {
-            expandedStates[group.id] = group.expanded;
-        });
+        // 중복 처리 방지
+        if (isProcessingRef.current) return;
+        isProcessingRef.current = true;
 
-        // Process objects with layout tags
-        const layouts: Record<string, LayoutGroup> = {};
-        const unassigned: FabricObjectWithId[] = [];
+        try {
+            // Preserve expanded state of existing groups
+            const expandedStates: Record<string, boolean> = {};
+            layoutGroups.forEach(group => {
+                expandedStates[group.id] = group.expanded;
+            });
 
-        // Step 1: Find layout parent objects
-        canvasObjects.forEach(obj => {
-            if (!obj.id) {return;}
+            // Process objects with layout tags
+            const layouts: Record<string, LayoutGroup> = {};
+            const unassigned: FabricObjectWithId[] = [];
 
-            const layoutTag = obj.layoutGroup as string | undefined;
-            const isLayoutParent = obj.isLayoutParent as boolean | undefined;
+            // Step 1: Find layout parent objects
+            canvasObjects.forEach(obj => {
+                if (!obj.id) {return;}
 
-            if (isLayoutParent) {
-                // This is a layout parent
-                const groupId = layoutTag || `layout_${nextGroupId + Object.keys(layouts).length}`;
-                layouts[groupId] = {
-                    id: groupId,
-                    name: obj.name || `Layout ${Object.keys(layouts).length + 1}`,
-                    expanded: expandedStates[groupId] !== undefined ? expandedStates[groupId] : true,
-                    objects: [obj]
-                };
-            }
-        });
+                const layoutTag = obj.layoutGroup as string | undefined;
+                const isLayoutParent = obj.isLayoutParent as boolean | undefined;
 
-        // Step 2: Assign child objects
-        canvasObjects.forEach(obj => {
-            if (!obj.id) {return;}
-
-            const layoutTag = obj.layoutGroup as string | undefined;
-            const isLayoutParent = obj.isLayoutParent as boolean | undefined;
-
-            if (!isLayoutParent) {
-                if (layoutTag && layouts[layoutTag]) {
-                    // Child object belonging to a layout
-                    layouts[layoutTag].objects.push(obj);
-                } else {
-                    // Independent object
-                    unassigned.push(obj);
+                if (isLayoutParent) {
+                    // This is a layout parent
+                    const groupId = layoutTag || `layout_${nextGroupId + Object.keys(layouts).length}`;
+                    layouts[groupId] = {
+                        id: groupId,
+                        name: obj.name || `레이어 ${Object.keys(layouts).length + 1}`,
+                        expanded: expandedStates[groupId] !== undefined ? expandedStates[groupId] : true,
+                        objects: [obj]
+                    };
                 }
+            });
+
+            // Step 2: Assign child objects
+            canvasObjects.forEach(obj => {
+                if (!obj.id) {return;}
+
+                const layoutTag = obj.layoutGroup as string | undefined;
+                const isLayoutParent = obj.isLayoutParent as boolean | undefined;
+
+                if (!isLayoutParent) {
+                    if (layoutTag && layouts[layoutTag]) {
+                        // Child object belonging to a layout
+                        layouts[layoutTag].objects.push(obj);
+                    } else {
+                        // Independent object
+                        unassigned.push(obj);
+                    }
+                }
+            });
+
+            const groupsArray = Object.values(layouts);
+
+            // 레이아웃 그룹이 없을 경우 자동으로 생성
+            if (groupsArray.length === 0 && canvasObjects.length > 0 && !isProcessingRef.current) {
+                // 재귀 호출 방지
+                isProcessingRef.current = false;
+                handleCreateNewLayoutGroup();
+                return;
             }
-        });
 
-        setLayoutGroups(Object.values(layouts));
-        setUngroupedObjects(unassigned);
+            setLayoutGroups(groupsArray);
+            setUngroupedObjects(unassigned);
 
-        // Update next group ID
-        if (Object.keys(layouts).length > 0) {
-            setNextGroupId(prevId => Math.max(prevId, Object.keys(layouts).length + 1));
+            // Update next group ID
+            if (Object.keys(layouts).length > 0) {
+                setNextGroupId(prevId => Math.max(prevId, Object.keys(layouts).length + 1));
+            }
+        } finally {
+            isProcessingRef.current = false;
         }
     };
 
     // Create a new layout group
     const handleCreateNewLayoutGroup = () => {
-        if (!canvas) {return;}
+        if (!canvas || isProcessingRef.current) {return;}
+        isProcessingRef.current = true;
 
-        const groupId = `layout_${nextGroupId}`;
-        const layoutName = `Layout ${nextGroupId}`;
+        // 고유한 ID 생성
+        const timestamp = Date.now();
+        const groupId = `layout_${timestamp}`;
+        const layoutName = `레이어 ${nextGroupId}`;
 
-        // Create layout background
-        addObject('rectangle', {
-            name: layoutName,
-            width: 500,
-            height: 300,
-            fill: '#f0f0f0',
-            opacity: 0.5,
-            isLayoutParent: true,
-            layoutGroup: groupId
-        });
+        // Create layout background with delayed processing
+        setTimeout(() => {
+            try {
+                addObject('rectangle', {
+                    name: layoutName,
+                    width: 500,
+                    height: 300,
+                    fill: '#f0f0f0',
+                    opacity: 0.5,
+                    isLayoutParent: true,
+                    layoutGroup: groupId,
+                    left: Math.random() * 300 + 150,
+                    top: Math.random() * 200 + 100
+                });
 
-        setNextGroupId(prevId => prevId + 1);
+                setNextGroupId(prevId => prevId + 1);
+            } finally {
+                isProcessingRef.current = false;
+            }
+        }, 100);
     };
 
     // Toggle layout group expanded state
@@ -176,6 +232,44 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // Toggle objects section expanded state
     const toggleObjectsExpanded = () => {
         setObjectsExpanded(!objectsExpanded);
+    };
+
+    // 그룹 내 오브젝트 순서 변경
+    const handleReorderObjectWithinGroup = (groupId: string, objectId: number | string, targetIndex: number) => {
+        if (!canvas) return;
+
+        // 현재 그룹 찾기
+        const group = layoutGroups.find(g => g.id === groupId);
+        if (!group) return;
+
+        // 움직이려는 객체 찾기
+        const objectToMove = group.objects.find(o => o.id === objectId);
+        if (!objectToMove) return;
+
+        // 현재 객체의 인덱스
+        const currentIndex = group.objects.indexOf(objectToMove);
+        if (currentIndex === targetIndex) return; // 위치 변화 없음
+
+        // 캔버스에서 객체 재정렬
+        // 먼저 모든 그룹 객체의 zIndex 가져오기
+        const groupObjects = canvas.getObjects().filter(
+            obj => (obj as FabricObjectWithId).layoutGroup === groupId
+        ) as FabricObjectWithId[];
+
+        // 객체 재정렬
+        if (currentIndex < targetIndex) {
+            // 아래로 이동
+            for (let i = currentIndex; i < targetIndex; i++) {
+                canvas.bringForward(objectToMove);
+            }
+        } else {
+            // 위로 이동
+            for (let i = currentIndex; i > targetIndex; i--) {
+                canvas.sendBackwards(objectToMove);
+            }
+        }
+
+        canvas.requestRenderAll();
     };
 
     // Handle group drop (for drag and drop)
@@ -197,6 +291,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
         canvas.requestRenderAll();
         setDragOverId(null);
+        setDragOverIndex(null);
         setDraggingId(null);
     };
 
@@ -219,6 +314,25 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
         canvas.requestRenderAll();
         setDragOverId(null);
+        setDragOverIndex(null);
+        setDraggingId(null);
+    };
+
+    // Handle object drop within group (reordering)
+    const handleObjectDropWithinGroup = (groupId: string, targetIndex: number, e: React.DragEvent) => {
+        e.preventDefault();
+        if (!canvas || !draggingId) return;
+
+        const group = layoutGroups.find(g => g.id === groupId);
+        if (!group) return;
+
+        const draggedObj = group.objects.find(o => o.id === draggingId);
+        if (!draggedObj) return;
+
+        handleReorderObjectWithinGroup(groupId, draggingId, targetIndex);
+
+        setDragOverId(null);
+        setDragOverIndex(null);
         setDraggingId(null);
     };
 
@@ -242,6 +356,21 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
             {objectsExpanded && (
                 <div className={styles.objectsContainer}>
+                    {/* "새 레이어 추가" 버튼 */}
+                    <button
+                        className={styles.addLayerButton}
+                        onClick={() => {
+                            if (!isProcessingRef.current) {
+                                handleCreateNewLayoutGroup();
+                            }
+                        }}
+                        title={t('editor.addLayoutGroup')}
+                        disabled={isProcessingRef.current}
+                    >
+                        <Plus size={16} />
+                        <span>{t('editor.addLayoutGroup')}</span>
+                    </button>
+
                     {/* Layout groups */}
                     {layoutGroups.length > 0 && (
                         <div className={styles.layoutGroupsList}>
@@ -261,8 +390,11 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                     onDragEnd={() => {
                                         setDraggingId(null);
                                         setDragOverId(null);
+                                        setDragOverIndex(null);
                                     }}
                                     onDragOver={setDragOverId}
+                                    onDragOverIndex={setDragOverIndex}
+                                    onDropAtIndex={(index, e) => handleObjectDropWithinGroup(group.id, index, e)}
                                 />
                             ))}
                         </div>
@@ -295,6 +427,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                         onDragEnd={() => {
                                             setDraggingId(null);
                                             setDragOverId(null);
+                                            setDragOverIndex(null);
                                         }}
                                         onDragOver={(id) => setDragOverId(id)}
                                     />

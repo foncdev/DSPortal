@@ -509,13 +509,14 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const createLayoutGroup = (name: string, options: any = {}) => {
         if (!canvas) {return '';}
 
-        // 새 그룹 ID 생성
-        const groupId = `layout_${Date.now()}`;
+        // 타임스탬프 기반 고유 ID 생성
+        const timestamp = Date.now();
+        const groupId = `layout_${timestamp}`;
 
         // 레이아웃 부모 객체 생성 (배경 사각형)
         const layoutObject = new fabric.Rect({
-            left: options.left || Math.random() * (width - 300) + 150,
-            top: options.top || Math.random() * (height - 200) + 100,
+            left: options.left || Math.random() * 300 + 150,
+            top: options.top || Math.random() * 200 + 100,
             width: options.width || 500,
             height: options.height || 300,
             fill: options.fill || '#f0f0f0',
@@ -528,7 +529,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         layoutObject.set({
             id: objectCount + 1,
             objectType: 'rectangle',
-            name: name || `Layout ${objectCount + 1}`,
+            name: name || `레이어 ${objectCount + 1}`,
             isLayoutParent: true,
             layoutGroup: groupId
         });
@@ -619,6 +620,18 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const deleteLayoutGroup = (groupId: string) => {
         if (!canvas) {return;}
 
+        // 모든 레이아웃 그룹 찾기
+        const allGroups: {id: string, parentObj: FabricObjectWithId}[] = [];
+
+        canvas.getObjects().forEach((obj: FabricObjectWithId) => {
+            if (obj.isLayoutParent && obj.layoutGroup) {
+                allGroups.push({
+                    id: obj.layoutGroup,
+                    parentObj: obj
+                });
+            }
+        });
+
         // 그룹에 속한 모든 객체 찾기
         const groupObjects = getObjectsByGroup(groupId);
 
@@ -628,6 +641,16 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         });
 
         canvas.requestRenderAll();
+
+        // 삭제 후 레이아웃 그룹이 하나도 남지 않았다면 자동으로 새 레이아웃 생성
+        if (allGroups.length <= 1) {
+            // 약간의 지연 후 실행하여 이벤트 루프가 삭제 작업을 완료하도록 함
+            setTimeout(() => {
+                createLayoutGroup("레이어 1");
+            }, 100);
+        }
+
+        // 캔버스 상태 저장
         saveToHistory();
     };
 

@@ -38,6 +38,42 @@
   }
 }
 
+// 새 레이어 추가 버튼
+.addLayerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 0.375rem;
+  border: 1px dashed var(--color-border);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--color-bg-secondary);
+      border-color: var(--color-border);
+      color: var(--color-text-secondary);
+      transform: none;
+    }
+  }
+}
+
 .sectionHeader {
   display: flex;
   align-items: center;
@@ -233,13 +269,28 @@
 
   .layoutGroupContent {
     padding: 0.5rem;
-  }
 
-  .emptyGroupMessage {
-    padding: 1rem;
-    text-align: center;
-    color: var(--color-text-tertiary);
-    font-size: 0.875rem;
+    // 객체 사이의 드롭 영역
+    .dropZone {
+      height: 4px;
+      margin: 2px 0;
+      border-radius: 2px;
+      background-color: transparent;
+      transition: all var(--transition-fast) ease;
+
+      &.active {
+        height: 8px;
+        background-color: var(--color-primary);
+        margin: 4px 0;
+      }
+    }
+
+    .emptyGroupMessage {
+      padding: 1rem;
+      text-align: center;
+      color: var(--color-text-tertiary);
+      font-size: 0.875rem;
+    }
   }
 }
 
@@ -460,4 +511,3 @@
   border-radius: 0.375rem;
   margin-top: 0.5rem;
 }
-

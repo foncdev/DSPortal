@@ -1,6 +1,6 @@
 // src/components/DesignEditor/ObjectsPanel/ObjectToolbar.tsx
 import React from 'react';
-import { Text, Image, Square, Circle, Triangle, Monitor, Film } from 'lucide-react';
+import { Text, Image, Square, Circle, Triangle, Monitor } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ObjectType } from '../DesignEditorContext';
 import styles from './ObjectsPanel.module.scss';
@@ -15,13 +15,7 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onCreateLayoutGroup, onAd
 
     return (
         <div className={styles.objectTools}>
-            <button
-                className={styles.objectToolButton}
-                onClick={onCreateLayoutGroup}
-                title={t('editor.addLayoutGroup')}
-            >
-                <Monitor size={18} />
-            </button>
+            {/* 레이어 추가 버튼 제거 - 별도의 "새 레이어 추가" 버튼으로 대체 */}
             <button
                 className={styles.objectToolButton}
                 onClick={() => onAddObject('text')}
