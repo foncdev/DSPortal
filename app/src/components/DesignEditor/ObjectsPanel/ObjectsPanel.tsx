@@ -45,6 +45,10 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     const isProcessingRef = useRef(false);
     const initialLoadDoneRef = useRef(false);
 
+
+    // TODO layoutGroups 자동 생성 옵션이 있으면 기본 레이어 생성한다.
+
+
     // Update objects list when canvas changes
     useEffect(() => {
         if (!canvas) {return;}
@@ -196,26 +200,8 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         const groupId = `layout_${timestamp}`;
         const layoutName = `레이어 ${nextGroupId}`;
 
-        // Create layout background with delayed processing
-        setTimeout(() => {
-            try {
-                addObject('rectangle', {
-                    name: layoutName,
-                    width: 500,
-                    height: 300,
-                    fill: '#f0f0f0',
-                    opacity: 0.5,
-                    isLayoutParent: true,
-                    layoutGroup: groupId,
-                    left: Math.random() * 300 + 150,
-                    top: Math.random() * 200 + 100
-                });
+        // TODO layoutGroups 추가한다.
 
-                setNextGroupId(prevId => prevId + 1);
-            } finally {
-                isProcessingRef.current = false;
-            }
-        }, 100);
     };
 
     // Toggle layout group expanded state

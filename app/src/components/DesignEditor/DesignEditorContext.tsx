@@ -218,6 +218,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const addObject = (type: ObjectType, options: any = {}) => {
         if (!canvas) {return;}
 
+        // TODO 활성화되어 있는 레이아웃 그룹에 추가한다.
+
         // Generate a unique ID for the new object
         const newId = objectCount + 1;
         setObjectCount(newId);
