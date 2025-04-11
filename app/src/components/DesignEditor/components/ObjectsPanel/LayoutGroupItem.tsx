@@ -470,31 +470,6 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
             {group.expanded && (
                 <div className={styles.layoutGroupContent}>
-                    {/* Type buttons */}
-                    <div className={styles.typeButtons}>
-                        <button
-                            onClick={(e) => addObjectToGroup('text', e)}
-                            title={t('editor.addTextToGroup')}
-                            className={styles.typeButton}
-                        >
-                            <Text size={14} />
-                        </button>
-                        <button
-                            onClick={(e) => addObjectToGroup('image', e)}
-                            title={t('editor.addImageToGroup')}
-                            className={styles.typeButton}
-                        >
-                            <Image size={14} />
-                        </button>
-                        <button
-                            onClick={(e) => addObjectToGroup('rectangle', e)}
-                            title={t('editor.addShapeToGroup')}
-                            className={styles.typeButton}
-                        >
-                            <Square size={14} />
-                        </button>
-                    </div>
-
                     {/* First drop zone for reordering */}
                     <div
                         className={`${styles.dropZone} ${dragOverObjectIndex === 0 ? styles.active : ''}`}
