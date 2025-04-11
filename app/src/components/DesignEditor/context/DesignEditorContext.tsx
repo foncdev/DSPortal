@@ -103,7 +103,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Save canvas state to history
     const saveToHistory = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Get canvas JSON
         const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name', 'layoutGroup', 'isLayoutParent']));
@@ -120,7 +120,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Apply grid to canvas
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         if (showGrid) {
             // Create grid
@@ -176,7 +176,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Set up layout group movement handling
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Handle object movement
         const handleObjectMoving = (e: fabric.IEvent) => {
@@ -195,11 +195,11 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                 const deltaY = newTop - oldTop;
 
                 // If no movement, do nothing
-                if (deltaX === 0 && deltaY === 0) return;
+                if (deltaX === 0 && deltaY === 0) {return;}
 
                 // Get group ID
                 const groupId = movedObject.layoutGroup;
-                if (!groupId) return;
+                if (!groupId) {return;}
 
                 // Find all child objects in this group (excluding parent)
                 const childObjects = canvas.getObjects().filter(obj => {
@@ -276,7 +276,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Save to history when objects are modified
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const handleObjectModified = () => {
             saveToHistory();
@@ -291,7 +291,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update selected object when selection changes
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const handleSelectionCreated = (e: fabric.IEvent) => {
             const selected = e.selected?.[0] as FabricObjectWithId;
@@ -324,16 +324,44 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Get all objects from canvas
     const getObjects = (): FabricObjectWithId[] => {
-        if (!canvas) return [];
+        if (!canvas) {return [];}
         return canvas.getObjects() as FabricObjectWithId[];
     };
 
     const addObject = (type: ObjectType, options: any = {}) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
+
+        const ensureLayoutGroup = () => {
+            const layoutGroups = canvas.getObjects().filter(
+                obj => (obj as FabricObjectWithId).isLayoutParent
+            );
+
+            // If no layout groups exist, create one automatically
+            if (layoutGroups.length === 0) {
+                createLayoutGroup(`Layer 1`);
+            }
+        };
+
+        ensureLayoutGroup();
+
+        const activeGroupId = getActiveLayoutGroupId();
+        if (!activeGroupId) {
+            console.error('No active layout group available');
+            return;
+        }
 
         // Generate a unique ID for the new object
         const newId = objectCount + 1;
         setObjectCount(newId);
+
+        const mergedOptions = {
+            ...options,
+            layoutGroup: activeGroupId,
+            left: options.left || Math.random() * (width - 200) + 100,
+            top: options.top || Math.random() * (height - 200) + 100,
+            id: newId,
+            name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${newId}`
+        };
 
         let object: FabricObjectWithId | null = null;
 
@@ -341,6 +369,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         switch (type) {
             case 'text':
                 object = new fabric.Textbox(options.text || 'New Text', {
+                    ...mergedOptions,
                     left: options.left || Math.random() * (width - 200) + 100,
                     top: options.top || Math.random() * (height - 200) + 100,
                     fontFamily: options.fontFamily || 'Arial',
@@ -356,6 +385,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
             case 'rectangle':
                 object = new fabric.Rect({
+                    ...mergedOptions,
                     left: options.left || Math.random() * (width - 200) + 100,
                     top: options.top || Math.random() * (height - 200) + 100,
                     width: options.width || 150,
@@ -369,6 +399,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
             case 'circle':
                 object = new fabric.Circle({
+                    ...mergedOptions,
                     left: options.left || Math.random() * (width - 200) + 100,
                     top: options.top || Math.random() * (height - 200) + 100,
                     radius: options.radius || 50,
@@ -378,6 +409,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
             case 'triangle':
                 object = new fabric.Triangle({
+                    ...mergedOptions,
                     left: options.left || Math.random() * (width - 200) + 100,
                     top: options.top || Math.random() * (height - 200) + 100,
                     width: options.width || 100,
@@ -409,6 +441,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             case 'video':
                 // Videos require additional implementation - placeholder for now
                 object = new fabric.Rect({
+                    ...mergedOptions,
                     left: options.left || Math.random() * (width - 200) + 100,
                     top: options.top || Math.random() * (height - 200) + 100,
                     width: options.width || 320,
@@ -451,7 +484,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update the selected object
     const updateObject = (options: Partial<FabricObjectWithId>) => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         selectedObject.set(options);
         selectedObject.setCoords();
@@ -461,7 +494,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Delete the selected object
     const deleteObject = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         canvas.remove(selectedObject);
         setSelectedObject(null);
@@ -471,7 +504,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Clone the selected object
     const cloneObject = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         selectedObject.clone((cloned: FabricObjectWithId) => {
             // Generate a new ID for the cloned object
@@ -496,9 +529,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object up one level
     const moveObjectUp = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.bringForward(objectToMove);
         canvas.requestRenderAll();
@@ -507,9 +540,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object down one level
     const moveObjectDown = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.sendBackwards(objectToMove);
         canvas.requestRenderAll();
@@ -518,9 +551,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to the top
     const moveObjectToTop = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.bringToFront(objectToMove);
         canvas.requestRenderAll();
@@ -529,9 +562,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to the bottom
     const moveObjectToBottom = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.sendToBack(objectToMove);
         canvas.requestRenderAll();
@@ -540,13 +573,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Set object z-index directly (for drag & drop ordering)
     const setObjectZIndex = (object: FabricObjectWithId, newIndex: number) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const objects = canvas.getObjects();
         const currentIndex = objects.indexOf(object);
 
-        if (currentIndex === -1) return; // Object not found
-        if (currentIndex === newIndex) return; // Already at target index
+        if (currentIndex === -1) {return;} // Object not found
+        if (currentIndex === newIndex) {return;} // Already at target index
 
         // Remove from current position
         canvas.remove(object);
@@ -561,7 +594,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Select an object
     const selectObject = (object: FabricObjectWithId | null) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         if (object) {
             // Discard active object before selecting new one
@@ -578,7 +611,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update a property of the selected object
     const updateObjectProperty = <T,>(property: string, value: T) => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         // Handle nested properties (e.g., "border.color")
         if (property.includes('.')) {
@@ -604,7 +637,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Undo last action
     const undo = () => {
-        if (!canvas || !canUndo) return;
+        if (!canvas || !canUndo) {return;}
 
         const newIndex = historyIndex - 1;
         const state = history[newIndex];
@@ -619,7 +652,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Redo last undone action
     const redo = () => {
-        if (!canvas || !canRedo || historyIndex >= history.length - 1) return;
+        if (!canvas || !canRedo || historyIndex >= history.length - 1) {return;}
 
         const newIndex = historyIndex + 1;
         const state = history[newIndex];
@@ -635,7 +668,16 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // createLayoutGroup: Create a new layout group
     const createLayoutGroup = (name: string, options: any = {}) => {
-        if (!canvas) return '';
+        if (!canvas) {return '';}
+
+        // Remove any existing layout groups if this is the first group
+        const existingGroups = canvas.getObjects().filter(
+            obj => (obj as FabricObjectWithId).isLayoutParent
+        );
+
+        if (existingGroups.length > 0) {
+            existingGroups.forEach(group => canvas.remove(group));
+        }
 
         // Create a unique ID based on timestamp
         const timestamp = Date.now();
@@ -648,8 +690,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         const layoutObject = new fabric.Rect({
             left: options.left || 0,
             top: options.top || 0,
-            width: width,
-            height: height,
+            width,
+            height,
             fill: options.fill || '#f0f0f0',
             opacity: options.opacity || 0.5,
             rx: options.rx || 0,
@@ -732,13 +774,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Add object to a group
     const addObjectToGroup = (groupId: string, type: ObjectType, options: any = {}) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find parent layout object
         const groupObjects = getObjectsByGroup(groupId);
         const parentObject = groupObjects.find(obj => obj.isLayoutParent);
 
-        if (!parentObject) return;
+        if (!parentObject) {return;}
 
         // Calculate position within parent object
         const parentLeft = parentObject.left || 0;
@@ -795,7 +837,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Get objects in a group
     const getObjectsByGroup = (groupId: string): FabricObjectWithId[] => {
-        if (!canvas) return [];
+        if (!canvas) {return [];}
 
         return canvas.getObjects()
             .filter(obj => (obj as FabricObjectWithId).layoutGroup === groupId) as FabricObjectWithId[];
@@ -803,7 +845,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Delete a layout group
     const deleteLayoutGroup = (groupId: string) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find all layout groups
         const allGroups: {id: string, parentObj: FabricObjectWithId}[] = [];
@@ -840,17 +882,17 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to a different group
     const moveObjectToGroup = (objectId: number | string, groupId: string | null) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find the object to move
         const object = canvas.getObjects().find(
             obj => (obj as FabricObjectWithId).id === objectId
         ) as FabricObjectWithId;
 
-        if (!object) return;
+        if (!object) {return;}
 
         // Don't allow moving layout parent objects
-        if (object.isLayoutParent) return;
+        if (object.isLayoutParent) {return;}
 
         // Update group property
         object.set({
@@ -863,7 +905,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move all objects in a group together
     const moveGroupTogether = (groupId: string, deltaX: number, deltaY: number) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find all objects in the group
         const groupObjects = canvas.getObjects().filter(obj => {
@@ -885,7 +927,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Find active layout group ID
     const getActiveLayoutGroupId = (): string | null => {
-        if (!canvas) return null;
+        if (!canvas) {return null;}
 
         // If selected object is part of a layout group, use that group
         if (selectedObject && selectedObject.layoutGroup) {

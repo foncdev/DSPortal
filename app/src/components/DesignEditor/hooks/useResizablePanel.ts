@@ -41,7 +41,7 @@ export const useResizablePanel = (
 
     // 리사이징 중 마우스 이동 처리
     const handleMouseMove = (e: MouseEvent) => {
-        if (!isResizing) return;
+        if (!isResizing) {return;}
 
         const delta = e.clientX - startXRef.current;
         let newWidth;

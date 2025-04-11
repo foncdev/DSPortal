@@ -68,7 +68,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Update layer visibility and lock state on mount and when parent object changes
     useEffect(() => {
-        if (!group.objects.length) return;
+        if (!group.objects.length) {return;}
 
         const parentObject = group.objects.find(obj => obj.isLayoutParent);
         if (parentObject) {
@@ -94,7 +94,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Save group name
     const saveGroupName = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         setErrorMessage(null);
 
@@ -140,7 +140,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     // Toggle layer visibility
     const toggleLayerVisibility = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -193,7 +193,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         // Set processing flag
         isProcessingRef.current = true;
@@ -280,7 +280,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     // Add an object to this group
     const addObjectToGroup = (type: ObjectType, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) return;
+        if (isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -353,7 +353,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     // Delete this layout group
     const handleDeleteGroup = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) return;
+        if (isProcessingRef.current) {return;}
 
         // Set flag to prevent concurrent operations
         isProcessingRef.current = true;

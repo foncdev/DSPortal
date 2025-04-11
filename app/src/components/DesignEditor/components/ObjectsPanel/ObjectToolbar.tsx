@@ -22,7 +22,7 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onCreateLayoutGroup, onAd
 
     // Handle adding an object to the canvas
     const handleAddObject = (type: ObjectType) => {
-        if (isProcessing) return;
+        if (isProcessing) {return;}
 
         setIsProcessing(true);
         setErrorMessage(null);

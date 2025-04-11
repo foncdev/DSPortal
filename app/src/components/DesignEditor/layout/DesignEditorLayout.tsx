@@ -48,7 +48,7 @@ const DesignEditorLayout: React.FC = () => {
 
     // 캔버스 크기 조절 (패널 상태에 따라)
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 윈도우 리사이즈 시 캔버스 렌더링 갱신
         const handleResize = () => {
@@ -69,7 +69,7 @@ const DesignEditorLayout: React.FC = () => {
 
     // 캔버스 렌더링 문제 해결을 위한 추가 효과
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 캔버스 초기화 후 렌더링 강제화
         const refreshCanvas = () => {

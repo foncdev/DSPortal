@@ -20,7 +20,7 @@ export const useCanvasEvents = () => {
 
     // Handle keyboard shortcuts
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Ctrl key shortcuts
         if (e.ctrlKey) {

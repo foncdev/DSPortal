@@ -48,7 +48,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Update objects list when canvas changes
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const updateObjectsList = () => {
             // Prevent concurrent processing
@@ -129,7 +129,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // Organize objects into layout groups
     const organizeObjectsIntoGroups = (canvasObjects: FabricObjectWithId[]) => {
         // Prevent concurrent processing
-        if (isProcessingRef.current && !updateRequiredRef.current) return;
+        if (isProcessingRef.current && !updateRequiredRef.current) {return;}
         isProcessingRef.current = true;
 
         try {
@@ -144,7 +144,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
             // Step 1: Find layout parent objects (containers)
             canvasObjects.forEach(obj => {
-                if (!obj.id) return;
+                if (!obj.id) {return;}
 
                 const layoutTag = obj.layoutGroup as string | undefined;
                 const isLayoutParent = obj.isLayoutParent as boolean | undefined;
@@ -163,7 +163,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
             // Step 2: Assign child objects to their parent layouts
             canvasObjects.forEach(obj => {
-                if (!obj.id || obj.isLayoutParent) return;
+                if (!obj.id || obj.isLayoutParent) {return;}
 
                 const layoutTag = obj.layoutGroup as string | undefined;
 
@@ -218,7 +218,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Create a new layout group
     const handleCreateNewLayoutGroup = () => {
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         // Set processing flag to prevent concurrent operations
         isProcessingRef.current = true;
@@ -319,11 +319,11 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                     }}
                                     onDrop={(e) => {
                                         e.preventDefault();
-                                        if (!canvas || !draggingId) return;
+                                        if (!canvas || !draggingId) {return;}
 
                                         // Find the dragged object
                                         const draggedObj = objects.find(obj => obj.id === draggingId);
-                                        if (!draggedObj || draggedObj.isLayoutParent) return;
+                                        if (!draggedObj || draggedObj.isLayoutParent) {return;}
 
                                         // Update object's group
                                         draggedObj.set({
@@ -344,19 +344,19 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                     onDragOverIndex={setDragOverIndex}
                                     onDropAtIndex={(index, e) => {
                                         e.preventDefault();
-                                        if (!canvas || !draggingId) return;
+                                        if (!canvas || !draggingId) {return;}
 
                                         // Find the group
                                         const group = layoutGroups.find(g => g.id === group.id);
-                                        if (!group) return;
+                                        if (!group) {return;}
 
                                         // Find the dragged object
                                         const draggedObj = group.objects.find(o => o.id === draggingId);
-                                        if (!draggedObj) return;
+                                        if (!draggedObj) {return;}
 
                                         // Reorder objects within the group
                                         const currentIndex = group.objects.indexOf(draggedObj);
-                                        if (currentIndex === index) return;
+                                        if (currentIndex === index) {return;}
 
                                         const newObjects = [...group.objects];
                                         newObjects.splice(currentIndex, 1);

@@ -21,8 +21,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
                                                    disabled = false,
                                                    active = false,
                                                    className = ''
-                                               }) => {
-    return (
+                                               }) => (
         <button
             className={`${styles.toolButton} ${active ? styles.active : ''} ${disabled ? styles.disabled : ''} ${className}`}
             title={title}
@@ -32,6 +31,5 @@ const ToolButton: React.FC<ToolButtonProps> = ({
             {icon}
         </button>
     );
-};
 
 export default ToolButton;

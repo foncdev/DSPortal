@@ -231,7 +231,7 @@ const FileManagerPanel: React.FC<FileManagerPanelProps> = ({ onAddComponent }) =
 
     // 새 컴포넌트 생성 및 추가
     const handleCreateNewComponent = () => {
-        if (!newComponentName.trim()) return;
+        if (!newComponentName.trim()) {return;}
 
         const newComponent: Component = {
             id: `comp_${Date.now()}`,
@@ -281,13 +281,13 @@ const FileManagerPanel: React.FC<FileManagerPanelProps> = ({ onAddComponent }) =
     // 컴포넌트 파일 업로드 처리
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (!files || files.length === 0) return;
+        if (!files || files.length === 0) {return;}
 
         Array.from(files).forEach(file => {
             const isImage = file.type.startsWith('image/');
             const isVideo = file.type.startsWith('video/');
 
-            if (!isImage && !isVideo) return;
+            if (!isImage && !isVideo) {return;}
 
             const reader = new FileReader();
             reader.onload = (e) => {

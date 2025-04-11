@@ -11,13 +11,11 @@ interface ToolGroupProps {
  * Component for grouping related toolbar buttons
  */
 const ToolGroup = forwardRef<HTMLDivElement, ToolGroupProps>(
-    ({ children, className = '' }, ref) => {
-        return (
+    ({ children, className = '' }, ref) => (
             <div ref={ref} className={`${styles.toolGroup} ${className}`}>
                 {children}
             </div>
-        );
-    }
+        )
 );
 
 ToolGroup.displayName = 'ToolGroup';
