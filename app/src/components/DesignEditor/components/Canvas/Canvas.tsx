@@ -7,10 +7,6 @@ import { useDesignEditor } from '../../context/DesignEditorContext';
 import { useCanvasEvents } from '../../hooks/useCanvasEvents';
 import styles from './Canvas.module.scss';
 
-/**
- * Canvas component for the DesignEditor
- * Manages the fabric.js canvas and canvas interactions
- */
 const Canvas: React.FC = () => {
     const { t } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -43,7 +39,7 @@ const Canvas: React.FC = () => {
             preserveObjectStacking: true,
             selection: true,
             stopContextMenu: true,
-            renderOnAddRemove: true
+            renderOnAddRemove: true // 객체 추가/제거 시 자동 렌더링
         });
 
         // Set the canvas in the context
@@ -53,14 +49,13 @@ const Canvas: React.FC = () => {
         return () => {
             fabricCanvas.dispose();
         };
-    }, [canvasRef, setCanvas, canvasWidth, canvasHeight, canvas]);
+    }, [canvasRef, setCanvas, canvasWidth, canvasHeight]);
 
     // Apply zoom level changes
     useEffect(() => {
         if (!canvas) {return;}
 
         canvas.setZoom(zoomLevel);
-
         // Center the canvas
         const vpt = canvas.viewportTransform;
         if (vpt) {
@@ -70,19 +65,108 @@ const Canvas: React.FC = () => {
         canvas.requestRenderAll();
     }, [canvas, zoomLevel, canvasWidth, canvasHeight]);
 
-    // Set up canvas events
     const { handleKeyDown } = useCanvasEvents();
+
+    // Handle mouse wheel for zooming
+    useEffect(() => {
+        if (!canvas || !containerRef.current) {return;}
+
+        const handleWheel = (e: WheelEvent) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const delta = e.deltaY;
+                const zoom = canvas.getZoom();
+                const newZoom = delta > 0 ? Math.max(zoom - 0.05, 0.1) : Math.min(zoom + 0.05, 3);
+
+                // Get cursor position relative to canvas
+                const container = containerRef.current;
+                if (!container) {return;}
+
+                const rect = container.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Zoom to point
+                zoomToPoint(newZoom, { x: mouseX, y: mouseY });
+            }
+        };
+
+        const container = containerRef.current;
+        if (container) {
+            container.addEventListener('wheel', handleWheel, { passive: false });
+        }
+
+        return () => {
+            if (container) {
+                container.removeEventListener('wheel', handleWheel);
+            }
+        };
+    }, [canvas, containerRef]);
 
     // Handle keyboard shortcuts
     useEffect(() => {
         if (!canvas) {return;}
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Handle keyboard shortcuts
+            if (e.ctrlKey) {
+                switch (e.key) {
+                    case 'z':
+                        if (!e.shiftKey) {
+                            // Ctrl+Z (Undo)
+                            e.preventDefault();
+                            useDesignEditor().undo();
+                        } else {
+                            // Ctrl+Shift+Z (Redo)
+                            e.preventDefault();
+                            useDesignEditor().redo();
+                        }
+                        break;
+
+                    case 'y':
+                        // Ctrl+Y (Redo)
+                        e.preventDefault();
+                        useDesignEditor().redo();
+                        break;
+
+                    case '=':
+                    case '+':
+                        // Ctrl++ (Zoom In)
+                        e.preventDefault();
+                        setZoomLevel(Math.min(zoomLevel + 0.1, 3));
+                        break;
+
+                    case '-':
+                        // Ctrl+- (Zoom Out)
+                        e.preventDefault();
+                        setZoomLevel(Math.max(zoomLevel - 0.1, 0.1));
+                        break;
+
+                    case '0':
+                        // Ctrl+0 (Reset Zoom)
+                        e.preventDefault();
+                        setZoomLevel(1);
+                        break;
+                }
+            }
+
+            // Delete key to delete selected objects
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                const activeObject = canvas.getActiveObject();
+                if (activeObject && !activeObject.excludeFromExport) {
+                    useDesignEditor().deleteObject();
+                }
+            }
+        };
 
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [canvas, handleKeyDown]);
+    }, [canvas, zoomLevel, handleKeyDown]);
 
     // Handle mouse wheel for zooming
     useEffect(() => {
@@ -196,7 +280,10 @@ const Canvas: React.FC = () => {
     const zoomToPoint = (zoom: number, point: { x: number, y: number }) => {
         if (!canvas) {return;}
 
-        // Set zoom to point
+        const vpt = canvas.viewportTransform;
+        if (!vpt) {return;}
+
+        // Set zoom
         canvas.zoomToPoint({ x: point.x, y: point.y }, zoom);
 
         // Update the context zoomLevel
@@ -246,7 +333,7 @@ const Canvas: React.FC = () => {
                 <canvas ref={canvasRef} />
             </div>
 
-            {/* Placeholder message when canvas is empty */}
+            {/* Placeholder message when empty */}
             {canvas && canvas.getObjects().length === 0 && (
                 <div className={styles.placeholder}>
                     {t('editor.canvasPlaceholder')}
