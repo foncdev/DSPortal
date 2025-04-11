@@ -14,7 +14,7 @@ import {
     Type
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDesignEditor, ObjectType } from '../DesignEditorContext';
+import { useDesignEditor, ObjectType } from '../../context/DesignEditorContext';
 import styles from './LibraryPanel.module.scss';
 
 interface LibraryPanelProps {

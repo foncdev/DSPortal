@@ -1,4 +1,4 @@
-// src/components/DesignEditor/ObjectsPanel/LayoutGroupItem.tsx
+// src/components/DesignEditor/components/ObjectsPanel/LayoutGroupItem.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import {
     ChevronDown, ChevronRight, Monitor, Edit2,
@@ -6,7 +6,7 @@ import {
     Lock, Unlock, AlertTriangle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDesignEditor, FabricObjectWithId, ObjectType } from '../DesignEditorContext';
+import { useDesignEditor, FabricObjectWithId, ObjectType } from '../../context/DesignEditorContext';
 import ObjectItem from './ObjectItem';
 import styles from './ObjectsPanel.module.scss';
 
@@ -26,11 +26,14 @@ interface LayoutGroupItemProps {
     onDrop: (e: React.DragEvent) => void;
     onDragStart: (id: number | string) => void;
     onDragEnd: () => void;
-    onDragOver: (id: number | string | null) => void;
+    onDragOverId: (id: number | string | null) => void;
     onDragOverIndex: (index: number | null) => void;
     onDropAtIndex: (index: number, e: React.DragEvent) => void;
 }
 
+/**
+ * Component to display and manage layout groups in the objects panel
+ */
 const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                                                              group,
                                                              selectedObjectId,
@@ -40,7 +43,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                                                              onDrop,
                                                              onDragStart,
                                                              onDragEnd,
-                                                             onDragOver: setDragOverId,
+                                                             onDragOverId,
                                                              onDragOverIndex,
                                                              onDropAtIndex
                                                          }) => {
@@ -186,52 +189,48 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Toggle layer lock state
     const toggleLayerLock = (e: React.MouseEvent) => {
-        // 이벤트 전파 중지
+        // Stop event propagation
         e.preventDefault();
         e.stopPropagation();
 
         if (!canvas || isProcessingRef.current) return;
 
-        // 처리 중 플래그 설정
+        // Set processing flag
         isProcessingRef.current = true;
         setErrorMessage(null);
 
         try {
-            console.log("toggleLayerLock - 현재 상태:", isLayerLocked);
-            console.log("toggleLayerLock - 그룹 ID:", group.id);
-
-            // 그룹 객체가 없으면 종료
+            // Get group objects
             const groupObjects = group.objects;
             if (!groupObjects.length) {
-                console.warn("toggleLayerLock - 그룹에 객체가 없음");
+                console.warn("No objects in group to lock/unlock");
                 isProcessingRef.current = false;
                 return;
             }
 
-            // 새 잠금 상태 계산
+            // Calculate new lock state
             const newLockState = !isLayerLocked;
-            console.log("toggleLayerLock - 새 상태:", newLockState);
 
-            // 캔버스에서 최신 객체 참조 가져오기
+            // Get latest objects from canvas
             const latestObjects = canvas.getObjects() as FabricObjectWithId[];
 
-            // 모든 그룹 객체 업데이트
+            // Update all objects in group
             let updatedCount = 0;
             groupObjects.forEach(obj => {
-                // 객체 ID로 최신 객체 참조 찾기
+                // Find latest object reference by ID
                 const targetObj = obj.id ?
                     latestObjects.find(o => o.id === obj.id) :
                     null;
 
                 if (targetObj) {
-                    // 잠금 속성 설정
+                    // Set lock properties
                     targetObj.set({
                         'lockMovementX': newLockState,
                         'lockMovementY': newLockState,
                         'lockRotation': newLockState,
                         'lockScalingX': newLockState,
                         'lockScalingY': newLockState,
-                        // 객체는 여전히 선택 가능하게 유지
+                        // Keep objects selectable even when locked
                         'selectable': isLayerVisible
                     });
 
@@ -240,20 +239,17 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                 }
             });
 
-            console.log(`toggleLayerLock - ${updatedCount}개 객체 업데이트됨`);
-
-            // 캔버스 갱신
+            // Render canvas
             canvas.requestRenderAll();
 
-            // UI 상태 업데이트
+            // Update UI state
             setIsLayerLocked(newLockState);
 
-            // 현재 선택된 객체가 이 그룹에 있고, 잠금 상태가 변경된 경우 처리
+            // Handle currently selected object
             const selectedObj = canvas.getActiveObject() as FabricObjectWithId;
             if (selectedObj && groupObjects.some(obj => obj.id === selectedObj.id)) {
-                // 객체는 여전히 선택 가능하게 유지, 하지만 수정은 잠금 상태에 따라 제한
+                // Keep object selected but update lock properties
                 if (newLockState) {
-                    // 선택은 유지하지만 이동은 불가능하게 함
                     selectedObj.set({
                         lockMovementX: true,
                         lockMovementY: true,
@@ -262,7 +258,6 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                         lockScalingY: true
                     });
                 } else {
-                    // 잠금 해제 시 모든 조작 가능
                     selectedObj.set({
                         lockMovementX: false,
                         lockMovementY: false,
@@ -275,10 +270,9 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                 canvas.requestRenderAll();
             }
         } catch (error) {
-            console.error("toggleLayerLock 에러:", error);
-            setErrorMessage("레이어 잠금 상태 변경에 실패했습니다");
+            console.error("Error toggling layer lock:", error);
+            setErrorMessage("Failed to change layer lock state");
         } finally {
-            // 처리 플래그 초기화
             isProcessingRef.current = false;
         }
     };
@@ -429,15 +423,15 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                         />
                     ) : (
                         <span className={`${styles.layoutGroupName} ${!isLayerVisible ? styles.hidden : ''}`}>
-                            {group.name}
+              {group.name}
                             <button
                                 className={styles.editNameButton}
                                 onClick={startEditingName}
                                 title={t('editor.renameGroup')}
                             >
-                                <Edit2 size={14} />
-                            </button>
-                        </span>
+                <Edit2 size={14} />
+              </button>
+            </span>
                     )}
                 </div>
 
@@ -476,6 +470,31 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
             {group.expanded && (
                 <div className={styles.layoutGroupContent}>
+                    {/* Type buttons */}
+                    <div className={styles.typeButtons}>
+                        <button
+                            onClick={(e) => addObjectToGroup('text', e)}
+                            title={t('editor.addTextToGroup')}
+                            className={styles.typeButton}
+                        >
+                            <Text size={14} />
+                        </button>
+                        <button
+                            onClick={(e) => addObjectToGroup('image', e)}
+                            title={t('editor.addImageToGroup')}
+                            className={styles.typeButton}
+                        >
+                            <Image size={14} />
+                        </button>
+                        <button
+                            onClick={(e) => addObjectToGroup('rectangle', e)}
+                            title={t('editor.addShapeToGroup')}
+                            className={styles.typeButton}
+                        >
+                            <Square size={14} />
+                        </button>
+                    </div>
+
                     {/* First drop zone for reordering */}
                     <div
                         className={`${styles.dropZone} ${dragOverObjectIndex === 0 ? styles.active : ''}`}
@@ -494,7 +513,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                                 onSelect={() => selectObject(object)}
                                 onDragStart={onDragStart}
                                 onDragEnd={onDragEnd}
-                                onDragOver={setDragOverId}
+                                onDragOver={onDragOverId}
                             />
 
                             {/* Drop zone after each object */}

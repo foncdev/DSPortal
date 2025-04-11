@@ -1,8 +1,8 @@
-// src/components/DesignEditor/ObjectsPanel/ObjectToolbar.tsx
+// src/components/DesignEditor/components/ObjectsPanel/ObjectToolbar.tsx
 import React, { useState } from 'react';
 import { Text, Image, Square, Circle, Triangle, Plus, AlertTriangle, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ObjectType } from '../DesignEditorContext';
+import { ObjectType } from '../../context/DesignEditorContext';
 import styles from './ObjectsPanel.module.scss';
 
 interface ObjectToolbarProps {

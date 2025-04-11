@@ -1,11 +1,10 @@
-// src/components/DesignEditor/ObjectsPanel/ObjectsPanel.tsx
+// src/components/DesignEditor/components/ObjectsPanel/ObjectsPanel.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    Layers, ChevronDown, ChevronRight, Monitor, Plus,
-    AlertTriangle
+    Layers, ChevronDown, ChevronRight, AlertTriangle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDesignEditor, FabricObjectWithId } from '../DesignEditorContext';
+import { useDesignEditor, FabricObjectWithId } from '../../context/DesignEditorContext';
 import ObjectToolbar from './ObjectToolbar';
 import LayoutGroupItem from './LayoutGroupItem';
 import styles from './ObjectsPanel.module.scss';
@@ -301,7 +300,6 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                         title={t('editor.addLayoutGroup')}
                         disabled={isProcessingRef.current}
                     >
-                        <Plus size={16} />
                         <span>{t('editor.addLayoutGroup')}</span>
                     </button>
 
@@ -342,7 +340,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                         setDragOverId(null);
                                         setDragOverIndex(null);
                                     }}
-                                    onDragOver={setDragOverId}
+                                    onDragOverId={setDragOverId}
                                     onDragOverIndex={setDragOverIndex}
                                     onDropAtIndex={(index, e) => {
                                         e.preventDefault();

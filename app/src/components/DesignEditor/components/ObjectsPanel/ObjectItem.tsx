@@ -1,4 +1,4 @@
-// src/components/DesignEditor/ObjectsPanel/ObjectItem.tsx
+// src/components/DesignEditor/components/ObjectsPanel/ObjectItem.tsx
 import React, { useState, useRef, useEffect } from 'react';
 import {
     Text, Image, Square, Circle, Triangle, Trash2, Copy,
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { useDesignEditor, FabricObjectWithId } from '../DesignEditorContext';
+import { useDesignEditor, FabricObjectWithId } from '../../context/DesignEditorContext';
 import styles from './ObjectsPanel.module.scss';
 
 interface ObjectItemProps {
@@ -22,6 +22,9 @@ interface ObjectItemProps {
     onDragOver: (id: number | string | null) => void;
 }
 
+/**
+ * Component to display and manage individual objects in the objects panel
+ */
 const ObjectItem: React.FC<ObjectItemProps> = ({
                                                    object,
                                                    isSelected,
@@ -32,7 +35,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                                                    onDragEnd,
                                                    onDragOver
                                                }) => {
-    const { t } = useTranslation();
+    const {t} = useTranslation();
     const {
         canvas,
         deleteObject,
@@ -60,7 +63,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const isProcessingRef = useRef(false);
 
     // State for menu position
-    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({top: 0, left: 0});
 
     // Update visibility and lock states when object properties change
     useEffect(() => {
@@ -82,28 +85,28 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         const type = object.objectType;
 
         if (object.isLayoutParent) {
-            return <Monitor size={16} />;
+            return <Monitor size={16}/>;
         }
 
         switch (type) {
             case 'text':
-                return <Text size={16} />;
+                return <Text size={16}/>;
             case 'image':
-                return <Image size={16} />;
+                return <Image size={16}/>;
             case 'video':
-                return <Film size={16} />;
+                return <Film size={16}/>;
             case 'rectangle':
-                return <Square size={16} />;
+                return <Square size={16}/>;
             case 'circle':
-                return <Circle size={16} />;
+                return <Circle size={16}/>;
             case 'triangle':
-                return <Triangle size={16} />;
+                return <Triangle size={16}/>;
             default:
-                if (object.type === 'textbox') return <Text size={16} />;
-                if (object.type === 'rect') return <Square size={16} />;
-                if (object.type === 'circle') return <Circle size={16} />;
-                if (object.type === 'triangle') return <Triangle size={16} />;
-                return <Square size={16} />;
+                if (object.type === 'textbox') return <Text size={16}/>;
+                if (object.type === 'rect') return <Square size={16}/>;
+                if (object.type === 'circle') return <Circle size={16}/>;
+                if (object.type === 'triangle') return <Triangle size={16}/>;
+                return <Square size={16}/>;
         }
     };
 
@@ -425,7 +428,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             const menuLeft = buttonRect.left;
             const menuTop = buttonRect.bottom;
 
-            setMenuPosition({ top: menuTop, left: menuLeft });
+            setMenuPosition({top: menuTop, left: menuLeft});
         }
 
         setShowActionsMenu(!showActionsMenu);
@@ -504,7 +507,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             title={t('editor.moveObjectToTop')}
                             disabled={isProcessingRef.current}
                         >
-                            <ChevronsUp size={16} />
+                            <ChevronsUp size={16}/>
                             <span>{t('editor.moveObjectToTop')}</span>
                         </button>
 
@@ -514,7 +517,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             title={t('editor.moveObjectUp')}
                             disabled={isProcessingRef.current}
                         >
-                            <ChevronUp size={16} />
+                            <ChevronUp size={16}/>
                             <span>{t('editor.moveObjectUp')}</span>
                         </button>
 
@@ -524,7 +527,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             title={t('editor.moveObjectDown')}
                             disabled={isProcessingRef.current}
                         >
-                            <ChevronDown size={16} />
+                            <ChevronDown size={16}/>
                             <span>{t('editor.moveObjectDown')}</span>
                         </button>
 
@@ -534,7 +537,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             title={t('editor.moveObjectToBottom')}
                             disabled={isProcessingRef.current}
                         >
-                            <ChevronsDown size={16} />
+                            <ChevronsDown size={16}/>
                             <span>{t('editor.moveObjectToBottom')}</span>
                         </button>
 
@@ -547,7 +550,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             title={t('editor.duplicate')}
                             disabled={isProcessingRef.current}
                         >
-                            <Copy size={16} />
+                            <Copy size={16}/>
                             <span>{t('editor.duplicate')}</span>
                         </button>
                     </>
@@ -560,7 +563,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                     title={t('editor.delete')}
                     disabled={isProcessingRef.current || object.isLayoutParent}
                 >
-                    <Trash2 size={16} />
+                    <Trash2 size={16}/>
                     <span>{t('editor.delete')}</span>
                 </button>
             </div>,
@@ -576,7 +579,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             {/* Error message display */}
             {errorMessage && (
                 <div className={styles.errorMessage}>
-                    <AlertTriangle size={14} />
+                    <AlertTriangle size={14}/>
                     <span>{errorMessage}</span>
                     <button onClick={() => setErrorMessage(null)}>×</button>
                 </div>
@@ -620,7 +623,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                                     onClick={startEditingName}
                                     title={t('editor.renameObject')}
                                 >
-                                    <Edit2 size={14} />
+                                    <Edit2 size={14}/>
                                 </button>
                             )}
                         </span>
@@ -635,7 +638,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         title={isVisible ? t('editor.hideObject') : t('editor.showObject')}
                         disabled={isProcessingRef.current}
                     >
-                        {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+                        {isVisible ? <Eye size={16}/> : <EyeOff size={16}/>}
                     </button>
 
                     <button
@@ -644,7 +647,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         title={isLocked ? t('editor.unlockObject') : t('editor.lockObject')}
                         disabled={isProcessingRef.current || !isVisible}
                     >
-                        {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
+                        {isLocked ? <Unlock size={16}/> : <Lock size={16}/>}
                     </button>
 
                     {/* More actions button with dropdown menu */}
@@ -656,7 +659,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             title={t('editor.moreActions')}
                             disabled={isProcessingRef.current}
                         >
-                            <MoreHorizontal size={16} />
+                            <MoreHorizontal size={16}/>
                         </button>
 
                         {renderActionsMenu()}
@@ -665,6 +668,6 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             </div>
         </>
     );
-};
+}
 
 export default ObjectItem;
