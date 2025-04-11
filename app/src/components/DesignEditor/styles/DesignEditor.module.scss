@@ -8,9 +8,14 @@
   --spacing-lg: 0.75rem;   // 12px
   --button-size-sm: 1.75rem; // 28px
   --button-size: 2rem;     // 32px
-  --panel-width: 250px;    // Default panel width
+  --panel-width: 250px;    // 기본 패널 너비
+  --color-primary-light: rgba(59, 130, 246, 0.3); // 리사이즈 핸들용 색상
+  --color-primary-lighter: rgba(59, 130, 246, 0.1); // 호버용 색상
+  --transition-normal: 0.3s;
+  --transition-fast: 0.15s;
 }
 
+// 에디터 전체 컨테이너
 .editorContainer {
   display: flex;
   flex-direction: column;
@@ -22,6 +27,8 @@
   position: relative;
 }
 
+
+// 툴바 스타일
 .toolbar {
   display: flex;
   align-items: center;
@@ -37,7 +44,7 @@
   .toolGroup {
     display: flex;
     gap: var(--spacing-xs);
-    position: relative; // Template dropdown anchor point
+    position: relative; // 템플릿 드롭다운 기준점
   }
 
   .toolButton {
@@ -78,7 +85,7 @@
     }
   }
 
-  // Template dropdown styles
+  // 템플릿 드롭다운 스타일
   .templateDropdown {
     position: absolute;
     top: 100%;
@@ -119,6 +126,7 @@
   }
 }
 
+// 메인 에디터 영역
 .editorMain {
   display: flex;
   flex: 1;
@@ -126,7 +134,7 @@
   position: relative;
 }
 
-// Left panel styles
+// 왼쪽 패널 스타일
 .leftPanel {
   display: flex;
   flex-direction: column;
@@ -142,6 +150,7 @@
   }
 }
 
+// 탭 바 스타일
 .tabBar {
   display: flex;
   border-bottom: 1px solid var(--color-border);
@@ -175,7 +184,7 @@
   }
 }
 
-// Right panel styles
+// 오른쪽 패널 스타일
 .rightPanel {
   display: flex;
   flex-direction: column;
@@ -191,7 +200,7 @@
   }
 }
 
-// Content area
+// 콘텐츠 영역 (캔버스 컨테이너)
 .contentArea {
   flex: 1;
   overflow: auto;
@@ -202,7 +211,9 @@
   background-color: var(--color-bg-tertiary);
 }
 
-// Common panel controls
+
+
+// 패널 토글 버튼
 .toggleButton {
   position: absolute;
   top: 50%;
@@ -237,38 +248,96 @@
   }
 }
 
+// 패널 크기 조절 핸들 - 개선된 스타일
 .resizeHandle {
   position: absolute;
   cursor: col-resize;
   z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color var(--transition-fast) ease;
 
   .leftPanel & {
     top: 0;
     right: 0;
-    width: 3px;
+    width: 5px;
     height: 100%;
+    background-color: transparent;
 
-    &:hover, &:active {
-      background-color: var(--color-primary);
+    &:hover, &.resizing {
+      background-color: var(--color-primary-light);
     }
 
-    .resizeIcon {
-      display: none;
+    // 리사이즈 핸들 중앙 버튼
+    .resizeButton {
+      position: absolute;
+      top: 50%;
+      right: -6px;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 40px;
+      background-color: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: 0.125rem;
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      cursor: col-resize;
+
+      &:hover {
+        color: var(--color-primary);
+      }
     }
+
+    &:hover .resizeButton, &.resizing .resizeButton {
+      opacity: 1;
+    }
+
   }
 
   .rightPanel & {
     top: 0;
     left: 0;
-    width: 3px;
+    width: 5px;
     height: 100%;
+    background-color: transparent;
 
-    &:hover, &:active {
-      background-color: var(--color-primary);
+    &:hover, &.resizing {
+      background-color: var(--color-primary-light);
     }
 
-    .resizeIcon {
-      display: none;
+    // 리사이즈 핸들 중앙 버튼
+    .resizeButton {
+      position: absolute;
+      top: 50%;
+      left: -6px;
+      transform: translateY(-50%);
+      width: 12px;
+      height: 40px;
+      background-color: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: 0.125rem;
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      cursor: col-resize;
+
+      &:hover {
+        color: var(--color-primary);
+      }
+    }
+
+    &:hover .resizeButton, &.resizing .resizeButton {
+      opacity: 1;
     }
   }
 }

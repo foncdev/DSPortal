@@ -1,5 +1,5 @@
 // src/components/DesignEditor/layout/DesignEditorLayout.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Maximize, Minimize } from 'lucide-react';
 
@@ -9,43 +9,82 @@ import LeftPanel from '../components/panels/LeftPanel';
 import RightPanel from '../components/panels/RightPanel';
 import Canvas from '../components/Canvas/Canvas';
 import { useResizablePanel } from '../hooks/useResizablePanel';
+import { useDesignEditor } from '../context/DesignEditorContext';
 
 /**
- * Main layout component for the DesignEditor
- * Manages the layout structure and panel states
+ * DesignEditor의 메인 레이아웃 컴포넌트
+ * 레이아웃 구조와 패널 상태 관리
  */
 const DesignEditorLayout: React.FC = () => {
     const { t } = useTranslation();
+    const { canvas } = useDesignEditor();
 
-    // Panel state management
+    // 패널 상태 관리
     const [leftPanelOpen, setLeftPanelOpen] = useState(true);
     const [rightPanelOpen, setRightPanelOpen] = useState(true);
     const [toolbarOpen, setToolbarOpen] = useState(true);
     const [activeTab, setActiveTab] = useState('objects'); // 'objects', 'library', 'filemanager'
 
-    // Resizable panels
+    // 왼쪽 패널 리사이징 설정
     const {
         width: leftWidth,
-        ref: leftPanelRef,
+        panelRef: leftPanelRef,
         resizeHandleRef: leftResizeRef,
-        isResizing: isLeftResizing,
         startResizing: startLeftResizing
-    } = useResizablePanel(280);
+    } = useResizablePanel(280, 200, 400, 'left');
 
+    // 오른쪽 패널 리사이징 설정
     const {
         width: rightWidth,
-        ref: rightPanelRef,
+        panelRef: rightPanelRef,
         resizeHandleRef: rightResizeRef,
-        isResizing: isRightResizing,
         startResizing: startRightResizing
-    } = useResizablePanel(280);
+    } = useResizablePanel(280, 200, 400, 'right');
 
-    // Toggle panels
+    // 패널 토글 함수
     const toggleLeftPanel = () => setLeftPanelOpen(!leftPanelOpen);
     const toggleRightPanel = () => setRightPanelOpen(!rightPanelOpen);
     const toggleToolbar = () => setToolbarOpen(!toolbarOpen);
 
-    // Render toolbar toggle button
+    // 캔버스 크기 조절 (패널 상태에 따라)
+    useEffect(() => {
+        if (!canvas) return;
+
+        // 윈도우 리사이즈 시 캔버스 렌더링 갱신
+        const handleResize = () => {
+            setTimeout(() => {
+                canvas.requestRenderAll();
+            }, 100);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // 패널 상태 변경 시 캔버스 렌더링 갱신
+        handleResize();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [canvas, leftPanelOpen, rightPanelOpen, leftWidth, rightWidth]);
+
+    // 캔버스 렌더링 문제 해결을 위한 추가 효과
+    useEffect(() => {
+        if (!canvas) return;
+
+        // 캔버스 초기화 후 렌더링 강제화
+        const refreshCanvas = () => {
+            canvas.requestRenderAll();
+        };
+
+        // 주기적으로 캔버스 리프레시 (0.5초마다)
+        const renderInterval = setInterval(refreshCanvas, 500);
+
+        return () => {
+            clearInterval(renderInterval);
+        };
+    }, [canvas]);
+
+    // 툴바 토글 버튼 렌더링
     const renderToolbarToggleButton = () => (
         <button
             className={styles.toolbarToggleButton}
@@ -58,14 +97,14 @@ const DesignEditorLayout: React.FC = () => {
 
     return (
         <div className={styles.editorContainer}>
-            {/* Toolbar toggle button - shown when toolbar is hidden */}
+            {/* 툴바 토글 버튼 - 툴바가 숨겨졌을 때 표시 */}
             {!toolbarOpen && (
                 <div className={styles.toolbarToggleContainer}>
                     {renderToolbarToggleButton()}
                 </div>
             )}
 
-            {/* Top Toolbar */}
+            {/* 상단 툴바 */}
             {toolbarOpen && (
                 <EditorToolbar
                     toggleToolbarButton={renderToolbarToggleButton}
@@ -73,7 +112,7 @@ const DesignEditorLayout: React.FC = () => {
             )}
 
             <div className={styles.editorMain}>
-                {/* Left Panel */}
+                {/* 왼쪽 패널 */}
                 <LeftPanel
                     isOpen={leftPanelOpen}
                     width={leftWidth}
@@ -85,12 +124,12 @@ const DesignEditorLayout: React.FC = () => {
                     onTabChange={setActiveTab}
                 />
 
-                {/* Content Area */}
+                {/* 콘텐츠 영역 */}
                 <div className={styles.contentArea}>
                     <Canvas />
                 </div>
 
-                {/* Right Panel */}
+                {/* 오른쪽 패널 */}
                 <RightPanel
                     isOpen={rightPanelOpen}
                     width={rightWidth}

@@ -1,7 +1,7 @@
 // src/components/DesignEditor/components/panels/LeftPanel.tsx
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Minus, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GripVertical, FileText } from 'lucide-react';
 
 import styles from '../../styles/DesignEditor.module.scss';
 import ObjectsPanel from '../ObjectsPanel/ObjectsPanel';
@@ -15,13 +15,13 @@ interface LeftPanelProps {
     panelRef: React.RefObject<HTMLDivElement>;
     resizeHandleRef: React.RefObject<HTMLDivElement>;
     onToggle: () => void;
-    onStartResize: () => void;
+    onStartResize: (e: React.MouseEvent<HTMLDivElement>) => void;
     activeTab: string;
     onTabChange: (tab: string) => void;
 }
 
 /**
- * Left panel component containing the object panel, library panel, and file manager
+ * 왼쪽 패널 컴포넌트 - 객체 패널, 라이브러리 패널, 파일 매니저 포함
  */
 const LeftPanel: React.FC<LeftPanelProps> = ({
                                                  isOpen,
@@ -36,7 +36,7 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
     const { t } = useTranslation();
     const { addObject } = useDesignEditor();
 
-    // Handle adding a component from the file manager
+    // 파일 매니저에서 컴포넌트 추가 핸들러
     const handleAddComponent = (component: any) => {
         if (component.type === 'image') {
             addObject('image', {
@@ -62,10 +62,10 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
                 top: Math.random() * 300 + 150
             });
         } else if (component.type === 'layout') {
-            // Add layout component
+            // 레이아웃 컴포넌트 추가
             const groupId = `layout_${Date.now()}`;
 
-            // Add layout background
+            // 레이아웃 배경 추가
             addObject('rectangle', {
                 name: component.name || 'Layout Component',
                 width: component.width || 500,
@@ -78,11 +78,10 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
                 top: Math.random() * 200 + 100
             });
 
-            // Add layout children
+            // 레이아웃 자식 요소 추가
             if (component.children && Array.isArray(component.children)) {
                 component.children.forEach((child: any) => {
-                    // @ts-ignore
-                    addObject(child.type, {
+                    addObject(child.type as any, {
                         ...child.properties,
                         name: child.name,
                         layoutGroup: groupId
@@ -126,18 +125,20 @@ const LeftPanel: React.FC<LeftPanelProps> = ({
                     {activeTab === 'library' && <LibraryPanel />}
                     {activeTab === 'filemanager' && <FileManagerPanel onAddComponent={handleAddComponent} />}
 
-                    {/* Resize handle */}
+                    {/* 개선된 리사이즈 핸들 */}
                     <div
                         className={styles.resizeHandle}
                         ref={resizeHandleRef}
                         onMouseDown={onStartResize}
                     >
-                        <Minus size={16} className={styles.resizeIcon} />
+                        <div className={styles.resizeButton}>
+                            <GripVertical size={12} />
+                        </div>
                     </div>
                 </>
             )}
 
-            {/* Toggle button */}
+            {/* 패널 토글 버튼 */}
             <button
                 className={styles.toggleButton}
                 onClick={onToggle}
