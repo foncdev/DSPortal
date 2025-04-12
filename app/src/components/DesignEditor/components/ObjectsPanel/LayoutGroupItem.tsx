@@ -481,6 +481,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                     {group.objects.map((object, index) => (
                         <React.Fragment key={object.id}>
                             <ObjectItem
+                                key={`object_${object.id}_${index}`}
                                 object={object}
                                 isSelected={selectedObjectId === object.id}
                                 isGroupChild={!object.isLayoutParent} // Only treat non-parent objects as children
@@ -493,6 +494,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
                             {/* Drop zone after each object */}
                             <div
+                                key={`dropzone_${object.id}_${index}`}
                                 className={`${styles.dropZone} ${dragOverObjectIndex === index + 1 ? styles.active : ''}`}
                                 onDragOver={(e) => handleDragOverObject(index + 1, e)}
                                 onDrop={(e) => handleDropAtIndex(index + 1, e)}

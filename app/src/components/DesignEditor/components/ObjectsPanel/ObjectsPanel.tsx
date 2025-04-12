@@ -306,9 +306,9 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                     {/* Layout groups */}
                     {layoutGroups.length > 0 && (
                         <div className={styles.layoutGroupsList}>
-                            {layoutGroups.map((group) => (
+                            {layoutGroups.map((group, groupIndex) => (
                                 <LayoutGroupItem
-                                    key={group.id}
+                                    key={`group_${group.id}_${groupIndex}`} // 고유한 키 생성
                                     group={group}
                                     selectedObjectId={selectedObject?.id}
                                     isDragOver={dragOverId === `group_${group.id}`}
@@ -346,8 +346,11 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                         e.preventDefault();
                                         if (!canvas || !draggingId) {return;}
 
+
                                         // Find the group
-                                        const group = layoutGroups.find(g => g.id === group.id);
+                                        const group = layoutGroups.find(g => {
+                                            return g.id === group.id
+                                        });
                                         if (!group) {return;}
 
                                         // Find the dragged object

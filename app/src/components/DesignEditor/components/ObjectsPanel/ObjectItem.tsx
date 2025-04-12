@@ -455,7 +455,18 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Handle drag start
     const handleDragStart = (e: React.DragEvent) => {
-        if (!object.id || isLocked || !isVisible || object.isLayoutParent) {return;}
+
+        // console.log('Drag Start:', {
+        //     objectId: object.id,
+        //     isLocked,
+        //     isVisible,
+        //     isLayoutParent: object.isLayoutParent
+        // });
+
+        if (!object.id || isLocked || !isVisible || object.isLayoutParent) {
+            console.warn('Drag prevented due to conditions');
+            return;
+        }
 
         onDragStart(object.id);
 
@@ -467,13 +478,23 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Handle drag over
     const handleDragOver = (e: React.DragEvent) => {
+        // console.log('Drag Over:', {
+        //     objectId: object.id,
+        //     event: e
+        // });
         e.preventDefault();
-        if (!object.id) {return;}
+        if (!object.id) {
+            console.warn('No object ID for drag over');
+            return;
+        }
         onDragOver(object.id);
     };
 
     // Handle drag end
     const handleDragEnd = (e: React.DragEvent) => {
+        // console.log('Drag End:', {
+        //     objectId: object.id
+        // });
         if (e.currentTarget instanceof HTMLElement) {
             e.currentTarget.style.opacity = '1';
         }

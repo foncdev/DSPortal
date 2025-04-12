@@ -412,6 +412,10 @@
     "addToGroup": "그룹에 추가",
     "addComponent": "컴포넌트 추가",
     "components": "컴포넌트",
-    "layoutElements": "레이아웃 요소"
+    "layoutElements": "레이아웃 요소",
+    "lockLayer": "lockLayer",
+    "unlockLayer": "unlockLayer",
+    "hideLayer": "hideLayer",
+    "showLayer": "showLayer"
   }
 }

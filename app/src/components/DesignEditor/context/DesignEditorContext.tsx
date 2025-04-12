@@ -350,9 +350,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             return;
         }
 
-        // Generate a unique ID for the new object
-        const newId = objectCount + 1;
-        setObjectCount(newId);
+        const newId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const objcnt = objectCount + 1;
+        setObjectCount(objcnt);
 
         const mergedOptions = {
             ...options,
@@ -680,8 +680,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         }
 
         // Create a unique ID based on timestamp
-        const timestamp = Date.now();
-        const groupId = `layout_${timestamp}`;
+        const groupId = `layout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
         const width = options.width || canvas.getWidth();
         const height = options.height || canvas.getHeight();

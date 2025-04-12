@@ -7,12 +7,16 @@ import { useDesignEditor } from '../../context/DesignEditorContext';
 import { useCanvasEvents } from '../../hooks/useCanvasEvents';
 import styles from './Canvas.module.scss';
 
+/**
+ * Canvas 컴포넌트
+ * fabric.js 캔버스를 관리하고 상호작용을 처리합니다.
+ */
 const Canvas: React.FC = () => {
     const { t } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Access the design editor context
+    // Design Editor 컨텍스트 사용
     const {
         setCanvas,
         canvas,
@@ -23,15 +27,16 @@ const Canvas: React.FC = () => {
         showGrid
     } = useDesignEditor();
 
-    // Track panning state
+    // 패닝 상태 관리
     const [isPanning, setIsPanning] = useState(false);
     const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
+    const [isCanvasReady, setIsCanvasReady] = useState(false);
 
-    // Initialize canvas when component mounts
+    // 컴포넌트 마운트 시 canvas 초기화
     useEffect(() => {
-        if (!canvasRef.current || canvas) {return;}
+        if (!canvasRef.current || canvas) return;
 
-        // Create a new fabric canvas
+        // fabric.js 캔버스 생성
         const fabricCanvas = new fabric.Canvas(canvasRef.current, {
             width: canvasWidth,
             height: canvasHeight,
@@ -39,24 +44,68 @@ const Canvas: React.FC = () => {
             preserveObjectStacking: true,
             selection: true,
             stopContextMenu: true,
-            renderOnAddRemove: true // 객체 추가/제거 시 자동 렌더링
+            renderOnAddRemove: true
         });
 
-        // Set the canvas in the context
+        // 캔버스 Context에 설정
         setCanvas(fabricCanvas);
+        setIsCanvasReady(true);
 
-        // Cleanup on unmount
+        // 컴포넌트 언마운트 시 정리
         return () => {
             fabricCanvas.dispose();
         };
     }, [canvasRef, setCanvas, canvasWidth, canvasHeight]);
 
-    // Apply zoom level changes
+    // 캔버스 렌더링 문제 해결을 위한 추가 효과
     useEffect(() => {
-        if (!canvas) {return;}
+        if (!canvas || !isCanvasReady) return;
+
+        // 캔버스 초기화 후 렌더링 강제화
+        const forceInitialRender = () => {
+            setTimeout(() => {
+                canvas.requestRenderAll();
+            }, 300);
+        };
+
+        forceInitialRender();
+
+        // 객체 선택 시 추가 렌더링
+        const handleSelection = () => {
+            canvas.requestRenderAll();
+        };
+
+        // 객체 추가/수정 시 추가 렌더링
+        const handleObjectChange = () => {
+            canvas.requestRenderAll();
+        };
+
+        // 이벤트 리스너 등록
+        canvas.on('selection:created', handleSelection);
+        canvas.on('selection:updated', handleSelection);
+        canvas.on('selection:cleared', handleSelection);
+        canvas.on('object:added', handleObjectChange);
+        canvas.on('object:modified', handleObjectChange);
+        canvas.on('object:removed', handleObjectChange);
+
+        // 정리 함수
+        return () => {
+            canvas.off('selection:created', handleSelection);
+            canvas.off('selection:updated', handleSelection);
+            canvas.off('selection:cleared', handleSelection);
+            canvas.off('object:added', handleObjectChange);
+            canvas.off('object:modified', handleObjectChange);
+            canvas.off('object:removed', handleObjectChange);
+        };
+    }, [canvas, isCanvasReady]);
+
+    // 줌 레벨 변경 적용
+    useEffect(() => {
+        if (!canvas) return;
 
         canvas.setZoom(zoomLevel);
-        // Center the canvas
+
+        // 캔버스 중앙 정렬
         const vpt = canvas.viewportTransform;
         if (vpt) {
             vpt[4] = (canvasWidth * (1 - zoomLevel)) / 2;
@@ -65,112 +114,23 @@ const Canvas: React.FC = () => {
         canvas.requestRenderAll();
     }, [canvas, zoomLevel, canvasWidth, canvasHeight]);
 
+    // 캔버스 이벤트 설정
     const { handleKeyDown } = useCanvasEvents();
 
-    // Handle mouse wheel for zooming
+    // 키보드 단축키 처리
     useEffect(() => {
-        if (!canvas || !containerRef.current) {return;}
-
-        const handleWheel = (e: WheelEvent) => {
-            if (e.ctrlKey) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const delta = e.deltaY;
-                const zoom = canvas.getZoom();
-                const newZoom = delta > 0 ? Math.max(zoom - 0.05, 0.1) : Math.min(zoom + 0.05, 3);
-
-                // Get cursor position relative to canvas
-                const container = containerRef.current;
-                if (!container) {return;}
-
-                const rect = container.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-
-                // Zoom to point
-                zoomToPoint(newZoom, { x: mouseX, y: mouseY });
-            }
-        };
-
-        const container = containerRef.current;
-        if (container) {
-            container.addEventListener('wheel', handleWheel, { passive: false });
-        }
-
-        return () => {
-            if (container) {
-                container.removeEventListener('wheel', handleWheel);
-            }
-        };
-    }, [canvas, containerRef]);
-
-    // Handle keyboard shortcuts
-    useEffect(() => {
-        if (!canvas) {return;}
-
-        const handleKeyDown = (e: KeyboardEvent) => {
-            // Handle keyboard shortcuts
-            if (e.ctrlKey) {
-                switch (e.key) {
-                    case 'z':
-                        if (!e.shiftKey) {
-                            // Ctrl+Z (Undo)
-                            e.preventDefault();
-                            useDesignEditor().undo();
-                        } else {
-                            // Ctrl+Shift+Z (Redo)
-                            e.preventDefault();
-                            useDesignEditor().redo();
-                        }
-                        break;
-
-                    case 'y':
-                        // Ctrl+Y (Redo)
-                        e.preventDefault();
-                        useDesignEditor().redo();
-                        break;
-
-                    case '=':
-                    case '+':
-                        // Ctrl++ (Zoom In)
-                        e.preventDefault();
-                        setZoomLevel(Math.min(zoomLevel + 0.1, 3));
-                        break;
-
-                    case '-':
-                        // Ctrl+- (Zoom Out)
-                        e.preventDefault();
-                        setZoomLevel(Math.max(zoomLevel - 0.1, 0.1));
-                        break;
-
-                    case '0':
-                        // Ctrl+0 (Reset Zoom)
-                        e.preventDefault();
-                        setZoomLevel(1);
-                        break;
-                }
-            }
-
-            // Delete key to delete selected objects
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                const activeObject = canvas.getActiveObject();
-                if (activeObject && !activeObject.excludeFromExport) {
-                    useDesignEditor().deleteObject();
-                }
-            }
-        };
+        if (!canvas) return;
 
         window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [canvas, zoomLevel, handleKeyDown]);
+    }, [canvas, handleKeyDown]);
 
-    // Handle mouse wheel for zooming
+    // 마우스 휠로 줌 처리
     useEffect(() => {
-        if (!canvas || !containerRef.current) {return;}
+        if (!canvas || !containerRef.current) return;
 
         const handleWheel = (e: WheelEvent) => {
             if (e.ctrlKey) {
@@ -181,15 +141,14 @@ const Canvas: React.FC = () => {
                 const zoom = canvas.getZoom();
                 const newZoom = delta > 0 ? Math.max(zoom - 0.05, 0.1) : Math.min(zoom + 0.05, 3);
 
-                // Get cursor position relative to canvas
+                // 커서 위치 기준 줌
                 const container = containerRef.current;
-                if (!container) {return;}
+                if (!container) return;
 
                 const rect = container.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
 
-                // Zoom to point
                 zoomToPoint(newZoom, { x: mouseX, y: mouseY });
             }
         };
@@ -206,9 +165,9 @@ const Canvas: React.FC = () => {
         };
     }, [canvas, containerRef]);
 
-    // Handle panning with middle mouse or space+drag
+    // 마우스 중간 버튼 또는 스페이스+드래그로 패닝
     useEffect(() => {
-        if (!canvas || !containerRef.current) {return;}
+        if (!canvas || !containerRef.current) return;
 
         let isSpacePressed = false;
 
@@ -239,7 +198,7 @@ const Canvas: React.FC = () => {
             if (isPanning && canvas) {
                 e.preventDefault();
                 const vpt = canvas.viewportTransform;
-                if (!vpt) {return;}
+                if (!vpt) return;
 
                 vpt[4] += e.clientX - lastPanPoint.x;
                 vpt[5] += e.clientY - lastPanPoint.y;
@@ -276,21 +235,20 @@ const Canvas: React.FC = () => {
         };
     }, [canvas, isPanning, lastPanPoint]);
 
-    // Zoom to a specific point on the canvas
+    // 특정 지점에 줌
     const zoomToPoint = (zoom: number, point: { x: number, y: number }) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         const vpt = canvas.viewportTransform;
-        if (!vpt) {return;}
+        if (!vpt) return;
 
-        // Set zoom
         canvas.zoomToPoint({ x: point.x, y: point.y }, zoom);
 
-        // Update the context zoomLevel
+        // 컨텍스트의 줌 레벨 업데이트
         setZoomLevel(zoom);
     };
 
-    // Zoom controls
+    // 줌 컨트롤 함수
     const zoomIn = () => {
         setZoomLevel(Math.min(zoomLevel + 0.1, 3));
     };
@@ -300,16 +258,17 @@ const Canvas: React.FC = () => {
     };
 
     const zoomToFit = () => {
-        if (!canvas || !containerRef.current) {return;}
+        if (!canvas || !containerRef.current) return;
 
         const container = containerRef.current;
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
 
-        // Calculate the zoom level to fit the canvas in the container
+        // 캔버스를 컨테이너에 맞추기 위한 줌 레벨 계산
         const scaleX = containerWidth / canvasWidth;
         const scaleY = containerHeight / canvasHeight;
-        const scale = Math.min(scaleX, scaleY) * 0.9; // 90% to add some padding
+        // 여백을 위해 90% 크기로 조정
+        const scale = Math.min(scaleX, scaleY) * 0.9;
 
         setZoomLevel(scale);
     };
@@ -333,14 +292,14 @@ const Canvas: React.FC = () => {
                 <canvas ref={canvasRef} />
             </div>
 
-            {/* Placeholder message when empty */}
+            {/* 빈 상태일 때 표시되는 메시지 */}
             {canvas && canvas.getObjects().length === 0 && (
                 <div className={styles.placeholder}>
-                    {t('editor.canvasPlaceholder')}
+                    {t('editor.canvasPlaceholder', 'Add objects to start designing')}
                 </div>
             )}
 
-            {/* Zoom controls */}
+            {/* 줌 컨트롤 */}
             <div className={styles.zoomControls}>
                 <button
                     onClick={zoomOut}
