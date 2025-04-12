@@ -178,62 +178,79 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     useEffect(() => {
         if (!canvas) {return;}
 
-        // Handle object movement
+        // 객체 이동 처리 함수
         const handleObjectMoving = (e: fabric.IEvent) => {
             const movedObject = e.target as FabricObjectWithId;
 
-            // Check if the moving object is a layout parent
+            // 레이아웃 부모 객체인 경우에만 처리
             if (movedObject && movedObject.isLayoutParent) {
-                // Calculate movement delta
-                const oldLeft = movedObject.__oldLeft || 0;
-                const oldTop = movedObject.__oldTop || 0;
-                const newLeft = movedObject.left || 0;
-                const newTop = movedObject.top || 0;
-
-                // Calculate movement delta
-                const deltaX = newLeft - oldLeft;
-                const deltaY = newTop - oldTop;
-
-                // If no movement, do nothing
-                if (deltaX === 0 && deltaY === 0) {return;}
-
-                // Get group ID
                 const groupId = movedObject.layoutGroup;
                 if (!groupId) {return;}
 
-                // Find all child objects in this group (excluding parent)
-                const childObjects = canvas.getObjects().filter(obj => {
-                    const fabricObj = obj as FabricObjectWithId;
-                    return fabricObj.layoutGroup === groupId && !fabricObj.isLayoutParent;
-                }) as FabricObjectWithId[];
+                // 현재 위치 (안전하게 처리)
+                const newLeft = typeof movedObject.left === 'number' ? movedObject.left : 0;
+                const newTop = typeof movedObject.top === 'number' ? movedObject.top : 0;
 
-                // Move all child objects together
-                childObjects.forEach(child => {
-                    child.set({
-                        left: (child.left || 0) + deltaX,
-                        top: (child.top || 0) + deltaY
+                // 이전 위치가 없으면 초기화
+                if (typeof movedObject.__oldLeft !== 'number') {
+                    movedObject.__oldLeft = newLeft;
+                    movedObject.__oldTop = newTop;
+                    return; // 초기 설정이면 이동 처리 건너뜀
+                }
+
+                // 이동 거리 계산
+                const deltaX = newLeft - movedObject.__oldLeft;
+                const deltaY = newTop - movedObject.__oldTop;
+
+                // 실제 이동이 있는 경우만 처리
+                if (deltaX !== 0 || deltaY !== 0) {
+                    // 그룹의 모든 자식 객체 검색 (부모 제외)
+                    const childObjects = canvas.getObjects().filter(obj => {
+                        const fabricObj = obj as FabricObjectWithId;
+                        return fabricObj.layoutGroup === groupId && !fabricObj.isLayoutParent;
+                    }) as FabricObjectWithId[];
+
+                    // 로그 추가
+                    console.log(`Moving group ${groupId} with ${childObjects.length} children by (${deltaX}, ${deltaY})`);
+
+                    // 모든 자식 객체 이동
+                    childObjects.forEach(child => {
+                        // 자식 객체 현재 위치 안전하게 가져오기
+                        const childLeft = typeof child.left === 'number' ? child.left : 0;
+                        const childTop = typeof child.top === 'number' ? child.top : 0;
+
+                        // 새 위치 설정
+                        child.set({
+                            left: childLeft + deltaX,
+                            top: childTop + deltaY
+                        });
+
+                        // 좌표 업데이트 (중요!)
+                        child.setCoords();
                     });
-                    child.setCoords();
-                });
 
-                // Save current position for next movement calculation
-                movedObject.__oldLeft = newLeft;
-                movedObject.__oldTop = newTop;
+                    // 현재 위치를 이전 위치로 저장 (다음 이동에 사용)
+                    movedObject.__oldLeft = newLeft;
+                    movedObject.__oldTop = newTop;
 
-                // Render canvas
-                canvas.requestRenderAll();
+                    // 캔버스 렌더링
+                    canvas.requestRenderAll();
+                }
             }
         };
 
-        // Handle object modification completion
+        // 객체 수정 완료 처리
         const handleObjectModified = (e: fabric.IEvent) => {
             const modifiedObject = e.target as FabricObjectWithId;
 
-            // Clear old position data when modification is complete
+            // 위치 데이터 초기화
             if (modifiedObject) {
                 delete modifiedObject.__oldLeft;
                 delete modifiedObject.__oldTop;
             }
+
+            // 히스토리에 저장 (상태 저장)
+            saveToHistory();
         };
 
         // Handle selection cleared
@@ -246,16 +263,18 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             });
         };
 
-        // Handle object selected
+        // 객체 선택 처리
         const handleObjectSelected = (e: fabric.IEvent) => {
-            const selectedObject = e.target as FabricObjectWithId;
+            const selectedObj = e.target as FabricObjectWithId;
 
-            if (selectedObject && selectedObject.isLayoutParent) {
-                // Save current position when selected
-                selectedObject.__oldLeft = selectedObject.left;
-                selectedObject.__oldTop = selectedObject.top;
+            if (selectedObj && selectedObj.isLayoutParent) {
+                // 선택 시 현재 위치 저장
+                selectedObj.__oldLeft = selectedObj.left;
+                selectedObj.__oldTop = selectedObj.top;
+                console.log(`Selected layout parent: ${selectedObj.name}, position: (${selectedObj.__oldLeft}, ${selectedObj.__oldTop})`);
             }
         };
+
 
         // Register event listeners
         canvas.on('object:moving', handleObjectMoving);
@@ -709,48 +728,6 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             layoutGroup: groupId
         });
 
-        // Set up movement event handler
-        layoutObject.on('moving', (e) => {
-            const movedObj = e.target as FabricObjectWithId;
-
-            // Current position
-            const currentLeft = movedObj.left || 0;
-            const currentTop = movedObj.top || 0;
-
-            // Initialize old position if not set
-            if (movedObj.__oldLeft === undefined) {
-                movedObj.__oldLeft = currentLeft;
-            }
-            if (movedObj.__oldTop === undefined) {
-                movedObj.__oldTop = currentTop;
-            }
-
-            // Calculate movement delta
-            const deltaX = currentLeft - movedObj.__oldLeft;
-            const deltaY = currentTop - movedObj.__oldTop;
-
-            // If there's movement, update child objects
-            if (deltaX !== 0 || deltaY !== 0) {
-                // Find child objects
-                const childObjects = canvas.getObjects().filter(obj => {
-                    const childObj = obj as FabricObjectWithId;
-                    return childObj.layoutGroup === groupId && !childObj.isLayoutParent;
-                }) as FabricObjectWithId[];
-
-                // Move child objects
-                childObjects.forEach(child => {
-                    child.set({
-                        left: (child.left || 0) + deltaX,
-                        top: (child.top || 0) + deltaY
-                    });
-                    child.setCoords();
-                });
-
-                // Update old position values
-                movedObj.__oldLeft = currentLeft;
-                movedObj.__oldTop = currentTop;
-            }
-        });
 
         // Update object counter
         setObjectCount(objectCount + 1);
@@ -906,21 +883,29 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const moveGroupTogether = (groupId: string, deltaX: number, deltaY: number) => {
         if (!canvas) {return;}
 
-        // Find all objects in the group
+        // 그룹의 모든 객체 찾기 (부모와 자식 모두)
         const groupObjects = canvas.getObjects().filter(obj => {
             const fabricObj = obj as FabricObjectWithId;
             return fabricObj.layoutGroup === groupId;
         }) as FabricObjectWithId[];
 
-        // Move all objects
+        // 모든 객체 이동
         groupObjects.forEach(obj => {
+            // 안전하게 현재 위치 가져오기
+            const objLeft = typeof obj.left === 'number' ? obj.left : 0;
+            const objTop = typeof obj.top === 'number' ? obj.top : 0;
+
+            // 새 위치 설정
             obj.set({
-                left: (obj.left || 0) + deltaX,
-                top: (obj.top || 0) + deltaY
+                left: objLeft + deltaX,
+                top: objTop + deltaY
             });
+
+            // 좌표 업데이트
             obj.setCoords();
         });
 
+        // 캔버스 렌더링
         canvas.requestRenderAll();
     };
 
