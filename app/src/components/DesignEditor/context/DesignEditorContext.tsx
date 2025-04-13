@@ -472,143 +472,122 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const addObject = (type: ObjectType, options: any = {}) => {
         if (!canvas) return;
 
-        // Ensure a layout group exists
-        const ensureLayoutGroup = () => {
-            const layoutGroups = layerGroups;
+        let targetGroupId = activeGroupId;
+        if ( layerGroups.length == 0 ) {
+            targetGroupId = createLayoutGroup('Layer 1');
+        }
 
-            // If no layout groups exist, create one automatically
-            if (layoutGroups.length === 0) {
-                const newGroupId = createLayoutGroup('Layer 1');
-                return true;
-            }
-            return false;
+        if (!targetGroupId) {
+            console.error('No active layout group available');
+            return;
+        }
+
+        const newId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const objcnt = objectCount + 1;
+        setObjectCount(objcnt);
+
+        const mergedOptions = {
+            ...options,
+            layoutGroup: targetGroupId,
+            left: options.left || Math.random() * (width - 200) + 100,
+            top: options.top || Math.random() * (height - 200) + 100,
+            id: newId,
+            name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${objcnt}`
         };
 
-        const isNewGroupCreated = ensureLayoutGroup();
-
-        // Wait briefly if we just created a new group
-        setTimeout(() => {
-            // Use active group if available, otherwise use the first group
-            let targetGroupId = activeGroupId;
-            if (!targetGroupId && layerGroups.length > 0) {
-                targetGroupId = layerGroups[0].id;
-                setActiveGroupId(targetGroupId);
-            }
-
-            if (!targetGroupId) {
-                console.error('No active layout group available');
-                return;
-            }
-
-            const newId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const objcnt = objectCount + 1;
-            setObjectCount(objcnt);
-
-            const mergedOptions = {
-                ...options,
-                layoutGroup: targetGroupId,
-                left: options.left || Math.random() * (width - 200) + 100,
-                top: options.top || Math.random() * (height - 200) + 100,
-                id: newId,
-                name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${objcnt}`
-            };
-
-            let object: FabricObjectWithId | null = null;
-
-            // Create the object based on type
-            switch (type) {
-                case 'text':
-                    object = new fabric.Textbox(options.text || 'New Text', {
-                        ...mergedOptions,
-                        fontFamily: options.fontFamily || 'Arial',
-                        fontSize: options.fontSize || 24,
-                        fill: options.fill || '#000000',
-                        width: options.width || 200,
-                        editable: true,
-                        originX: options.originX || 'left',
-                        originY: options.originY || 'top',
-                        textAlign: options.textAlign || 'left'
-                    });
-                    break;
-
-                case 'rectangle':
-                    object = new fabric.Rect({
-                        ...mergedOptions,
-                        width: options.width || 150,
-                        height: options.height || 100,
-                        fill: options.fill || '#3b82f6',
-                        rx: options.rx || 0,
-                        ry: options.ry || 0,
-                        selectable: options.selectable !== undefined ? options.selectable : true
-                    });
-                    break;
-
-                case 'circle':
-                    object = new fabric.Circle({
-                        ...mergedOptions,
-                        radius: options.radius || 50,
-                        fill: options.fill || '#10b981'
-                    });
-                    break;
-
-                case 'triangle':
-                    object = new fabric.Triangle({
-                        ...mergedOptions,
-                        width: options.width || 100,
-                        height: options.height || 100,
-                        fill: options.fill || '#f59e0b'
-                    });
-                    break;
-
-                case 'image':
-                    // Create a placeholder image
-                    fabric.Image.fromURL(options.src || '/api/placeholder/200/200', (img) => {
-                        img.set({
-                            left: options.left || Math.random() * (width - 200) + 100,
-                            top: options.top || Math.random() * (height - 200) + 100,
-                            id: newId,
-                            objectType: type,
-                            name: options.name || `Image ${objcnt}`,
-                            layoutGroup: targetGroupId
-                        });
-
-                        canvas.add(img);
-                        canvas.setActiveObject(img);
-                        canvas.requestRenderAll();
-                        setSelectedObject(img);
-                        saveToHistory();
-                        updateLayerGroups();
-                    });
-                    return;
-
-                case 'video':
-                    // Videos require additional implementation - placeholder for now
-                    object = new fabric.Rect({
-                        ...mergedOptions,
-                        width: options.width || 320,
-                        height: options.height || 240,
-                        fill: '#000000'
-                    });
-                    break;
-            }
-
-            if (object) {
-                // Add custom properties
-                object.set({
-                    id: newId,
-                    objectType: type,
-                    name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${objcnt}`
+        let object: FabricObjectWithId | null = null;
+        switch (type) {
+            case 'text':
+                object = new fabric.Textbox(options.text || 'New Text', {
+                    ...mergedOptions,
+                    fontFamily: options.fontFamily || 'Arial',
+                    fontSize: options.fontSize || 24,
+                    fill: options.fill || '#000000',
+                    width: options.width || 200,
+                    editable: true,
+                    originX: options.originX || 'left',
+                    originY: options.originY || 'top',
+                    textAlign: options.textAlign || 'left'
                 });
+                break;
 
-                // Add to canvas, select it, and save to history
-                canvas.add(object);
-                canvas.setActiveObject(object);
-                canvas.requestRenderAll();
-                setSelectedObject(object);
-                saveToHistory();
-                updateLayerGroups();
-            }
-        }, isNewGroupCreated ? 100 : 0); // Delay slightly if we created a new group
+            case 'rectangle':
+                object = new fabric.Rect({
+                    ...mergedOptions,
+                    width: options.width || 150,
+                    height: options.height || 100,
+                    fill: options.fill || '#3b82f6',
+                    rx: options.rx || 0,
+                    ry: options.ry || 0,
+                    selectable: options.selectable !== undefined ? options.selectable : true
+                });
+                break;
+
+            case 'circle':
+                object = new fabric.Circle({
+                    ...mergedOptions,
+                    radius: options.radius || 50,
+                    fill: options.fill || '#10b981'
+                });
+                break;
+
+            case 'triangle':
+                object = new fabric.Triangle({
+                    ...mergedOptions,
+                    width: options.width || 100,
+                    height: options.height || 100,
+                    fill: options.fill || '#f59e0b'
+                });
+                break;
+
+            case 'image':
+                // Create a placeholder image
+                fabric.Image.fromURL(options.src || '/api/placeholder/200/200', (img) => {
+                    img.set({
+                        left: options.left || Math.random() * (width - 200) + 100,
+                        top: options.top || Math.random() * (height - 200) + 100,
+                        id: newId,
+                        objectType: type,
+                        name: options.name || `Image ${objcnt}`,
+                        layoutGroup: targetGroupId
+                    });
+
+                    canvas.add(img);
+                    canvas.setActiveObject(img);
+                    canvas.requestRenderAll();
+                    setSelectedObject(img);
+                    saveToHistory();
+                    updateLayerGroups();
+                });
+                return;
+
+            case 'video':
+                // Videos require additional implementation - placeholder for now
+                object = new fabric.Rect({
+                    ...mergedOptions,
+                    width: options.width || 320,
+                    height: options.height || 240,
+                    fill: '#000000'
+                });
+                break;
+        }
+
+        if (object) {
+            // Add custom properties
+            object.set({
+                id: newId,
+                objectType: type,
+                name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${objcnt}`
+            });
+
+            // Add to canvas, select it, and save to history
+            canvas.add(object);
+            canvas.setActiveObject(object);
+            canvas.requestRenderAll();
+            setSelectedObject(object);
+            saveToHistory();
+            updateLayerGroups();
+        }
     };
 
     // Update the selected object

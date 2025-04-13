@@ -50,24 +50,7 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onAddObject }) => {
         setErrorMessage(null);
 
         try {
-            // Check if any layer group exists
-            if (layerGroups.length === 0) {
-                // Create a new layer group first
-                const groupId = createLayoutGroup(`Layer 1`);
-                setIsProcessing(false);
-                // addObjectToGroup(groupId, type);
-
-                // Wait a bit for group creation to complete
-                // setTimeout(() => {
-                //     onAddObject(type);
-                //     setIsProcessing(false);
-                // }, 100);
-                return;
-            }
-
-            // Add object to active layer
             onAddObject(type);
-
             // Show warning about objects being added to the active layer
             if (!warningVisible && activeGroupId) {
                 const activeGroup = layerGroups.find(g => g.id === activeGroupId);
