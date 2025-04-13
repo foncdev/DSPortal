@@ -312,43 +312,6 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                 </div>
 
                 <div className={styles.layoutGroupActions}>
-                    {/* Object Type Buttons */}
-                    <div className={styles.objectTypeButtons}>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddObjectToGroup('text');
-                            }}
-                            title={t('editor.addTextToLayer')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Text size={12} />
-                        </button>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddObjectToGroup('rectangle');
-                            }}
-                            title={t('editor.addShapeToLayer')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Square size={12} />
-                        </button>
-                        <button
-                            className={styles.objectTypeButton}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddObjectToGroup('image');
-                            }}
-                            title={t('editor.addImageToLayer')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Image size={12} />
-                        </button>
-                    </div>
-
                     {/* Layer visibility toggle */}
                     <button
                         className={styles.objectAction}
