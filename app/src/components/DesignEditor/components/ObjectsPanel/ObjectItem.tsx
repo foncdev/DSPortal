@@ -46,8 +46,10 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         moveObjectToTop,
         moveObjectToBottom,
         selectObject,
-        toggleObjectLock,  // 추가된 함수
-        isObjectLocked: checkObjectLock  // 이름 변경
+        toggleObjectLock,
+        isObjectLocked: checkObjectLock,
+        onObjectStateChange,
+        notifyObjectStateChange
     } = useDesignEditor();
 
     // State for editing name and showing action menu
@@ -81,6 +83,31 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             setIsLocked(newLockedState);
         }
     }, [object, checkObjectLock]);
+
+    // 객체 상태 변경 이벤트 구독
+    useEffect(() => {
+        // 상태 변경 이벤트 핸들러
+        const handleStateChange = (event: {
+            type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification';
+            objectId: string | number | null;
+        }) => {
+            // 이 객체의 상태가 변경된 경우에만 처리
+            if (
+                object.id === event.objectId &&
+                (event.type === 'lock' || event.type === 'unlock')
+            ) {
+                // 잠금 상태 업데이트
+                const newLockState = event.type === 'lock';
+                setIsLocked(newLockState);
+            }
+        };
+
+        // 이벤트 구독 및 구독 해제 함수 저장
+        const unsubscribe = onObjectStateChange(handleStateChange);
+
+        // 컴포넌트 언마운트 시 구독 해제
+        return unsubscribe;
+    }, [object.id, onObjectStateChange]);
 
     // Get object type icon
     const getObjectIcon = () => {
@@ -239,8 +266,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const toggleLocked = (e: React.MouseEvent) => {
         // 이벤트 전파 중지
         e.preventDefault();
-        e.stopPropagation();
-
+        // e.stopPropagation(); - 제거
         if (!canvas || !object || isProcessingRef.current) {return;}
 
         // 처리 중 플래그 설정
@@ -252,8 +278,17 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             // Context 함수 사용하여 잠금 상태 토글
             const newLockState = toggleObjectLock(object);
 
-            // UI 상태 업데이트
+            // UI 상태 업데이트 - 이제 이벤트 시스템이 처리하므로 필요하지 않을 수 있지만
+            // 확실한 상태 동기화를 위해 유지
             setIsLocked(newLockState);
+
+            // 추가: 선택된 객체가 이 객체인 경우, 상태 변경 이벤트 발생
+            if (isSelected) {
+                notifyObjectStateChange({
+                    type: newLockState ? 'lock' : 'unlock',
+                    objectId: object.id || null
+                });
+            }
         } catch (error) {
             console.error("toggleLocked 에러:", error);
             setErrorMessage("잠금 상태 변경에 실패했습니다");

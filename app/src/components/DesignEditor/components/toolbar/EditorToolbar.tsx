@@ -48,8 +48,9 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         deleteObject,
         cloneObject,
         addObject,
-        toggleObjectLock,  // 추가된 함수
-        isObjectLocked: checkObjectLock
+        toggleObjectLock,
+        isObjectLocked: checkObjectLock,
+        onObjectStateChange
     } = useDesignEditor();
 
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
@@ -61,6 +62,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // 선택된 객체가 변경될 때마다 잠금 상태 확인
     useEffect(() => {
+
         if (selectedObject) {
             // Context 함수로 잠금 상태 확인
             const locked = checkObjectLock(selectedObject);
@@ -69,6 +71,33 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
             setIsObjectLocked(false);
         }
     }, [selectedObject, checkObjectLock]);
+
+    // 객체 상태 변경 이벤트 구독
+    useEffect(() => {
+        // 상태 변경 이벤트 핸들러
+        const handleStateChange = (event: {
+            type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification';
+            objectId: string | number | null;
+        }) => {
+            // 선택된 객체의 상태가 변경된 경우에만 처리
+            if (
+                selectedObject &&
+                selectedObject.id === event.objectId &&
+                (event.type === 'lock' || event.type === 'unlock')
+            ) {
+                // 잠금 상태 업데이트
+                const newLockState = event.type === 'lock';
+                setIsObjectLocked(newLockState);
+            }
+        };
+
+        // 이벤트 구독 및 구독 해제 함수 저장
+        const unsubscribe = onObjectStateChange(handleStateChange);
+
+        // 컴포넌트 언마운트 시 구독 해제
+        return unsubscribe;
+    }, [selectedObject, onObjectStateChange]);
+
 
     // Handle click outside to close dropdowns
     useClickOutside(templateDropdownRef, () => {

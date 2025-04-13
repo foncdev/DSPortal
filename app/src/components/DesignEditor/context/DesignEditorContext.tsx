@@ -5,6 +5,11 @@ import { fabric } from 'fabric';
 // Define object types
 export type ObjectType = 'text' | 'image' | 'video' | 'rectangle' | 'circle' | 'triangle';
 
+type ObjectStateChangeEvent = {
+    type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification';
+    objectId: string | number | null;
+};
+
 // Define fabric object with custom properties
 export interface FabricObjectWithId extends fabric.Object {
     id?: number | string;
@@ -62,6 +67,9 @@ interface DesignEditorContextType {
     // Property updates
     updateObjectProperty: <T extends unknown>(property: string, value: T) => void;
 
+    onObjectStateChange: (callback: (event: ObjectStateChangeEvent) => void) => () => void;
+    notifyObjectStateChange: (event: ObjectStateChangeEvent) => void;
+
     // Canvas settings
     showGrid: boolean;
     toggleGrid: () => void;
@@ -105,6 +113,26 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     // Canvas settings
     const [showGrid, setShowGrid] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
+
+    // 상태 변경 리스너 관리
+    const stateChangeListenersRef = useRef<((event: ObjectStateChangeEvent) => void)[]>([]);
+
+    // 상태 변경 알림 함수
+    const notifyObjectStateChange = (event: ObjectStateChangeEvent) => {
+        stateChangeListenersRef.current.forEach(listener => listener(event));
+    };
+
+    // 리스너 등록 함수
+    const onObjectStateChange = (callback: (event: ObjectStateChangeEvent) => void) => {
+        stateChangeListenersRef.current.push(callback);
+
+        // 구독 해제 함수 반환
+        return () => {
+            stateChangeListenersRef.current = stateChangeListenersRef.current.filter(
+                listener => listener !== callback
+            );
+        };
+    };
 
     // Save canvas state to history
     const saveToHistory = () => {
@@ -941,7 +969,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
         try {
             // 현재 잠금 상태 확인
-            const isCurrentlyLocked = !!(objectToLock.lockMovementX && objectToLock.lockMovementY);
+            const isCurrentlyLocked = isObjectLocked(objectToLock);
 
             // 새 잠금 상태 결정 (파라미터가 없으면 현재 상태 반전)
             const willBeLocked = newLockState !== undefined ? newLockState : !isCurrentlyLocked;
@@ -959,6 +987,12 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             // 캔버스 업데이트
             objectToLock.setCoords();
             canvas.requestRenderAll();
+
+            // 상태 변경 알림 발행
+            notifyObjectStateChange({
+                type: willBeLocked ? 'lock' : 'unlock',
+                objectId: objectToLock.id || null
+            });
 
             return willBeLocked;
         } catch (error) {
@@ -1012,6 +1046,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         moveGroupTogether,
         toggleObjectLock,
         isObjectLocked,
+        onObjectStateChange,
+        notifyObjectStateChange,
         showGrid,
         toggleGrid,
         zoomLevel,
