@@ -16,11 +16,11 @@ export interface LayerGroup {
     expanded?: boolean;
 }
 
-type ObjectStateChangeEvent = {
+interface ObjectStateChangeEvent {
     type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification' | 'group';
     objectId: string | number | null;
     groupId?: string;
-};
+}
 
 // Define fabric object with custom properties
 export interface FabricObjectWithId extends fabric.Object {
@@ -162,7 +162,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update layer groups based on canvas objects
     const updateLayerGroups = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const canvasObjects = canvas.getObjects() as FabricObjectWithId[];
 
@@ -198,8 +198,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             return {
                 id: groupId,
                 name: parentObject?.name || `Layer ${groupId}`,
-                parentObject: parentObject,
-                objects: objects,
+                parentObject,
+                objects,
                 visible: parentObject?.visible !== false,
                 locked: !!(parentObject?.lockMovementX && parentObject?.lockMovementY),
                 expanded: existingGroup?.expanded !== false
@@ -216,7 +216,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Save canvas state to history
     const saveToHistory = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Get canvas JSON
         const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name', 'layoutGroup', 'isLayoutParent']));
@@ -233,7 +233,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Apply grid to canvas
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         if (showGrid) {
             // Create grid
@@ -289,7 +289,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Set up layout group movement handling
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 객체 이동 처리 함수
         const handleObjectMoving = (e: fabric.IEvent) => {
@@ -298,7 +298,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             // 레이아웃 부모 객체인 경우에만 처리
             if (movedObject && movedObject.isLayoutParent) {
                 const groupId = movedObject.layoutGroup;
-                if (!groupId) return;
+                if (!groupId) {return;}
 
                 // 현재 위치 (안전하게 처리)
                 const newLeft = typeof movedObject.left === 'number' ? movedObject.left : 0;
@@ -432,7 +432,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update selected object when selection changes
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const handleSelectionCreated = (e: fabric.IEvent) => {
             const selected = e.selected?.[0] as FabricObjectWithId;
@@ -465,12 +465,12 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Get all objects from canvas
     const getObjects = (): FabricObjectWithId[] => {
-        if (!canvas) return [];
+        if (!canvas) {return [];}
         return canvas.getObjects() as FabricObjectWithId[];
     };
 
     const addObject = (type: ObjectType, options: any = {}) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         let targetGroupId = activeGroupId;
         if ( layerGroups.length == 0 ) {
@@ -592,7 +592,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update the selected object
     const updateObject = (options: Partial<FabricObjectWithId>) => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         selectedObject.set(options);
         selectedObject.setCoords();
@@ -603,7 +603,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Delete the selected object
     const deleteObject = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         // If this is a layout parent, delete the whole group
         if (selectedObject.isLayoutParent && selectedObject.layoutGroup) {
@@ -620,7 +620,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Clone the selected object
     const cloneObject = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         // Don't clone layout parent objects
         if (selectedObject.isLayoutParent) {
@@ -653,9 +653,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object up one level
     const moveObjectUp = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.bringForward(objectToMove);
         canvas.requestRenderAll();
@@ -665,9 +665,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object down one level
     const moveObjectDown = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.sendBackwards(objectToMove);
         canvas.requestRenderAll();
@@ -677,9 +677,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to the top
     const moveObjectToTop = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.bringToFront(objectToMove);
         canvas.requestRenderAll();
@@ -689,9 +689,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to the bottom
     const moveObjectToBottom = (object?: FabricObjectWithId) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const objectToMove = object || selectedObject;
-        if (!objectToMove) return;
+        if (!objectToMove) {return;}
 
         canvas.sendToBack(objectToMove);
         canvas.requestRenderAll();
@@ -701,13 +701,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Set object z-index directly (for drag & drop ordering)
     const setObjectZIndex = (object: FabricObjectWithId, newIndex: number) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const objects = canvas.getObjects();
         const currentIndex = objects.indexOf(object);
 
-        if (currentIndex === -1) return; // Object not found
-        if (currentIndex === newIndex) return; // Already at target index
+        if (currentIndex === -1) {return;} // Object not found
+        if (currentIndex === newIndex) {return;} // Already at target index
 
         // Remove from current position
         canvas.remove(object);
@@ -721,7 +721,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Select an object
     const selectObject = (object: FabricObjectWithId | null) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         if (object) {
             // Discard active object before selecting new one
@@ -743,7 +743,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update a property of the selected object
     const updateObjectProperty = <T,>(property: string, value: T) => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         // Handle nested properties (e.g., "border.color")
         if (property.includes('.')) {
@@ -770,7 +770,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Undo last action
     const undo = () => {
-        if (!canvas || !canUndo) return;
+        if (!canvas || !canUndo) {return;}
 
         const newIndex = historyIndex - 1;
         const state = history[newIndex];
@@ -786,7 +786,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Redo last undone action
     const redo = () => {
-        if (!canvas || !canRedo || historyIndex >= history.length - 1) return;
+        if (!canvas || !canRedo || historyIndex >= history.length - 1) {return;}
 
         const newIndex = historyIndex + 1;
         const state = history[newIndex];
@@ -802,7 +802,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // createLayoutGroup: Create a new layout group
     const createLayoutGroup = (name: string, options: any = {}) => {
-        if (!canvas) return '';
+        if (!canvas) {return '';}
 
         // Create a unique ID based on timestamp
         const groupId = `layout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -859,7 +859,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Add object to a group
     const addObjectToGroup = (groupId: string, type: ObjectType, options: any = {}) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find the layer group
         const layerGroup = layerGroups.find(group => group.id === groupId);
@@ -937,7 +937,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Get objects in a group
     const getObjectsByGroup = (groupId: string): FabricObjectWithId[] => {
-        if (!canvas) return [];
+        if (!canvas) {return [];}
 
         return canvas.getObjects()
             .filter(obj => (obj as FabricObjectWithId).layoutGroup === groupId) as FabricObjectWithId[];
@@ -945,11 +945,11 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Delete a layout group
     const deleteLayoutGroup = (groupId: string) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find the group to delete
         const groupToDelete = layerGroups.find(group => group.id === groupId);
-        if (!groupToDelete) return;
+        if (!groupToDelete) {return;}
 
         // Remove all objects in the group from canvas
         const groupObjects = getObjectsByGroup(groupId);
@@ -979,10 +979,10 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Toggle group visibility
     const toggleGroupVisibility = (groupId: string) => {
-        if (!canvas) return false;
+        if (!canvas) {return false;}
 
         const group = layerGroups.find(g => g.id === groupId);
-        if (!group) return false;
+        if (!group) {return false;}
 
         const newVisibility = !group.visible;
 
@@ -1008,7 +1008,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         notifyObjectStateChange({
             type: 'visibility',
             objectId: null,
-            groupId: groupId
+            groupId
         });
 
         return newVisibility;
@@ -1016,10 +1016,10 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Toggle group lock
     const toggleGroupLock = (groupId: string) => {
-        if (!canvas) return false;
+        if (!canvas) {return false;}
 
         const group = layerGroups.find(g => g.id === groupId);
-        if (!group) return false;
+        if (!group) {return false;}
 
         const newLockState = !group.locked;
 
@@ -1046,7 +1046,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         notifyObjectStateChange({
             type: newLockState ? 'lock' : 'unlock',
             objectId: null,
-            groupId: groupId
+            groupId
         });
 
         return newLockState;
@@ -1054,10 +1054,10 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Rename a group
     const renameGroup = (groupId: string, newName: string) => {
-        if (!canvas || !newName.trim()) return;
+        if (!canvas || !newName.trim()) {return;}
 
         const group = layerGroups.find(g => g.id === groupId);
-        if (!group || !group.parentObject) return;
+        if (!group || !group.parentObject) {return;}
 
         // Update the parent object's name
         group.parentObject.set({ name: newName });
@@ -1069,17 +1069,17 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move object to a different group
     const moveObjectToGroup = (objectId: number | string, groupId: string | null) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find the object to move
         const object = canvas.getObjects().find(
             obj => (obj as FabricObjectWithId).id === objectId
         ) as FabricObjectWithId;
 
-        if (!object) return;
+        if (!object) {return;}
 
         // Don't allow moving layout parent objects
-        if (object.isLayoutParent) return;
+        if (object.isLayoutParent) {return;}
 
         // Find target group to get visibility and lock state
         const targetGroup = groupId ? layerGroups.find(g => g.id === groupId) : null;
@@ -1109,7 +1109,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Move all objects in a group together
     const moveGroupTogether = (groupId: string, deltaX: number, deltaY: number) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // 그룹의 모든 객체 찾기 (부모와 자식 모두)
         const groupObjects = canvas.getObjects().filter(obj => {
@@ -1139,7 +1139,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Toggle object lock state
     const toggleObjectLock = (objectToLock: FabricObjectWithId, newLockState?: boolean) => {
-        if (!canvas) return false;
+        if (!canvas) {return false;}
 
         try {
             // If this is a layout parent, toggle lock for the whole group
@@ -1184,15 +1184,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     };
 
     // 객체의 현재 잠금 상태를 확인하는 유틸리티 함수
-    const isObjectLocked = (objectToCheck: FabricObjectWithId) => {
-        return !!(objectToCheck.lockMovementX && objectToCheck.lockMovementY);
-    };
+    const isObjectLocked = (objectToCheck: FabricObjectWithId) => !!(objectToCheck.lockMovementX && objectToCheck.lockMovementY);
 
     // JSON Import/Export functions
 
     // Export canvas as JSON string
     const saveAsJSON = () => {
-        if (!canvas) return '';
+        if (!canvas) {return '';}
 
         const json = JSON.stringify(canvas.toJSON([
             'id',
@@ -1213,7 +1211,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Load canvas from JSON string
     const loadFromJSON = (json: string) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         try {
             canvas.loadFromJSON(json, () => {

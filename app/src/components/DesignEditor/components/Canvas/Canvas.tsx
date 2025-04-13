@@ -34,7 +34,7 @@ const Canvas: React.FC = () => {
 
     // 컴포넌트 마운트 시 canvas 초기화
     useEffect(() => {
-        if (!canvasRef.current || canvas) return;
+        if (!canvasRef.current || canvas) {return;}
 
         // fabric.js 캔버스 생성
         const fabricCanvas = new fabric.Canvas(canvasRef.current, {
@@ -59,7 +59,7 @@ const Canvas: React.FC = () => {
 
     // 캔버스 렌더링 문제 해결을 위한 추가 효과
     useEffect(() => {
-        if (!canvas || !isCanvasReady) return;
+        if (!canvas || !isCanvasReady) {return;}
 
         // 캔버스 초기화 후 렌더링 강제화
         const forceInitialRender = () => {
@@ -101,7 +101,7 @@ const Canvas: React.FC = () => {
 
     // 줌 레벨 변경 적용
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         canvas.setZoom(zoomLevel);
 
@@ -119,7 +119,7 @@ const Canvas: React.FC = () => {
 
     // 키보드 단축키 처리
     useEffect(() => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         window.addEventListener('keydown', handleKeyDown);
 
@@ -130,7 +130,7 @@ const Canvas: React.FC = () => {
 
     // 마우스 휠로 줌 처리
     useEffect(() => {
-        if (!canvas || !containerRef.current) return;
+        if (!canvas || !containerRef.current) {return;}
 
         const handleWheel = (e: WheelEvent) => {
             if (e.ctrlKey) {
@@ -143,7 +143,7 @@ const Canvas: React.FC = () => {
 
                 // 커서 위치 기준 줌
                 const container = containerRef.current;
-                if (!container) return;
+                if (!container) {return;}
 
                 const rect = container.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
@@ -167,7 +167,7 @@ const Canvas: React.FC = () => {
 
     // 마우스 중간 버튼 또는 스페이스+드래그로 패닝
     useEffect(() => {
-        if (!canvas || !containerRef.current) return;
+        if (!canvas || !containerRef.current) {return;}
 
         let isSpacePressed = false;
 
@@ -198,7 +198,7 @@ const Canvas: React.FC = () => {
             if (isPanning && canvas) {
                 e.preventDefault();
                 const vpt = canvas.viewportTransform;
-                if (!vpt) return;
+                if (!vpt) {return;}
 
                 vpt[4] += e.clientX - lastPanPoint.x;
                 vpt[5] += e.clientY - lastPanPoint.y;
@@ -237,10 +237,10 @@ const Canvas: React.FC = () => {
 
     // 특정 지점에 줌
     const zoomToPoint = (zoom: number, point: { x: number, y: number }) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         const vpt = canvas.viewportTransform;
-        if (!vpt) return;
+        if (!vpt) {return;}
 
         canvas.zoomToPoint({ x: point.x, y: point.y }, zoom);
 
@@ -258,7 +258,7 @@ const Canvas: React.FC = () => {
     };
 
     const zoomToFit = () => {
-        if (!canvas || !containerRef.current) return;
+        if (!canvas || !containerRef.current) {return;}
 
         const container = containerRef.current;
         const containerWidth = container.clientWidth;

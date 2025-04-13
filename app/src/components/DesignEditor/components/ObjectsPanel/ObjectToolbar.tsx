@@ -22,7 +22,7 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onAddObject }) => {
 
     // Handle creating a new layout group
     const handleCreateNewLayoutGroup = () => {
-        if (isProcessing) return;
+        if (isProcessing) {return;}
 
         setIsProcessing(true);
         setErrorMessage(null);
@@ -44,7 +44,7 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onAddObject }) => {
 
     // Handle adding an object to the canvas
     const handleAddObject = (type: ObjectType) => {
-        if (isProcessing) return;
+        if (isProcessing) {return;}
 
         setIsProcessing(true);
         setErrorMessage(null);

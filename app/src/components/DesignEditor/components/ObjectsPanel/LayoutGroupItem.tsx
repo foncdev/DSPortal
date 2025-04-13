@@ -110,7 +110,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Save group name
     const saveGroupName = () => {
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -148,7 +148,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -168,7 +168,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -185,7 +185,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Add an object to this group
     const handleAddObjectToGroup = (type: ObjectType) => {
-        if (isProcessingRef.current) return;
+        if (isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -204,7 +204,7 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     // Delete this layout group
     const handleDeleteGroup = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) return;
+        if (isProcessingRef.current) {return;}
 
         setShowActionsMenu(false);
 

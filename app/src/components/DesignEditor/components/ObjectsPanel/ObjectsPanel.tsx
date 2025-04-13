@@ -38,7 +38,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Handle adding an object to the canvas
     const handleAddObject = (type: FabricObjectWithId['objectType'], options?: any) => {
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -55,7 +55,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Create a new layout group
     const handleCreateNewLayoutGroup = () => {
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         // Set processing flag to prevent concurrent operations
         isProcessingRef.current = true;
@@ -81,7 +81,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
     // 레이아웃 그룹(레이어) 선택 처리 함수
     const handleLayoutGroupSelect = (groupId: string, groupObject: FabricObjectWithId) => {
         // 이미 처리 중이면 중복 실행 방지
-        if (isProcessingRef.current) return;
+        if (isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
 
@@ -177,14 +177,14 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                     }}
                                     onDrop={(e) => {
                                         e.preventDefault();
-                                        if (!canvas || !draggingId) return;
+                                        if (!canvas || !draggingId) {return;}
 
                                         // Find the dragged object
                                         const draggedObj = canvas.getObjects().find(
                                             obj => (obj as FabricObjectWithId).id === draggingId
                                         ) as FabricObjectWithId;
 
-                                        if (!draggedObj || draggedObj.isLayoutParent) return;
+                                        if (!draggedObj || draggedObj.isLayoutParent) {return;}
 
                                         // Move object to this group
                                         if (draggedObj.layoutGroup !== group.id) {

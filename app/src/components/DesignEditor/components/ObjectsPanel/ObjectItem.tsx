@@ -149,7 +149,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Get object name or default name
     const getObjectName = () => {
-        if (object.name) return object.name;
+        if (object.name) {return object.name;}
 
         const type = object.objectType || (
             object.type === 'textbox' ? 'text' :
@@ -178,7 +178,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Save the edited name
     const saveObjectName = () => {
-        if (!canvas || isProcessingRef.current) return;
+        if (!canvas || isProcessingRef.current) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -215,7 +215,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || !object || isProcessingRef.current || groupLocked) return;
+        if (!canvas || !object || isProcessingRef.current || groupLocked) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -266,7 +266,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || !object || isProcessingRef.current || groupLocked) return;
+        if (!canvas || !object || isProcessingRef.current || groupLocked) {return;}
 
         // 처리 중 플래그 설정
         isProcessingRef.current = true;
@@ -292,7 +292,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Delete this object
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current || groupLocked) return;
+        if (isProcessingRef.current || groupLocked) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -319,7 +319,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Duplicate this object
     const handleDuplicate = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current || groupLocked) return;
+        if (isProcessingRef.current || groupLocked) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -346,7 +346,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Move this object up one level
     const handleMoveUp = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current || groupLocked) return;
+        if (isProcessingRef.current || groupLocked) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -365,7 +365,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Move this object down one level
     const handleMoveDown = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current || groupLocked) return;
+        if (isProcessingRef.current || groupLocked) {return;}
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -438,7 +438,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Handle drag over
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
-        if (!object.id) return;
+        if (!object.id) {return;}
         onDragOver(object.id);
     };
 
@@ -452,7 +452,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Render actions menu as a portal
     const renderActionsMenu = () => {
-        if (!showActionsMenu) return null;
+        if (!showActionsMenu) {return null;}
 
         const menuStyle: React.CSSProperties = {
             position: 'fixed',

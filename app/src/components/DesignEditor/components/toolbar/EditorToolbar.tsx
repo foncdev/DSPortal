@@ -125,7 +125,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // 개선된 잠금 토글 함수
     const handleToggleLock = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
 
         try {
             // Context 함수 사용하여 잠금 상태 토글
@@ -138,13 +138,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // Alignment functions
     const alignLeft = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
         selectedObject.set({ left: 0 });
         canvas.renderAll();
     };
 
     const alignCenter = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
         const canvasWidth = canvas.getWidth();
         const objectWidth = selectedObject.getScaledWidth();
         selectedObject.set({ left: (canvasWidth - objectWidth) / 2 });
@@ -152,7 +152,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
     };
 
     const alignRight = () => {
-        if (!canvas || !selectedObject) return;
+        if (!canvas || !selectedObject) {return;}
         const canvasWidth = canvas.getWidth();
         const objectWidth = selectedObject.getScaledWidth();
         selectedObject.set({ left: canvasWidth - objectWidth });
@@ -161,7 +161,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // Add new layer
     const handleAddNewLayer = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const layerName = `Layer ${Date.now()}`;
         createLayoutGroup(layerName);
         setShowLayersDropdown(false);
@@ -169,7 +169,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // Save and export functions
     const handleSaveAsImage = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const link = document.createElement('a');
         link.download = 'design.png';
         link.href = canvas.toDataURL({
@@ -182,7 +182,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
     };
 
     const handleExportAsJSON = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const json = saveAsJSON();
         const blob = new Blob([json], { type: 'application/json' });
         const link = document.createElement('a');
@@ -194,13 +194,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
     };
 
     const handleImportJSON = () => {
-        if (!canvas) return;
+        if (!canvas) {return;}
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
-            if (!files || files.length === 0) return;
+            if (!files || files.length === 0) {return;}
 
             const file = files[0];
             const reader = new FileReader();
@@ -222,11 +222,11 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // Apply a template
     const applyTemplate = (templateId: string) => {
-        if (!canvas) return;
+        if (!canvas) {return;}
 
         // Find selected template
         const template = TEMPLATES.find(t => t.id === templateId);
-        if (!template) return;
+        if (!template) {return;}
 
         // Confirm if canvas has objects
         if (canvas.getObjects().length > 0) {
