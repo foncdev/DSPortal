@@ -1,5 +1,6 @@
-// src/components/DesignEditor/components/toolbar/EditorToolbar.tsx
-import React, { useRef, useState } from 'react';
+// src/components/DesignEditor/components/toolbar/EditorToolbar.tsx - 완전한 수정 버전
+
+import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Undo2,
@@ -46,14 +47,28 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         selectedObject,
         deleteObject,
         cloneObject,
-        addObject
+        addObject,
+        toggleObjectLock,  // 추가된 함수
+        isObjectLocked: checkObjectLock
     } = useDesignEditor();
 
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+    // 여기에 누락된 상태 관리 변수를 추가
     const [isObjectLocked, setIsObjectLocked] = useState(false);
 
     // Ref for template dropdown
     const templateDropdownRef = useRef<HTMLDivElement>(null);
+
+    // 선택된 객체가 변경될 때마다 잠금 상태 확인
+    useEffect(() => {
+        if (selectedObject) {
+            // Context 함수로 잠금 상태 확인
+            const locked = checkObjectLock(selectedObject);
+            setIsObjectLocked(locked);
+        } else {
+            setIsObjectLocked(false);
+        }
+    }, [selectedObject, checkObjectLock]);
 
     // Handle click outside to close dropdowns
     useClickOutside(templateDropdownRef, () => {
@@ -73,35 +88,18 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         }
     };
 
+    // 개선된 잠금 토글 함수
     const handleToggleLock = () => {
         if (!canvas || !selectedObject) {return;}
 
         try {
-            // Calculate new lock state
-            const newLockState = !isObjectLocked;
+            // Context 함수 사용하여 잠금 상태 토글
+            const newLockState = toggleObjectLock(selectedObject);
 
-            // Find target object in canvas
-            const targetObj = selectedObject;
-
-            if (!targetObj) {
-                throw new Error("Object not found");
-            }
-
-            // Set lock properties
-            targetObj.set({
-                lockMovementX: newLockState,
-                lockMovementY: newLockState,
-                lockRotation: newLockState,
-                lockScalingX: newLockState,
-                lockScalingY: newLockState,
-                selectable: true
-            });
-
-            // Update UI state
+            // UI 상태 업데이트
             setIsObjectLocked(newLockState);
 
-            // Update canvas
-            targetObj.setCoords();
+            // 캔버스 갱신
             canvas.renderAll();
         } catch (error) {
             console.error("handleToggleLock error:", error);

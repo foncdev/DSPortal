@@ -40,6 +40,8 @@ interface DesignEditorContextType {
     moveObjectToGroup: (objectId: number | string, groupId: string | null) => void;
     moveGroupTogether: (groupId: string, deltaX: number, deltaY: number) => void;
 
+
+
     // Object actions
     addObject: (type: ObjectType, options?: any) => void;
     updateObject: (options: Partial<FabricObjectWithId>) => void;
@@ -50,6 +52,9 @@ interface DesignEditorContextType {
     moveObjectToTop: (object?: FabricObjectWithId) => void;
     moveObjectToBottom: (object?: FabricObjectWithId) => void;
     setObjectZIndex: (object: FabricObjectWithId, newIndex: number) => void;
+
+    toggleObjectLock: (objectToLock: FabricObjectWithId, newLockState?: boolean) => boolean;
+    isObjectLocked: (objectToCheck: FabricObjectWithId) => boolean;
 
     // Selection
     selectObject: (object: FabricObjectWithId | null) => void;
@@ -929,6 +934,45 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         return null;
     };
 
+
+    // 객체의 잠금 상태를 전역으로 관리하는 함수
+    const toggleObjectLock = (objectToLock: FabricObjectWithId, newLockState?: boolean) => {
+        if (!canvas) {return false;}
+
+        try {
+            // 현재 잠금 상태 확인
+            const isCurrentlyLocked = !!(objectToLock.lockMovementX && objectToLock.lockMovementY);
+
+            // 새 잠금 상태 결정 (파라미터가 없으면 현재 상태 반전)
+            const willBeLocked = newLockState !== undefined ? newLockState : !isCurrentlyLocked;
+
+            // 잠금 속성 설정
+            objectToLock.set({
+                lockMovementX: willBeLocked,
+                lockMovementY: willBeLocked,
+                lockRotation: willBeLocked,
+                lockScalingX: willBeLocked,
+                lockScalingY: willBeLocked,
+                selectable: true // 항상 선택 가능하게 유지
+            });
+
+            // 캔버스 업데이트
+            objectToLock.setCoords();
+            canvas.requestRenderAll();
+
+            return willBeLocked;
+        } catch (error) {
+            console.error("Error toggling object lock:", error);
+            return false;
+        }
+    };
+
+    // 객체의 현재 잠금 상태를 확인하는 유틸리티 함수
+    const isObjectLocked = (objectToCheck: FabricObjectWithId) => {
+        return !!(objectToCheck.lockMovementX && objectToCheck.lockMovementY);
+    };
+
+
     // Update canUndo and canRedo when history changes
     useEffect(() => {
         setCanUndo(historyIndex > 0);
@@ -966,6 +1010,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         deleteLayoutGroup,
         moveObjectToGroup,
         moveGroupTogether,
+        toggleObjectLock,
+        isObjectLocked,
         showGrid,
         toggleGrid,
         zoomLevel,

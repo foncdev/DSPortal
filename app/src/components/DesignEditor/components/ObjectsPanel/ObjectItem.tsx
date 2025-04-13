@@ -45,7 +45,9 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         moveObjectDown,
         moveObjectToTop,
         moveObjectToBottom,
-        selectObject
+        selectObject,
+        toggleObjectLock,  // 추가된 함수
+        isObjectLocked: checkObjectLock  // 이름 변경
     } = useDesignEditor();
 
     // State for editing name and showing action menu
@@ -68,7 +70,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Update visibility and lock states when object properties change
     useEffect(() => {
         const newVisibleState = object.visible !== false;
-        const newLockedState = !!object.lockMovementX && !!object.lockMovementY;
+        const newLockedState = checkObjectLock(object); // 이름 변경된 함수 사용
 
         // 상태가 변경된 경우에만 업데이트
         if (isVisible !== newVisibleState) {
@@ -78,7 +80,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         if (isLocked !== newLockedState) {
             setIsLocked(newLockedState);
         }
-    }, [object]);
+    }, [object, checkObjectLock]);
 
     // Get object type icon
     const getObjectIcon = () => {
@@ -239,8 +241,6 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        console.log('toggleLocked')
-
         if (!canvas || !object || isProcessingRef.current) {return;}
 
         // 처리 중 플래그 설정
@@ -249,32 +249,8 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         setShowActionsMenu(false);
 
         try {
-            // 새 잠금 상태 계산
-            const newLockState = !isLocked;
-
-            // 객체 ID로 직접 캔버스에서 객체 찾기
-            const targetObj = object.id ?
-                canvas.getObjects().find(obj => (obj as FabricObjectWithId).id === object.id) as FabricObjectWithId :
-                null;
-
-            if (!targetObj) {
-                throw new Error("객체를 찾을 수 없습니다");
-            }
-
-            // 잠금 속성 설정
-            targetObj.set({
-                lockMovementX: newLockState,
-                lockMovementY: newLockState,
-                lockRotation: newLockState,
-                lockScalingX: newLockState,
-                lockScalingY: newLockState,
-                // 중요: 객체는 여전히 선택 가능하게 유지
-                selectable: true
-            });
-
-            // 캔버스 업데이트
-            targetObj.setCoords();
-            canvas.requestRenderAll();
+            // Context 함수 사용하여 잠금 상태 토글
+            const newLockState = toggleObjectLock(object);
 
             // UI 상태 업데이트
             setIsLocked(newLockState);
