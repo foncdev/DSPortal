@@ -1,5 +1,4 @@
-// src/components/DesignEditor/components/toolbar/EditorToolbar.tsx - 완전한 수정 버전
-
+// src/components/DesignEditor/components/toolbar/EditorToolbar.tsx
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,7 +15,8 @@ import {
     AlignRight,
     Lock,
     Unlock,
-    LayoutTemplate
+    LayoutTemplate,
+    Layers
 } from 'lucide-react';
 
 import styles from '../../styles/DesignEditor.module.scss';
@@ -27,7 +27,7 @@ import ToolButton from './ToolButton';
 import { TEMPLATES } from '../../constants/templates';
 
 interface EditorToolbarProps {
-    toggleToolbarButton: () => React.ReactNode;
+    toggleToolbarButton: React.ReactNode;
 }
 
 /**
@@ -50,19 +50,22 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         addObject,
         toggleObjectLock,
         isObjectLocked: checkObjectLock,
-        onObjectStateChange
+        createLayoutGroup,
+        onObjectStateChange,
+        saveAsJSON,
+        loadFromJSON
     } = useDesignEditor();
 
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
-    // 여기에 누락된 상태 관리 변수를 추가
+    const [showLayersDropdown, setShowLayersDropdown] = useState(false);
     const [isObjectLocked, setIsObjectLocked] = useState(false);
 
-    // Ref for template dropdown
+    // Refs for dropdowns
     const templateDropdownRef = useRef<HTMLDivElement>(null);
+    const layersDropdownRef = useRef<HTMLDivElement>(null);
 
     // 선택된 객체가 변경될 때마다 잠금 상태 확인
     useEffect(() => {
-
         if (selectedObject) {
             // Context 함수로 잠금 상태 확인
             const locked = checkObjectLock(selectedObject);
@@ -70,13 +73,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         } else {
             setIsObjectLocked(false);
         }
-    }, [selectedObject, checkObjectLock]);
+    }, [selectedObject, isObjectLocked]);
 
     // 객체 상태 변경 이벤트 구독
     useEffect(() => {
         // 상태 변경 이벤트 핸들러
         const handleStateChange = (event: {
-            type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification';
+            type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification' | 'group';
             objectId: string | number | null;
         }) => {
             // 선택된 객체의 상태가 변경된 경우에만 처리
@@ -98,10 +101,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         return unsubscribe;
     }, [selectedObject, onObjectStateChange]);
 
-
     // Handle click outside to close dropdowns
     useClickOutside(templateDropdownRef, () => {
         setShowTemplateDropdown(false);
+    });
+
+    useClickOutside(layersDropdownRef, () => {
+        setShowLayersDropdown(false);
     });
 
     // Object manipulation functions
@@ -119,17 +125,11 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // 개선된 잠금 토글 함수
     const handleToggleLock = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
 
         try {
             // Context 함수 사용하여 잠금 상태 토글
-            const newLockState = toggleObjectLock(selectedObject);
-
-            // UI 상태 업데이트
-            setIsObjectLocked(newLockState);
-
-            // 캔버스 갱신
-            canvas.renderAll();
+            toggleObjectLock(selectedObject);
         } catch (error) {
             console.error("handleToggleLock error:", error);
             alert("Failed to change object lock state.");
@@ -138,13 +138,13 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // Alignment functions
     const alignLeft = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
         selectedObject.set({ left: 0 });
         canvas.renderAll();
     };
 
     const alignCenter = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
         const canvasWidth = canvas.getWidth();
         const objectWidth = selectedObject.getScaledWidth();
         selectedObject.set({ left: (canvasWidth - objectWidth) / 2 });
@@ -152,16 +152,24 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
     };
 
     const alignRight = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
         const canvasWidth = canvas.getWidth();
         const objectWidth = selectedObject.getScaledWidth();
         selectedObject.set({ left: canvasWidth - objectWidth });
         canvas.renderAll();
     };
 
+    // Add new layer
+    const handleAddNewLayer = () => {
+        if (!canvas) return;
+        const layerName = `Layer ${Date.now()}`;
+        createLayoutGroup(layerName);
+        setShowLayersDropdown(false);
+    };
+
     // Save and export functions
-    const saveAsImage = () => {
-        if (!canvas) {return;}
+    const handleSaveAsImage = () => {
+        if (!canvas) return;
         const link = document.createElement('a');
         link.download = 'design.png';
         link.href = canvas.toDataURL({
@@ -173,9 +181,9 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         document.body.removeChild(link);
     };
 
-    const exportAsJSON = () => {
-        if (!canvas) {return;}
-        const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name']));
+    const handleExportAsJSON = () => {
+        if (!canvas) return;
+        const json = saveAsJSON();
         const blob = new Blob([json], { type: 'application/json' });
         const link = document.createElement('a');
         link.download = 'design.json';
@@ -185,14 +193,14 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         document.body.removeChild(link);
     };
 
-    const importJSON = () => {
-        if (!canvas) {return;}
+    const handleImportJSON = () => {
+        if (!canvas) return;
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
         input.onchange = (e) => {
             const files = (e.target as HTMLInputElement).files;
-            if (!files || files.length === 0) {return;}
+            if (!files || files.length === 0) return;
 
             const file = files[0];
             const reader = new FileReader();
@@ -200,12 +208,10 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
                 const result = event.target?.result;
                 if (typeof result === 'string') {
                     try {
-                        const json = JSON.parse(result);
-                        canvas.loadFromJSON(json, () => {
-                            canvas.renderAll();
-                        });
+                        loadFromJSON(result);
                     } catch (error) {
                         console.error('Error parsing JSON:', error);
+                        alert('Failed to import JSON. The file might be corrupted or in an invalid format.');
                     }
                 }
             };
@@ -216,11 +222,11 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
 
     // Apply a template
     const applyTemplate = (templateId: string) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         // Find selected template
         const template = TEMPLATES.find(t => t.id === templateId);
-        if (!template) {return;}
+        if (!template) return;
 
         // Confirm if canvas has objects
         if (canvas.getObjects().length > 0) {
@@ -285,6 +291,28 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
                     active={showGrid}
                     icon={<Grid size={18} />}
                 />
+            </ToolGroup>
+
+            {/* Layers dropdown */}
+            <ToolGroup ref={layersDropdownRef}>
+                <ToolButton
+                    title={t('editor.layers')}
+                    onClick={() => setShowLayersDropdown(!showLayersDropdown)}
+                    active={showLayersDropdown}
+                    icon={<Layers size={18} />}
+                />
+
+                {showLayersDropdown && (
+                    <div className={styles.templateDropdown}>
+                        <div className={styles.dropdownTitle}>{t('editor.layers')}</div>
+                        <button
+                            className={styles.templateButton}
+                            onClick={handleAddNewLayer}
+                        >
+                            {t('editor.addNewLayer')}
+                        </button>
+                    </div>
+                )}
             </ToolGroup>
 
             {/* Templates dropdown */}
@@ -358,25 +386,25 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
             {/* File tools */}
             <ToolGroup>
                 <ToolButton
-                    title={t('editor.save')}
-                    onClick={saveAsImage}
+                    title={t('editor.saveAsImage')}
+                    onClick={handleSaveAsImage}
                     icon={<Save size={18} />}
                 />
                 <ToolButton
-                    title={t('editor.import')}
-                    onClick={importJSON}
+                    title={t('editor.importJSON')}
+                    onClick={handleImportJSON}
                     icon={<Upload size={18} />}
                 />
                 <ToolButton
-                    title={t('editor.export')}
-                    onClick={exportAsJSON}
+                    title={t('editor.exportJSON')}
+                    onClick={handleExportAsJSON}
                     icon={<Download size={18} />}
                 />
             </ToolGroup>
 
             {/* Toolbar toggle button */}
             <ToolGroup>
-                {toggleToolbarButton()}
+                {toggleToolbarButton}
             </ToolGroup>
         </div>
     );

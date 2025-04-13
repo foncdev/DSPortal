@@ -2,33 +2,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
     ChevronDown, ChevronRight, Monitor, Edit2,
-    Text, Image, Square, Trash2, Eye, EyeOff,
-    Lock, Unlock, AlertTriangle
+    Text, Image, Square, Circle, Triangle, Trash2, Eye, EyeOff,
+    Lock, Unlock, AlertTriangle, Film, MoreHorizontal
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDesignEditor, FabricObjectWithId, ObjectType } from '../../context/DesignEditorContext';
+import { useDesignEditor, FabricObjectWithId, LayerGroup, ObjectType } from '../../context/DesignEditorContext';
 import ObjectItem from './ObjectItem';
 import styles from './ObjectsPanel.module.scss';
 
-interface LayoutGroup {
-    id: string;
-    name: string;
-    expanded: boolean;
-    objects: FabricObjectWithId[];
-}
-
 interface LayoutGroupItemProps {
-    group: LayoutGroup;
+    group: LayerGroup;
+    isActive: boolean;
     selectedObjectId?: number | string;
     isDragOver: boolean;
     onToggleExpand: () => void;
+    onGroupSelect: () => void;
+    onActivate: () => void;
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent) => void;
     onDragStart: (id: number | string) => void;
     onDragEnd: () => void;
     onDragOverId: (id: number | string | null) => void;
     onDragOverIndex: (index: number | null) => void;
-    onDropAtIndex: (index: number, e: React.DragEvent) => void;
 }
 
 /**
@@ -36,16 +31,18 @@ interface LayoutGroupItemProps {
  */
 const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                                                              group,
+                                                             isActive,
                                                              selectedObjectId,
-                                                             isDragOver,
                                                              onToggleExpand,
+                                                             onGroupSelect,
+                                                             isDragOver,
+                                                             onActivate,
                                                              onDragOver,
                                                              onDrop,
                                                              onDragStart,
                                                              onDragEnd,
                                                              onDragOverId,
-                                                             onDragOverIndex,
-                                                             onDropAtIndex
+                                                             onDragOverIndex
                                                          }) => {
     const { t } = useTranslation();
     const {
@@ -53,37 +50,56 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
         addObject,
         selectObject,
         deleteLayoutGroup,
-        updateObjectProperty
+        toggleGroupVisibility,
+        toggleGroupLock,
+        renameGroup,
+        addObjectToGroup
     } = useDesignEditor();
 
     const [editingName, setEditingName] = useState(false);
     const [groupName, setGroupName] = useState(group.name);
     const [dragOverObjectIndex, setDragOverObjectIndex] = useState<number | null>(null);
-    const [isLayerVisible, setIsLayerVisible] = useState(true);
-    const [isLayerLocked, setIsLayerLocked] = useState(false);
+    const [showActionsMenu, setShowActionsMenu] = useState(false);
+    const [actionsMenuPosition, setActionsMenuPosition] = useState({ top: 0, left: 0 });
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const nameInputRef = useRef<HTMLInputElement>(null);
+    const actionsButtonRef = useRef<HTMLButtonElement>(null);
+    const actionsMenuRef = useRef<HTMLDivElement>(null);
     const isProcessingRef = useRef(false);
 
-    // Update layer visibility and lock state on mount and when parent object changes
+    // Update group name when group changes
     useEffect(() => {
-        if (!group.objects.length) {return;}
+        setGroupName(group.name);
+    }, [group.name]);
 
-        const parentObject = group.objects.find(obj => obj.isLayoutParent);
-        if (parentObject) {
-            setIsLayerVisible(parentObject.visible !== false);
-            setIsLayerLocked(!!parentObject.lockMovementX && !!parentObject.lockMovementY);
-        }
-    }, [group.objects]);
+    // Handle click outside to close actions menu
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                actionsMenuRef.current &&
+                !actionsMenuRef.current.contains(event.target as Node) &&
+                actionsButtonRef.current &&
+                !actionsButtonRef.current.contains(event.target as Node)
+            ) {
+                setShowActionsMenu(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Start editing group name
     const startEditingName = (e: React.MouseEvent) => {
         e.stopPropagation();
         setEditingName(true);
         setGroupName(group.name);
+        setErrorMessage(null);
 
-        // Focus the input after rendering
+        // Focus input after rendering
         setTimeout(() => {
             if (nameInputRef.current) {
                 nameInputRef.current.focus();
@@ -94,32 +110,22 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
 
     // Save group name
     const saveGroupName = () => {
-        if (!canvas) {return;}
+        if (!canvas || isProcessingRef.current) return;
 
+        isProcessingRef.current = true;
         setErrorMessage(null);
 
-        // Find layout parent object
-        const parentObject = group.objects.find(obj => obj.isLayoutParent);
-        if (parentObject && groupName.trim()) {
-            // Store currently selected object
-            const currentSelectedObject = canvas.getActiveObject() as FabricObjectWithId;
-
-            try {
-                // Select parent to update its name
-                selectObject(parentObject);
-                updateObjectProperty('name', groupName);
-
-                // Restore previous selection
-                if (currentSelectedObject) {
-                    selectObject(currentSelectedObject);
-                }
-            } catch (error) {
-                console.error('Error saving group name:', error);
-                setErrorMessage('Failed to update layer name');
+        try {
+            if (groupName.trim()) {
+                renameGroup(group.id, groupName);
             }
+        } catch (error) {
+            console.error('Error saving group name:', error);
+            setErrorMessage('Failed to update layer name');
+        } finally {
+            setEditingName(false);
+            isProcessingRef.current = false;
         }
-
-        setEditingName(false);
     };
 
     // Handle keyboard input for name editing
@@ -138,47 +144,17 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     };
 
     // Toggle layer visibility
-    const toggleLayerVisibility = (e: React.MouseEvent) => {
+    const handleToggleVisibility = (e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
-        if (!canvas || isProcessingRef.current) {return;}
+
+        if (!canvas || isProcessingRef.current) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
 
         try {
-            // Find all objects in this group
-            const groupObjects = group.objects;
-            if (!groupObjects.length) {
-                isProcessingRef.current = false;
-                return;
-            }
-
-            // Toggle visibility state
-            const newVisibility = !isLayerVisible;
-
-            // Update all objects in the group
-            groupObjects.forEach(obj => {
-                obj.set({
-                    'visible': newVisibility,
-                    'selectable': newVisibility ? obj.selectable : false,
-                    'evented': newVisibility ? obj.evented : false
-                });
-                obj.setCoords();
-            });
-
-            // Update visibility state
-            setIsLayerVisible(newVisibility);
-
-            // Deselect if currently selected object is in this group and we're hiding it
-            if (!newVisibility) {
-                const selectedObj = canvas.getActiveObject() as FabricObjectWithId;
-                if (selectedObj && groupObjects.some(obj => obj.id === selectedObj.id)) {
-                    canvas.discardActiveObject();
-                    selectObject(null);
-                }
-            }
-
-            canvas.requestRenderAll();
+            toggleGroupVisibility(group.id);
         } catch (error) {
             console.error('Error toggling layer visibility:', error);
             setErrorMessage('Failed to toggle layer visibility');
@@ -188,164 +164,39 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     };
 
     // Toggle layer lock state
-    const toggleLayerLock = (e: React.MouseEvent) => {
-        // Stop event propagation
+    const handleToggleLock = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || isProcessingRef.current) {return;}
+        if (!canvas || isProcessingRef.current) return;
 
-        // Set processing flag
         isProcessingRef.current = true;
         setErrorMessage(null);
 
         try {
-            // Get group objects
-            const groupObjects = group.objects;
-            if (!groupObjects.length) {
-                console.warn("No objects in group to lock/unlock");
-                isProcessingRef.current = false;
-                return;
-            }
-
-            // Calculate new lock state
-            const newLockState = !isLayerLocked;
-
-            // Get latest objects from canvas
-            const latestObjects = canvas.getObjects() as FabricObjectWithId[];
-
-            // Update all objects in group
-            let updatedCount = 0;
-            groupObjects.forEach(obj => {
-                // Find latest object reference by ID
-                const targetObj = obj.id ?
-                    latestObjects.find(o => o.id === obj.id) :
-                    null;
-
-                if (targetObj) {
-                    // Set lock properties
-                    targetObj.set({
-                        'lockMovementX': newLockState,
-                        'lockMovementY': newLockState,
-                        'lockRotation': newLockState,
-                        'lockScalingX': newLockState,
-                        'lockScalingY': newLockState,
-                        // Keep objects selectable even when locked
-                        'selectable': isLayerVisible
-                    });
-
-                    targetObj.setCoords();
-                    updatedCount++;
-                }
-            });
-
-            // Render canvas
-            canvas.requestRenderAll();
-
-            // Update UI state
-            setIsLayerLocked(newLockState);
-
-            // Handle currently selected object
-            const selectedObj = canvas.getActiveObject() as FabricObjectWithId;
-            if (selectedObj && groupObjects.some(obj => obj.id === selectedObj.id)) {
-                // Keep object selected but update lock properties
-                if (newLockState) {
-                    selectedObj.set({
-                        lockMovementX: true,
-                        lockMovementY: true,
-                        lockRotation: true,
-                        lockScalingX: true,
-                        lockScalingY: true
-                    });
-                } else {
-                    selectedObj.set({
-                        lockMovementX: false,
-                        lockMovementY: false,
-                        lockRotation: false,
-                        lockScalingX: false,
-                        lockScalingY: false
-                    });
-                }
-                selectedObj.setCoords();
-                canvas.requestRenderAll();
-            }
+            toggleGroupLock(group.id);
         } catch (error) {
-            console.error("Error toggling layer lock:", error);
-            setErrorMessage("Failed to change layer lock state");
+            console.error('Error toggling layer lock:', error);
+            setErrorMessage('Failed to toggle layer lock');
         } finally {
             isProcessingRef.current = false;
         }
     };
 
     // Add an object to this group
-    const addObjectToGroup = (type: ObjectType, e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isProcessingRef.current) {return;}
+    const handleAddObjectToGroup = (type: ObjectType) => {
+        if (isProcessingRef.current) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
-
-        // Find parent object for positioning
-        const parentObj = group.objects.find(obj => obj.isLayoutParent);
-        if (!parentObj) {
-            isProcessingRef.current = false;
-            return;
-        }
+        setShowActionsMenu(false);
 
         try {
-            // Calculate position within parent
-            const left = parentObj.left || 0;
-            const top = parentObj.top || 0;
-            const width = parentObj.width || 400;
-            const height = parentObj.height || 300;
-
-            // Count objects of same type for naming
-            const sameTypeCount = group.objects.filter(obj =>
-                obj.objectType === type ||
-                (obj.type === 'textbox' && type === 'text') ||
-                (obj.type === 'rect' && type === 'rectangle')
-            ).length;
-
-            // Set object name based on type
-            let objName = '';
-            switch (type) {
-                case 'text': objName = 'Text'; break;
-                case 'image': objName = 'Image'; break;
-                case 'video': objName = 'Video'; break;
-                case 'rectangle': objName = 'Rectangle'; break;
-                case 'circle': objName = 'Circle'; break;
-                case 'triangle': objName = 'Triangle'; break;
-                default: objName = 'Object';
-            }
-
-            // Add new object to group with delay to avoid event conflicts
-            setTimeout(() => {
-                try {
-                    // Center the object in the parent
-                    addObject(type, {
-                        left: left + width / 2,
-                        top: top + height / 2,
-                        name: `${objName} ${sameTypeCount + 1}`,
-                        layoutGroup: group.id,
-                        // Inherit visibility and lock state from layer
-                        visible: isLayerVisible,
-                        selectable: isLayerVisible && !isLayerLocked,
-                        lockMovementX: isLayerLocked,
-                        lockMovementY: isLayerLocked,
-                        lockRotation: isLayerLocked,
-                        lockScalingX: isLayerLocked,
-                        lockScalingY: isLayerLocked
-                    });
-                } catch (error) {
-                    console.error('Error adding object to group:', error);
-                    setErrorMessage('Failed to add object to layer');
-                } finally {
-                    isProcessingRef.current = false;
-                }
-            }, 50);
+            addObjectToGroup(group.id, type);
         } catch (error) {
-            console.error('Error setting up object addition:', error);
-            setErrorMessage('Failed to add object to layer');
+            console.error(`Error adding ${type} to group:`, error);
+            setErrorMessage(`Failed to add ${type}`);
+        } finally {
             isProcessingRef.current = false;
         }
     };
@@ -353,24 +204,22 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
     // Delete this layout group
     const handleDeleteGroup = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) {return;}
+        if (isProcessingRef.current) return;
 
-        // Set flag to prevent concurrent operations
-        isProcessingRef.current = true;
-        setErrorMessage(null);
+        setShowActionsMenu(false);
 
-        try {
-            // Confirm deletion
-            if (window.confirm(t('editor.deleteGroupConfirmation'))) {
+        // Confirm deletion
+        if (window.confirm(t('editor.deleteGroupConfirmation'))) {
+            isProcessingRef.current = true;
+            setErrorMessage(null);
+
+            try {
                 deleteLayoutGroup(group.id);
-            } else {
-                // If cancelled, release processing flag
+            } catch (error) {
+                console.error('Error deleting layer group:', error);
+                setErrorMessage('Failed to delete layer');
                 isProcessingRef.current = false;
             }
-        } catch (error) {
-            console.error('Error deleting layer group:', error);
-            setErrorMessage('Failed to delete layer');
-            isProcessingRef.current = false;
         }
     };
 
@@ -382,19 +231,38 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
         onDragOverIndex(index);
     };
 
-    // Handle drop for object reordering
-    const handleDropAtIndex = (index: number, e: React.DragEvent) => {
-        e.preventDefault();
+    // Toggle actions menu
+    const toggleActionsMenu = (e: React.MouseEvent) => {
         e.stopPropagation();
-        onDropAtIndex(index, e);
-        setDragOverObjectIndex(null);
+        setErrorMessage(null);
+
+        // Calculate menu position relative to the button
+        if (actionsButtonRef.current) {
+            const buttonRect = actionsButtonRef.current.getBoundingClientRect();
+            setActionsMenuPosition({
+                top: buttonRect.bottom,
+                left: buttonRect.left
+            });
+        }
+
+        setShowActionsMenu(!showActionsMenu);
     };
+
+    // Filter out parent object when rendering child objects
+    const childObjects = group.objects.filter(obj => !obj.isLayoutParent);
+
+    // 레이어 그룹의 부모 객체 찾기
+    const parentObject = group.objects.find(obj => obj.isLayoutParent);
+
+    // 현재 그룹이 선택되었는지 여부 확인
+    const isGroupSelected = parentObject && selectedObjectId === parentObject.id;
 
     return (
         <div
-            className={`${styles.layoutGroup} ${isDragOver ? styles.dragOver : ''}`}
+            className={`${styles.layoutGroup} ${isDragOver ? styles.dragOver : ''} ${isGroupSelected ? styles.selected : ''}`}
             onDragOver={onDragOver}
             onDrop={onDrop}
+            onClick={onActivate}
         >
             {/* Error message display */}
             {errorMessage && (
@@ -405,11 +273,12 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                 </div>
             )}
 
-            <div className={styles.layoutGroupHeader} onClick={onToggleExpand}>
+            <div className={styles.layoutGroupHeader} onClick={(e) => {
+                    onToggleExpand();
+                    onGroupSelect();}}>
                 <div className={styles.layoutGroupInfo}>
                     {group.expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                     <Monitor size={16} className={styles.layoutIcon} />
-
                     {editingName ? (
                         <input
                             ref={nameInputRef}
@@ -422,49 +291,199 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                             onClick={handleNameInputClick}
                         />
                     ) : (
-                        <span className={`${styles.layoutGroupName} ${!isLayerVisible ? styles.hidden : ''}`}>
-              {group.name}
-                            <button
-                                className={styles.editNameButton}
-                                onClick={startEditingName}
-                                title={t('editor.renameGroup')}
-                            >
-                <Edit2 size={14} />
-              </button>
-            </span>
+                        <span className={`${styles.layoutGroupName} ${!group.visible ? styles.hidden : ''}`} onClick={(e) => {
+                            onToggleExpand();
+                            onGroupSelect();
+                        }}>
+                            {group.name}
+                            {
+                                isGroupSelected && (
+                                <button
+                                    className={styles.editNameButton}
+                                    onClick={startEditingName}
+                                    title={t('editor.renameGroup')}
+                                >
+                                    <Edit2 size={14} />
+                                </button>
+                                )
+                            }
+                        </span>
                     )}
                 </div>
 
                 <div className={styles.layoutGroupActions}>
+                    {/* Object Type Buttons */}
+                    <div className={styles.objectTypeButtons}>
+                        <button
+                            className={styles.objectTypeButton}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddObjectToGroup('text');
+                            }}
+                            title={t('editor.addTextToLayer')}
+                            disabled={isProcessingRef.current}
+                        >
+                            <Text size={12} />
+                        </button>
+                        <button
+                            className={styles.objectTypeButton}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddObjectToGroup('rectangle');
+                            }}
+                            title={t('editor.addShapeToLayer')}
+                            disabled={isProcessingRef.current}
+                        >
+                            <Square size={12} />
+                        </button>
+                        <button
+                            className={styles.objectTypeButton}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddObjectToGroup('image');
+                            }}
+                            title={t('editor.addImageToLayer')}
+                            disabled={isProcessingRef.current}
+                        >
+                            <Image size={12} />
+                        </button>
+                    </div>
+
                     {/* Layer visibility toggle */}
                     <button
                         className={styles.objectAction}
-                        onClick={toggleLayerVisibility}
-                        title={isLayerVisible ? t('editor.hideLayer') : t('editor.showLayer')}
+                        onClick={handleToggleVisibility}
+                        title={group.visible ? t('editor.hideLayer') : t('editor.showLayer')}
                         disabled={isProcessingRef.current}
                     >
-                        {isLayerVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+                        {group.visible ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
 
                     {/* Layer lock toggle */}
                     <button
                         className={styles.objectAction}
-                        onClick={toggleLayerLock}
-                        title={isLayerLocked ? t('editor.unlockLayer') : t('editor.lockLayer')}
+                        onClick={handleToggleLock}
+                        title={group.locked ? t('editor.unlockLayer') : t('editor.lockLayer')}
                         disabled={isProcessingRef.current}
                     >
-                        {isLayerLocked ? <Unlock size={16} /> : <Lock size={16} />}
+                        {group.locked ? <Unlock size={16} /> : <Lock size={16} />}
                     </button>
 
-                    {/* Delete layer button */}
+                    {/* More actions button with dropdown */}
                     <button
-                        className={`${styles.objectAction} ${styles.deleteAction}`}
-                        onClick={handleDeleteGroup}
-                        title={t('editor.deleteGroup')}
+                        ref={actionsButtonRef}
+                        className={`${styles.objectAction} ${showActionsMenu ? styles.active : ''}`}
+                        onClick={toggleActionsMenu}
+                        title={t('editor.moreActions')}
                         disabled={isProcessingRef.current}
                     >
-                        <Trash2 size={16} />
+                        <MoreHorizontal size={16} />
                     </button>
+
+                    {showActionsMenu && (
+                        <div
+                            ref={actionsMenuRef}
+                            className="global-actions-dropdown"
+                            style={{
+                                position: 'fixed',
+                                top: `${actionsMenuPosition.top}px`,
+                                left: `${actionsMenuPosition.left}px`,
+                                zIndex: 1000
+                            }}
+                        >
+                            {/* Add object actions */}
+                            <button
+                                className="actionItem"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddObjectToGroup('text');
+                                }}
+                                title={t('editor.addTextToLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Text size={16} />
+                                <span>{t('editor.addText')}</span>
+                            </button>
+
+                            <button
+                                className="actionItem"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddObjectToGroup('rectangle');
+                                }}
+                                title={t('editor.addRectangleToLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Square size={16} />
+                                <span>{t('editor.addRectangle')}</span>
+                            </button>
+
+                            <button
+                                className="actionItem"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddObjectToGroup('circle');
+                                }}
+                                title={t('editor.addCircleToLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Circle size={16} />
+                                <span>{t('editor.addCircle')}</span>
+                            </button>
+
+                            <button
+                                className="actionItem"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddObjectToGroup('triangle');
+                                }}
+                                title={t('editor.addTriangleToLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Triangle size={16} />
+                                <span>{t('editor.addTriangle')}</span>
+                            </button>
+
+                            <button
+                                className="actionItem"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddObjectToGroup('image');
+                                }}
+                                title={t('editor.addImageToLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Image size={16} />
+                                <span>{t('editor.addImage')}</span>
+                            </button>
+
+                            <button
+                                className="actionItem"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddObjectToGroup('video');
+                                }}
+                                title={t('editor.addVideoToLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Film size={16} />
+                                <span>{t('editor.addVideo')}</span>
+                            </button>
+
+                            <div className="actionDivider"></div>
+
+                            {/* Delete action */}
+                            <button
+                                className="actionItem deleteAction"
+                                onClick={handleDeleteGroup}
+                                title={t('editor.deleteLayer')}
+                                disabled={isProcessingRef.current}
+                            >
+                                <Trash2 size={16} />
+                                <span>{t('editor.deleteLayer')}</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -474,38 +493,35 @@ const LayoutGroupItem: React.FC<LayoutGroupItemProps> = ({
                     <div
                         className={`${styles.dropZone} ${dragOverObjectIndex === 0 ? styles.active : ''}`}
                         onDragOver={(e) => handleDragOverObject(0, e)}
-                        onDrop={(e) => handleDropAtIndex(0, e)}
                     />
 
                     {/* Render objects in the group */}
-                    {group.objects.map((object, index) => (
-                        <React.Fragment key={object.id}>
-                            <ObjectItem
-                                key={`object_${object.id}_${index}`}
-                                object={object}
-                                isSelected={selectedObjectId === object.id}
-                                isGroupChild={!object.isLayoutParent} // Only treat non-parent objects as children
-                                isDragOver={false}
-                                onSelect={() => selectObject(object)}
-                                onDragStart={onDragStart}
-                                onDragEnd={onDragEnd}
-                                onDragOver={onDragOverId}
-                            />
+                    {childObjects.length > 0 ? (
+                        childObjects.map((object, index) => (
+                            <React.Fragment key={`${object.id}_${index}`}>
+                                <ObjectItem
+                                    object={object}
+                                    isSelected={selectedObjectId === object.id}
+                                    isGroupChild={true}
+                                    isDragOver={false}
+                                    onSelect={() => selectObject(object)}
+                                    onDragStart={onDragStart}
+                                    onDragEnd={onDragEnd}
+                                    onDragOver={onDragOverId}
+                                    groupLocked={group.locked}
+                                    groupVisible={group.visible}
+                                />
 
-                            {/* Drop zone after each object */}
-                            <div
-                                key={`dropzone_${object.id}_${index}`}
-                                className={`${styles.dropZone} ${dragOverObjectIndex === index + 1 ? styles.active : ''}`}
-                                onDragOver={(e) => handleDragOverObject(index + 1, e)}
-                                onDrop={(e) => handleDropAtIndex(index + 1, e)}
-                            />
-                        </React.Fragment>
-                    ))}
-
-                    {/* Empty group message */}
-                    {group.objects.length === 0 && (
+                                {/* Drop zone after each object */}
+                                <div
+                                    className={`${styles.dropZone} ${dragOverObjectIndex === index + 1 ? styles.active : ''}`}
+                                    onDragOver={(e) => handleDragOverObject(index + 1, e)}
+                                />
+                            </React.Fragment>
+                        ))
+                    ) : (
                         <div className={styles.emptyGroupMessage}>
-                            {t('editor.groupEmpty')}
+                            {t('editor.layerEmpty')}
                         </div>
                     )}
                 </div>

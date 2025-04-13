@@ -1,12 +1,11 @@
 // src/components/DesignEditor/components/ObjectsPanel/ObjectToolbar.tsx
 import React, { useState } from 'react';
-import { Text, Image, Square, Circle, Triangle, Plus, AlertTriangle, Info } from 'lucide-react';
+import { Text, Image, Square, Circle, Triangle, Plus, Layers, AlertTriangle, Info } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ObjectType } from '../../context/DesignEditorContext';
+import { ObjectType, useDesignEditor } from '../../context/DesignEditorContext';
 import styles from './ObjectsPanel.module.scss';
 
 interface ObjectToolbarProps {
-    onCreateLayoutGroup: () => void;
     onAddObject: (type: ObjectType, options?: any) => void;
 }
 
@@ -14,28 +13,73 @@ interface ObjectToolbarProps {
  * ObjectToolbar component provides buttons for adding various types of objects
  * to the canvas, organized in a toolbar format.
  */
-const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onCreateLayoutGroup, onAddObject }) => {
+const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onAddObject }) => {
     const { t } = useTranslation();
+    const { createLayoutGroup, activeGroupId, layerGroups, addObjectToGroup } = useDesignEditor();
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [warningVisible, setWarningVisible] = useState(false);
 
-    // Handle adding an object to the canvas
-    const handleAddObject = (type: ObjectType) => {
-        if (isProcessing) {return;}
+    // Handle creating a new layout group
+    const handleCreateNewLayoutGroup = () => {
+        if (isProcessing) return;
 
         setIsProcessing(true);
         setErrorMessage(null);
 
         try {
-            onAddObject(type);
-            // Show warning about objects needing to be in layers
-            setWarningVisible(true);
+            // Generate group name based on existing groups count
+            const newGroupName = `Layer ${layerGroups.length + 1}`;
+            createLayoutGroup(newGroupName);
 
-            // Auto-hide warning after 3 seconds
-            setTimeout(() => {
-                setWarningVisible(false);
-            }, 3000);
+            // Auto-hide any warning after creation
+            setWarningVisible(false);
+        } catch (error) {
+            console.error('Error creating layout group:', error);
+            setErrorMessage('Failed to create new layer');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    // Handle adding an object to the canvas
+    const handleAddObject = (type: ObjectType) => {
+        if (isProcessing) return;
+
+        setIsProcessing(true);
+        setErrorMessage(null);
+
+        try {
+            // Check if any layer group exists
+            if (layerGroups.length === 0) {
+                // Create a new layer group first
+                const groupId = createLayoutGroup(`Layer 1`);
+                setIsProcessing(false);
+                // addObjectToGroup(groupId, type);
+
+                // Wait a bit for group creation to complete
+                // setTimeout(() => {
+                //     onAddObject(type);
+                //     setIsProcessing(false);
+                // }, 100);
+                return;
+            }
+
+            // Add object to active layer
+            onAddObject(type);
+
+            // Show warning about objects being added to the active layer
+            if (!warningVisible && activeGroupId) {
+                const activeGroup = layerGroups.find(g => g.id === activeGroupId);
+                if (activeGroup) {
+                    setWarningVisible(true);
+
+                    // Auto-hide warning after 3 seconds
+                    setTimeout(() => {
+                        setWarningVisible(false);
+                    }, 3000);
+                }
+            }
         } catch (error) {
             console.error(`Error adding ${type} to canvas:`, error);
             setErrorMessage(`Failed to add ${type} to canvas`);
@@ -90,11 +134,11 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onCreateLayoutGroup, onAd
                 </button>
                 <button
                     className={`${styles.objectToolButton} ${styles.createLayerButton}`}
-                    onClick={onCreateLayoutGroup}
-                    title={t('editor.addLayoutGroup')}
+                    onClick={handleCreateNewLayoutGroup}
+                    title={t('editor.addNewLayer')}
                     disabled={isProcessing}
                 >
-                    <Plus size={18} />
+                    <Layers size={18} />
                 </button>
             </div>
 
@@ -108,10 +152,14 @@ const ObjectToolbar: React.FC<ObjectToolbarProps> = ({ onCreateLayoutGroup, onAd
             )}
 
             {/* Layer warning message */}
-            {warningVisible && (
+            {warningVisible && activeGroupId && (
                 <div className={styles.warningMessage}>
                     <Info size={14} />
-                    <span>{t('editor.objectsNeedLayerWarning', 'Objects must be added to a layer')}</span>
+                    <span>
+            {t('editor.objectAddedToActiveLayer', {
+                layerName: layerGroups.find(g => g.id === activeGroupId)?.name || 'Active Layer'
+            })}
+          </span>
                     <button onClick={() => setWarningVisible(false)}>×</button>
                 </div>
             )}

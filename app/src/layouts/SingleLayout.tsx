@@ -29,7 +29,7 @@ const SingleLayout: React.FC<SingleLayoutProps> = ({
             {withHeader && (
                 <div className={styles.singleLayoutHeader}>
                     <div className={styles.logo}>
-                        <span>DS 매니저</span>
+                        <span>매니저</span>
                     </div>
                 </div>
             )}

@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
     Text, Image, Square, Circle, Triangle, Trash2, Copy,
     Eye, EyeOff, Lock, Unlock, Edit2, Monitor, Film,
-    ChevronUp, ChevronDown, ChevronsUp, ChevronsDown,
     MoreHorizontal, AlertTriangle
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -20,6 +19,8 @@ interface ObjectItemProps {
     onDragStart: (id: number | string) => void;
     onDragEnd: () => void;
     onDragOver: (id: number | string | null) => void;
+    groupLocked?: boolean;
+    groupVisible?: boolean;
 }
 
 /**
@@ -33,9 +34,11 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                                                    onSelect,
                                                    onDragStart,
                                                    onDragEnd,
-                                                   onDragOver
+                                                   onDragOver,
+                                                   groupLocked = false,
+                                                   groupVisible = true
                                                }) => {
-    const {t} = useTranslation();
+    const { t } = useTranslation();
     const {
         canvas,
         deleteObject,
@@ -48,8 +51,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         selectObject,
         toggleObjectLock,
         isObjectLocked: checkObjectLock,
-        onObjectStateChange,
-        notifyObjectStateChange
+        onObjectStateChange
     } = useDesignEditor();
 
     // State for editing name and showing action menu
@@ -57,7 +59,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const [editingName, setEditingName] = useState(object.name || '');
     const [showActionsMenu, setShowActionsMenu] = useState(false);
     const [isVisible, setIsVisible] = useState(object.visible !== false);
-    const [isLocked, setIsLocked] = useState(!!object.lockMovementX && !!object.lockMovementY);
+    const [isLocked, setIsLocked] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     // Refs for DOM elements
@@ -67,12 +69,12 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const isProcessingRef = useRef(false);
 
     // State for menu position
-    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({top: 0, left: 0});
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
     // Update visibility and lock states when object properties change
     useEffect(() => {
         const newVisibleState = object.visible !== false;
-        const newLockedState = checkObjectLock(object); // 이름 변경된 함수 사용
+        const newLockedState = checkObjectLock(object);
 
         // 상태가 변경된 경우에만 업데이트
         if (isVisible !== newVisibleState) {
@@ -84,12 +86,20 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         }
     }, [object, checkObjectLock]);
 
+    // Update name when object name changes
+    useEffect(() => {
+        if (!isEditingName && object.name) {
+            setEditingName(object.name);
+        }
+    }, [object.name, isEditingName]);
+
     // 객체 상태 변경 이벤트 구독
     useEffect(() => {
         // 상태 변경 이벤트 핸들러
         const handleStateChange = (event: {
-            type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification';
+            type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification' | 'group';
             objectId: string | number | null;
+            groupId?: string;
         }) => {
             // 이 객체의 상태가 변경된 경우에만 처리
             if (
@@ -111,37 +121,35 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Get object type icon
     const getObjectIcon = () => {
-        const type = object.objectType;
+        const type = object.objectType || object.type;
 
         if (object.isLayoutParent) {
-            return <Monitor size={16}/>;
+            return <Monitor size={16} />;
         }
 
         switch (type) {
             case 'text':
-                return <Text size={16}/>;
+            case 'textbox':
+                return <Text size={16} />;
             case 'image':
-                return <Image size={16}/>;
+                return <Image size={16} />;
             case 'video':
-                return <Film size={16}/>;
+                return <Film size={16} />;
             case 'rectangle':
-                return <Square size={16}/>;
+            case 'rect':
+                return <Square size={16} />;
             case 'circle':
-                return <Circle size={16}/>;
+                return <Circle size={16} />;
             case 'triangle':
-                return <Triangle size={16}/>;
+                return <Triangle size={16} />;
             default:
-                if (object.type === 'textbox') {return <Text size={16}/>;}
-                if (object.type === 'rect') {return <Square size={16}/>;}
-                if (object.type === 'circle') {return <Circle size={16}/>;}
-                if (object.type === 'triangle') {return <Triangle size={16}/>;}
-                return <Square size={16}/>;
+                return <Square size={16} />;
         }
     };
 
     // Get object name or default name
     const getObjectName = () => {
-        if (object.name) {return object.name;}
+        if (object.name) return object.name;
 
         const type = object.objectType || (
             object.type === 'textbox' ? 'text' :
@@ -170,25 +178,14 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Save the edited name
     const saveObjectName = () => {
-        if (!canvas || isProcessingRef.current) {return;}
+        if (!canvas || isProcessingRef.current) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
 
         try {
-            // Store current selected object
-            const currentSelectedObject = canvas.getActiveObject();
-
-            // Select the object to rename
-            selectObject(object);
-
             // Update name property
             updateObjectProperty('name', editingName);
-
-            // Restore previous selection
-            if (currentSelectedObject) {
-                selectObject(currentSelectedObject as FabricObjectWithId);
-            }
         } catch (error) {
             console.error('Error saving object name:', error);
             setErrorMessage('Failed to update object name');
@@ -204,6 +201,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             saveObjectName();
         } else if (e.key === 'Escape') {
             setIsEditingName(false);
+            setEditingName(getObjectName());
         }
     };
 
@@ -217,7 +215,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canvas || !object || isProcessingRef.current) {return;}
+        if (!canvas || !object || isProcessingRef.current || groupLocked) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -263,11 +261,12 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     };
 
     // Toggle object lock state
-    const toggleLocked = (e: React.MouseEvent) => {
+    const handleToggleLock = (e: React.MouseEvent) => {
         // 이벤트 전파 중지
         e.preventDefault();
-        // e.stopPropagation(); - 제거
-        if (!canvas || !object || isProcessingRef.current) {return;}
+        e.stopPropagation();
+
+        if (!canvas || !object || isProcessingRef.current || groupLocked) return;
 
         // 처리 중 플래그 설정
         isProcessingRef.current = true;
@@ -281,14 +280,6 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             // UI 상태 업데이트 - 이제 이벤트 시스템이 처리하므로 필요하지 않을 수 있지만
             // 확실한 상태 동기화를 위해 유지
             setIsLocked(newLockState);
-
-            // 추가: 선택된 객체가 이 객체인 경우, 상태 변경 이벤트 발생
-            if (isSelected) {
-                notifyObjectStateChange({
-                    type: newLockState ? 'lock' : 'unlock',
-                    objectId: object.id || null
-                });
-            }
         } catch (error) {
             console.error("toggleLocked 에러:", error);
             setErrorMessage("잠금 상태 변경에 실패했습니다");
@@ -301,7 +292,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Delete this object
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) {return;}
+        if (isProcessingRef.current || groupLocked) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -328,7 +319,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Duplicate this object
     const handleDuplicate = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) {return;}
+        if (isProcessingRef.current || groupLocked) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -355,7 +346,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     // Move this object up one level
     const handleMoveUp = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) {return;}
+        if (isProcessingRef.current || groupLocked) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -371,29 +362,10 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         }
     };
 
-    // Move this object to the top
-    const handleMoveToTop = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isProcessingRef.current) {return;}
-
-        isProcessingRef.current = true;
-        setErrorMessage(null);
-        setShowActionsMenu(false);
-
-        try {
-            moveObjectToTop(object);
-        } catch (error) {
-            console.error('Error moving object to top:', error);
-            setErrorMessage('Failed to move object to top');
-        } finally {
-            isProcessingRef.current = false;
-        }
-    };
-
     // Move this object down one level
     const handleMoveDown = (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (isProcessingRef.current) {return;}
+        if (isProcessingRef.current || groupLocked) return;
 
         isProcessingRef.current = true;
         setErrorMessage(null);
@@ -404,25 +376,6 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         } catch (error) {
             console.error('Error moving object down:', error);
             setErrorMessage('Failed to move object down');
-        } finally {
-            isProcessingRef.current = false;
-        }
-    };
-
-    // Move this object to the bottom
-    const handleMoveToBottom = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (isProcessingRef.current) {return;}
-
-        isProcessingRef.current = true;
-        setErrorMessage(null);
-        setShowActionsMenu(false);
-
-        try {
-            moveObjectToBottom(object);
-        } catch (error) {
-            console.error('Error moving object to bottom:', error);
-            setErrorMessage('Failed to move object to bottom');
         } finally {
             isProcessingRef.current = false;
         }
@@ -468,16 +421,9 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Handle drag start
     const handleDragStart = (e: React.DragEvent) => {
-
-        // console.log('Drag Start:', {
-        //     objectId: object.id,
-        //     isLocked,
-        //     isVisible,
-        //     isLayoutParent: object.isLayoutParent
-        // });
-
-        if (!object.id || isLocked || !isVisible || object.isLayoutParent) {
-            console.warn('Drag prevented due to conditions');
+        // Parent objects and locked/hidden objects cannot be dragged
+        if (!object.id || isLocked || !isVisible || object.isLayoutParent || groupLocked || !groupVisible) {
+            e.preventDefault();
             return;
         }
 
@@ -491,23 +437,13 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Handle drag over
     const handleDragOver = (e: React.DragEvent) => {
-        // console.log('Drag Over:', {
-        //     objectId: object.id,
-        //     event: e
-        // });
         e.preventDefault();
-        if (!object.id) {
-            console.warn('No object ID for drag over');
-            return;
-        }
+        if (!object.id) return;
         onDragOver(object.id);
     };
 
     // Handle drag end
     const handleDragEnd = (e: React.DragEvent) => {
-        // console.log('Drag End:', {
-        //     objectId: object.id
-        // });
         if (e.currentTarget instanceof HTMLElement) {
             e.currentTarget.style.opacity = '1';
         }
@@ -516,7 +452,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
     // Render actions menu as a portal
     const renderActionsMenu = () => {
-        if (!showActionsMenu) {return null;}
+        if (!showActionsMenu) return null;
 
         const menuStyle: React.CSSProperties = {
             position: 'fixed',
@@ -532,72 +468,46 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                 className="global-actions-dropdown"
                 style={menuStyle}
             >
-                {!object.isLayoutParent && (
-                    <>
-                        {/* Z-index control actions */}
-                        <button
-                            className="actionItem"
-                            onClick={handleMoveToTop}
-                            title={t('editor.moveObjectToTop')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <ChevronsUp size={16}/>
-                            <span>{t('editor.moveObjectToTop')}</span>
-                        </button>
+                {/* Object position control actions */}
+                <button
+                    className="actionItem"
+                    onClick={handleMoveUp}
+                    title={t('editor.moveObjectUp')}
+                    disabled={isProcessingRef.current || groupLocked}
+                >
+                    <span>{t('editor.moveObjectUp')}</span>
+                </button>
 
-                        <button
-                            className="actionItem"
-                            onClick={handleMoveUp}
-                            title={t('editor.moveObjectUp')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <ChevronUp size={16}/>
-                            <span>{t('editor.moveObjectUp')}</span>
-                        </button>
+                <button
+                    className="actionItem"
+                    onClick={handleMoveDown}
+                    title={t('editor.moveObjectDown')}
+                    disabled={isProcessingRef.current || groupLocked}
+                >
+                    <span>{t('editor.moveObjectDown')}</span>
+                </button>
 
-                        <button
-                            className="actionItem"
-                            onClick={handleMoveDown}
-                            title={t('editor.moveObjectDown')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <ChevronDown size={16}/>
-                            <span>{t('editor.moveObjectDown')}</span>
-                        </button>
+                <div className="actionDivider"></div>
 
-                        <button
-                            className="actionItem"
-                            onClick={handleMoveToBottom}
-                            title={t('editor.moveObjectToBottom')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <ChevronsDown size={16}/>
-                            <span>{t('editor.moveObjectToBottom')}</span>
-                        </button>
-
-                        <div className="actionDivider"></div>
-
-                        {/* Duplicate action */}
-                        <button
-                            className="actionItem"
-                            onClick={handleDuplicate}
-                            title={t('editor.duplicate')}
-                            disabled={isProcessingRef.current}
-                        >
-                            <Copy size={16}/>
-                            <span>{t('editor.duplicate')}</span>
-                        </button>
-                    </>
-                )}
+                {/* Duplicate action */}
+                <button
+                    className="actionItem"
+                    onClick={handleDuplicate}
+                    title={t('editor.duplicate')}
+                    disabled={isProcessingRef.current || groupLocked}
+                >
+                    <Copy size={16} />
+                    <span>{t('editor.duplicate')}</span>
+                </button>
 
                 {/* Delete action */}
                 <button
                     className="actionItem deleteAction"
                     onClick={handleDelete}
                     title={t('editor.delete')}
-                    disabled={isProcessingRef.current || object.isLayoutParent}
+                    disabled={isProcessingRef.current || groupLocked || object.isLayoutParent}
                 >
-                    <Trash2 size={16}/>
+                    <Trash2 size={16} />
                     <span>{t('editor.delete')}</span>
                 </button>
             </div>,
@@ -606,14 +516,14 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     };
 
     // Determine if this object can be dragged
-    const isDraggable = !object.isLayoutParent && isVisible && !isLocked;
+    const isDraggable = !object.isLayoutParent && isVisible && !isLocked && !groupLocked && groupVisible;
 
     return (
         <>
             {/* Error message display */}
             {errorMessage && (
                 <div className={styles.errorMessage}>
-                    <AlertTriangle size={14}/>
+                    <AlertTriangle size={14} />
                     <span>{errorMessage}</span>
                     <button onClick={() => setErrorMessage(null)}>×</button>
                 </div>
@@ -621,11 +531,11 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
 
             <div
                 className={`${styles.objectItem} 
-                    ${isGroupChild ? styles.groupChild : ''} 
-                    ${isSelected ? styles.selected : ''} 
-                    ${isDragOver ? styles.dragOver : ''}
-                    ${!isVisible ? styles.hidden : ''}
-                    ${isLocked ? styles.locked : ''}`}
+          ${isGroupChild ? styles.groupChild : ''} 
+          ${isSelected ? styles.selected : ''} 
+          ${isDragOver ? styles.dragOver : ''}
+          ${!isVisible || !groupVisible ? styles.hidden : ''}
+          ${isLocked || groupLocked ? styles.locked : ''}`}
                 onClick={onSelect}
                 draggable={isDraggable}
                 onDragStart={handleDragStart}
@@ -650,17 +560,17 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         />
                     ) : (
                         <span className={styles.objectName}>
-                            {getObjectName()}
-                            {!object.isLayoutParent && (
+              {getObjectName()}
+                            {!object.isLayoutParent && !groupLocked && isSelected && (
                                 <button
                                     className={styles.editNameButton}
                                     onClick={startEditingName}
                                     title={t('editor.renameObject')}
                                 >
-                                    <Edit2 size={14}/>
+                                    <Edit2 size={14} />
                                 </button>
                             )}
-                        </span>
+            </span>
                     )}
                 </div>
 
@@ -670,18 +580,18 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         className={styles.objectAction}
                         onClick={toggleVisibility}
                         title={isVisible ? t('editor.hideObject') : t('editor.showObject')}
-                        disabled={isProcessingRef.current}
+                        disabled={isProcessingRef.current || groupLocked || !groupVisible}
                     >
-                        {isVisible ? <Eye size={16}/> : <EyeOff size={16}/>}
+                        {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
                     </button>
 
                     <button
                         className={`${styles.objectAction} ${isLocked ? styles.active : ''}`}
-                        onClick={toggleLocked}
+                        onClick={handleToggleLock}
                         title={isLocked ? t('editor.unlockObject') : t('editor.lockObject')}
-                        disabled={isProcessingRef.current || !isVisible}
+                        disabled={isProcessingRef.current || !isVisible || groupLocked || !groupVisible}
                     >
-                        {isLocked ? <Unlock size={16}/> : <Lock size={16}/>}
+                        {isLocked ? <Unlock size={16} /> : <Lock size={16} />}
                     </button>
 
                     {/* More actions button with dropdown menu */}
@@ -691,9 +601,9 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                             className={`${styles.objectAction} ${showActionsMenu ? styles.active : ''}`}
                             onClick={toggleActionsMenu}
                             title={t('editor.moreActions')}
-                            disabled={isProcessingRef.current}
+                            disabled={isProcessingRef.current || groupLocked || !groupVisible}
                         >
-                            <MoreHorizontal size={16}/>
+                            <MoreHorizontal size={16} />
                         </button>
 
                         {renderActionsMenu()}

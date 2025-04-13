@@ -70,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isMobileSidebarOpen }) =
 
                 {/* Logo */}
                 <div className={styles.logo}>
-                    <span className={styles.logoText}>DS 매니저</span>
+                    <span className={styles.logoText}>매니저</span>
                 </div>
 
                 {/* Spacer */}

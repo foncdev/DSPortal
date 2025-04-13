@@ -119,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             `}>
                 <div className={styles.sidebarHeader}>
                     <div className={styles.logo}>
-                        {!collapsed && <span className={styles.logoText}>DS 매니저</span>}
+                        {!collapsed && <span className={styles.logoText}>매니저</span>}
                     </div>
 
                     {/* Collapse toggle button (desktop only) */}

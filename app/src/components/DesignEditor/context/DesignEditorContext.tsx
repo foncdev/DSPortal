@@ -5,9 +5,21 @@ import { fabric } from 'fabric';
 // Define object types
 export type ObjectType = 'text' | 'image' | 'video' | 'rectangle' | 'circle' | 'triangle';
 
+// 레이어 그룹 타입 정의
+export interface LayerGroup {
+    id: string;
+    name: string;
+    parentObject?: FabricObjectWithId;
+    objects: FabricObjectWithId[];
+    visible: boolean;
+    locked: boolean;
+    expanded?: boolean;
+}
+
 type ObjectStateChangeEvent = {
-    type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification';
+    type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification' | 'group';
     objectId: string | number | null;
+    groupId?: string;
 };
 
 // Define fabric object with custom properties
@@ -37,6 +49,11 @@ interface DesignEditorContextType {
     selectedObject: FabricObjectWithId | null;
     getObjects: () => FabricObjectWithId[];
 
+    // Layer groups
+    layerGroups: LayerGroup[];
+    activeGroupId: string | null;
+    setActiveGroupId: (id: string | null) => void;
+
     // Layout group functions
     createLayoutGroup: (name: string, options?: any) => string;
     addObjectToGroup: (groupId: string, type: ObjectType, options?: any) => void;
@@ -44,8 +61,9 @@ interface DesignEditorContextType {
     deleteLayoutGroup: (groupId: string) => void;
     moveObjectToGroup: (objectId: number | string, groupId: string | null) => void;
     moveGroupTogether: (groupId: string, deltaX: number, deltaY: number) => void;
-
-
+    toggleGroupVisibility: (groupId: string) => boolean;
+    toggleGroupLock: (groupId: string) => boolean;
+    renameGroup: (groupId: string, newName: string) => void;
 
     // Object actions
     addObject: (type: ObjectType, options?: any) => void;
@@ -81,6 +99,10 @@ interface DesignEditorContextType {
     redo: () => void;
     canUndo: boolean;
     canRedo: boolean;
+
+    // File operations
+    saveAsJSON: () => string;
+    loadFromJSON: (json: string) => void;
 }
 
 // Create context with default values
@@ -103,6 +125,10 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
     const [selectedObject, setSelectedObject] = useState<FabricObjectWithId | null>(null);
     const [objectCount, setObjectCount] = useState(0);
+
+    // Layer groups state
+    const [layerGroups, setLayerGroups] = useState<LayerGroup[]>([]);
+    const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
     // History states
     const [history, setHistory] = useState<string[]>([]);
@@ -134,9 +160,63 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         };
     };
 
+    // Update layer groups based on canvas objects
+    const updateLayerGroups = () => {
+        if (!canvas) return;
+
+        const canvasObjects = canvas.getObjects() as FabricObjectWithId[];
+
+        // Group objects by layout group
+        const groupMap: Record<string, FabricObjectWithId[]> = {};
+
+        // First, find all parent objects
+        canvasObjects.forEach(obj => {
+            if (obj.layoutGroup && obj.isLayoutParent) {
+                if (!groupMap[obj.layoutGroup]) {
+                    groupMap[obj.layoutGroup] = [];
+                }
+                // Add parent first
+                groupMap[obj.layoutGroup].unshift(obj);
+            }
+        });
+
+        // Then find all child objects
+        canvasObjects.forEach(obj => {
+            if (obj.layoutGroup && !obj.isLayoutParent) {
+                if (!groupMap[obj.layoutGroup]) {
+                    groupMap[obj.layoutGroup] = [];
+                }
+                groupMap[obj.layoutGroup].push(obj);
+            }
+        });
+
+        // Convert to layer groups
+        const newLayerGroups: LayerGroup[] = Object.entries(groupMap).map(([groupId, objects]) => {
+            const parentObject = objects.find(obj => obj.isLayoutParent);
+            const existingGroup = layerGroups.find(g => g.id === groupId);
+
+            return {
+                id: groupId,
+                name: parentObject?.name || `Layer ${groupId}`,
+                parentObject: parentObject,
+                objects: objects,
+                visible: parentObject?.visible !== false,
+                locked: !!(parentObject?.lockMovementX && parentObject?.lockMovementY),
+                expanded: existingGroup?.expanded !== false
+            };
+        });
+
+        setLayerGroups(newLayerGroups);
+
+        // Set active group if none is selected
+        if (!activeGroupId && newLayerGroups.length > 0) {
+            setActiveGroupId(newLayerGroups[0].id);
+        }
+    };
+
     // Save canvas state to history
     const saveToHistory = () => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         // Get canvas JSON
         const json = JSON.stringify(canvas.toJSON(['id', 'objectType', 'name', 'layoutGroup', 'isLayoutParent']));
@@ -153,7 +233,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Apply grid to canvas
     useEffect(() => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         if (showGrid) {
             // Create grid
@@ -209,7 +289,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Set up layout group movement handling
     useEffect(() => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         // 객체 이동 처리 함수
         const handleObjectMoving = (e: fabric.IEvent) => {
@@ -218,7 +298,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             // 레이아웃 부모 객체인 경우에만 처리
             if (movedObject && movedObject.isLayoutParent) {
                 const groupId = movedObject.layoutGroup;
-                if (!groupId) {return;}
+                if (!groupId) return;
 
                 // 현재 위치 (안전하게 처리)
                 const newLeft = typeof movedObject.left === 'number' ? movedObject.left : 0;
@@ -242,9 +322,6 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                         const fabricObj = obj as FabricObjectWithId;
                         return fabricObj.layoutGroup === groupId && !fabricObj.isLayoutParent;
                     }) as FabricObjectWithId[];
-
-                    // 로그 추가
-                    console.log(`Moving group ${groupId} with ${childObjects.length} children by (${deltaX}, ${deltaY})`);
 
                     // 모든 자식 객체 이동
                     childObjects.forEach(child => {
@@ -284,6 +361,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
             // 히스토리에 저장 (상태 저장)
             saveToHistory();
+
+            // Update layer groups
+            updateLayerGroups();
         };
 
         // Handle selection cleared
@@ -304,10 +384,23 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                 // 선택 시 현재 위치 저장
                 selectedObj.__oldLeft = selectedObj.left;
                 selectedObj.__oldTop = selectedObj.top;
-                console.log(`Selected layout parent: ${selectedObj.name}, position: (${selectedObj.__oldLeft}, ${selectedObj.__oldTop})`);
+            }
+
+            // If object belongs to a group, set that group as active
+            if (selectedObj && selectedObj.layoutGroup) {
+                setActiveGroupId(selectedObj.layoutGroup as string);
             }
         };
 
+        // Handle object added
+        const handleObjectAdded = () => {
+            updateLayerGroups();
+        };
+
+        // Handle object removed
+        const handleObjectRemoved = () => {
+            updateLayerGroups();
+        };
 
         // Register event listeners
         canvas.on('object:moving', handleObjectMoving);
@@ -315,6 +408,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         canvas.on('before:selection:cleared', handleBeforeSelectionCleared);
         canvas.on('selection:created', handleObjectSelected);
         canvas.on('selection:updated', handleObjectSelected);
+        canvas.on('object:added', handleObjectAdded);
+        canvas.on('object:removed', handleObjectRemoved);
 
         // Cleanup on unmount
         return () => {
@@ -323,27 +418,21 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             canvas.off('before:selection:cleared', handleBeforeSelectionCleared);
             canvas.off('selection:created', handleObjectSelected);
             canvas.off('selection:updated', handleObjectSelected);
+            canvas.off('object:added', handleObjectAdded);
+            canvas.off('object:removed', handleObjectRemoved);
         };
-    }, [canvas]);
+    }, [canvas, activeGroupId]);
 
-    // Save to history when objects are modified
+    // Update layout groups when canvas objects change
     useEffect(() => {
-        if (!canvas) {return;}
-
-        const handleObjectModified = () => {
-            saveToHistory();
-        };
-
-        canvas.on('object:modified', handleObjectModified);
-
-        return () => {
-            canvas.off('object:modified', handleObjectModified);
-        };
-    }, [canvas, history, historyIndex]);
+        if (canvas) {
+            updateLayerGroups();
+        }
+    }, [canvas]);
 
     // Update selected object when selection changes
     useEffect(() => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         const handleSelectionCreated = (e: fabric.IEvent) => {
             const selected = e.selected?.[0] as FabricObjectWithId;
@@ -376,199 +465,202 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Get all objects from canvas
     const getObjects = (): FabricObjectWithId[] => {
-        if (!canvas) {return [];}
+        if (!canvas) return [];
         return canvas.getObjects() as FabricObjectWithId[];
     };
 
     const addObject = (type: ObjectType, options: any = {}) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
+        // Ensure a layout group exists
         const ensureLayoutGroup = () => {
-            const layoutGroups = canvas.getObjects().filter(
-                obj => (obj as FabricObjectWithId).isLayoutParent
-            );
+            const layoutGroups = layerGroups;
 
             // If no layout groups exist, create one automatically
             if (layoutGroups.length === 0) {
-                createLayoutGroup(`Layer 1`);
+                const newGroupId = createLayoutGroup('Layer 1');
+                return true;
             }
+            return false;
         };
 
-        ensureLayoutGroup();
+        const isNewGroupCreated = ensureLayoutGroup();
 
-        const activeGroupId = getActiveLayoutGroupId();
-        if (!activeGroupId) {
-            console.error('No active layout group available');
-            return;
-        }
+        // Wait briefly if we just created a new group
+        setTimeout(() => {
+            // Use active group if available, otherwise use the first group
+            let targetGroupId = activeGroupId;
+            if (!targetGroupId && layerGroups.length > 0) {
+                targetGroupId = layerGroups[0].id;
+                setActiveGroupId(targetGroupId);
+            }
 
-        const newId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const objcnt = objectCount + 1;
-        setObjectCount(objcnt);
-
-        const mergedOptions = {
-            ...options,
-            layoutGroup: activeGroupId,
-            left: options.left || Math.random() * (width - 200) + 100,
-            top: options.top || Math.random() * (height - 200) + 100,
-            id: newId,
-            name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${newId}`
-        };
-
-        let object: FabricObjectWithId | null = null;
-
-        // Create the object based on type
-        switch (type) {
-            case 'text':
-                object = new fabric.Textbox(options.text || 'New Text', {
-                    ...mergedOptions,
-                    left: options.left || Math.random() * (width - 200) + 100,
-                    top: options.top || Math.random() * (height - 200) + 100,
-                    fontFamily: options.fontFamily || 'Arial',
-                    fontSize: options.fontSize || 24,
-                    fill: options.fill || '#000000',
-                    width: options.width || 200,
-                    editable: true,
-                    originX: options.originX || 'left',
-                    originY: options.originY || 'top',
-                    textAlign: options.textAlign || 'left'
-                });
-                break;
-
-            case 'rectangle':
-                object = new fabric.Rect({
-                    ...mergedOptions,
-                    left: options.left || Math.random() * (width - 200) + 100,
-                    top: options.top || Math.random() * (height - 200) + 100,
-                    width: options.width || 150,
-                    height: options.height || 100,
-                    fill: options.fill || '#3b82f6',
-                    rx: options.rx || 0,
-                    ry: options.ry || 0,
-                    selectable: options.selectable !== undefined ? options.selectable : true
-                });
-                break;
-
-            case 'circle':
-                object = new fabric.Circle({
-                    ...mergedOptions,
-                    left: options.left || Math.random() * (width - 200) + 100,
-                    top: options.top || Math.random() * (height - 200) + 100,
-                    radius: options.radius || 50,
-                    fill: options.fill || '#10b981'
-                });
-                break;
-
-            case 'triangle':
-                object = new fabric.Triangle({
-                    ...mergedOptions,
-                    left: options.left || Math.random() * (width - 200) + 100,
-                    top: options.top || Math.random() * (height - 200) + 100,
-                    width: options.width || 100,
-                    height: options.height || 100,
-                    fill: options.fill || '#f59e0b'
-                });
-                break;
-
-            case 'image':
-                // Create a placeholder image
-                fabric.Image.fromURL(options.src || '/api/placeholder/200/200', (img) => {
-                    img.set({
-                        left: options.left || Math.random() * (width - 200) + 100,
-                        top: options.top || Math.random() * (height - 200) + 100,
-                        id: newId,
-                        objectType: type,
-                        name: options.name || `Image ${newId}`,
-                        layoutGroup: options.layoutGroup || undefined
-                    });
-
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.requestRenderAll();
-                    setSelectedObject(img);
-                    saveToHistory();
-                });
+            if (!targetGroupId) {
+                console.error('No active layout group available');
                 return;
-
-            case 'video':
-                // Videos require additional implementation - placeholder for now
-                object = new fabric.Rect({
-                    ...mergedOptions,
-                    left: options.left || Math.random() * (width - 200) + 100,
-                    top: options.top || Math.random() * (height - 200) + 100,
-                    width: options.width || 320,
-                    height: options.height || 240,
-                    fill: '#000000'
-                });
-                break;
-        }
-
-        if (object) {
-            // Add custom properties
-            object.set({
-                id: newId,
-                objectType: type,
-                name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${newId}`
-            });
-
-            // If no specific layout group provided, try to add to active group
-            if (!options.layoutGroup) {
-                const activeGroupId = getActiveLayoutGroupId();
-                if (activeGroupId) {
-                    object.set({
-                        'layoutGroup': activeGroupId
-                    });
-                }
-            } else {
-                object.set({
-                    'layoutGroup': options.layoutGroup
-                });
             }
 
-            // Add to canvas, select it, and save to history
-            canvas.add(object);
-            canvas.setActiveObject(object);
-            canvas.requestRenderAll();
-            setSelectedObject(object);
-            saveToHistory();
-        }
+            const newId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const objcnt = objectCount + 1;
+            setObjectCount(objcnt);
+
+            const mergedOptions = {
+                ...options,
+                layoutGroup: targetGroupId,
+                left: options.left || Math.random() * (width - 200) + 100,
+                top: options.top || Math.random() * (height - 200) + 100,
+                id: newId,
+                name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${objcnt}`
+            };
+
+            let object: FabricObjectWithId | null = null;
+
+            // Create the object based on type
+            switch (type) {
+                case 'text':
+                    object = new fabric.Textbox(options.text || 'New Text', {
+                        ...mergedOptions,
+                        fontFamily: options.fontFamily || 'Arial',
+                        fontSize: options.fontSize || 24,
+                        fill: options.fill || '#000000',
+                        width: options.width || 200,
+                        editable: true,
+                        originX: options.originX || 'left',
+                        originY: options.originY || 'top',
+                        textAlign: options.textAlign || 'left'
+                    });
+                    break;
+
+                case 'rectangle':
+                    object = new fabric.Rect({
+                        ...mergedOptions,
+                        width: options.width || 150,
+                        height: options.height || 100,
+                        fill: options.fill || '#3b82f6',
+                        rx: options.rx || 0,
+                        ry: options.ry || 0,
+                        selectable: options.selectable !== undefined ? options.selectable : true
+                    });
+                    break;
+
+                case 'circle':
+                    object = new fabric.Circle({
+                        ...mergedOptions,
+                        radius: options.radius || 50,
+                        fill: options.fill || '#10b981'
+                    });
+                    break;
+
+                case 'triangle':
+                    object = new fabric.Triangle({
+                        ...mergedOptions,
+                        width: options.width || 100,
+                        height: options.height || 100,
+                        fill: options.fill || '#f59e0b'
+                    });
+                    break;
+
+                case 'image':
+                    // Create a placeholder image
+                    fabric.Image.fromURL(options.src || '/api/placeholder/200/200', (img) => {
+                        img.set({
+                            left: options.left || Math.random() * (width - 200) + 100,
+                            top: options.top || Math.random() * (height - 200) + 100,
+                            id: newId,
+                            objectType: type,
+                            name: options.name || `Image ${objcnt}`,
+                            layoutGroup: targetGroupId
+                        });
+
+                        canvas.add(img);
+                        canvas.setActiveObject(img);
+                        canvas.requestRenderAll();
+                        setSelectedObject(img);
+                        saveToHistory();
+                        updateLayerGroups();
+                    });
+                    return;
+
+                case 'video':
+                    // Videos require additional implementation - placeholder for now
+                    object = new fabric.Rect({
+                        ...mergedOptions,
+                        width: options.width || 320,
+                        height: options.height || 240,
+                        fill: '#000000'
+                    });
+                    break;
+            }
+
+            if (object) {
+                // Add custom properties
+                object.set({
+                    id: newId,
+                    objectType: type,
+                    name: options.name || `${type.charAt(0).toUpperCase() + type.slice(1)} ${objcnt}`
+                });
+
+                // Add to canvas, select it, and save to history
+                canvas.add(object);
+                canvas.setActiveObject(object);
+                canvas.requestRenderAll();
+                setSelectedObject(object);
+                saveToHistory();
+                updateLayerGroups();
+            }
+        }, isNewGroupCreated ? 100 : 0); // Delay slightly if we created a new group
     };
 
     // Update the selected object
     const updateObject = (options: Partial<FabricObjectWithId>) => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
 
         selectedObject.set(options);
         selectedObject.setCoords();
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Delete the selected object
     const deleteObject = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
+
+        // If this is a layout parent, delete the whole group
+        if (selectedObject.isLayoutParent && selectedObject.layoutGroup) {
+            deleteLayoutGroup(selectedObject.layoutGroup as string);
+            return;
+        }
 
         canvas.remove(selectedObject);
         setSelectedObject(null);
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Clone the selected object
     const cloneObject = () => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
+
+        // Don't clone layout parent objects
+        if (selectedObject.isLayoutParent) {
+            console.warn("Cannot clone layout parent objects");
+            return;
+        }
 
         selectedObject.clone((cloned: FabricObjectWithId) => {
             // Generate a new ID for the cloned object
-            const newId = objectCount + 1;
-            setObjectCount(newId);
+            const newId = `${selectedObject.objectType || 'object'}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
             // Offset the cloned object
             cloned.set({
                 left: (selectedObject.left || 0) + 20,
                 top: (selectedObject.top || 0) + 20,
                 id: newId,
-                name: `${selectedObject.name || 'Object'} (Copy)`
+                name: `${selectedObject.name || 'Object'} (Copy)`,
+                // Keep the same layout group
+                layoutGroup: selectedObject.layoutGroup
             });
 
             canvas.add(cloned);
@@ -576,83 +668,92 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             canvas.requestRenderAll();
             setSelectedObject(cloned);
             saveToHistory();
+            updateLayerGroups();
         });
     };
 
     // Move object up one level
     const moveObjectUp = (object?: FabricObjectWithId) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
         const objectToMove = object || selectedObject;
-        if (!objectToMove) {return;}
+        if (!objectToMove) return;
 
         canvas.bringForward(objectToMove);
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Move object down one level
     const moveObjectDown = (object?: FabricObjectWithId) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
         const objectToMove = object || selectedObject;
-        if (!objectToMove) {return;}
+        if (!objectToMove) return;
 
         canvas.sendBackwards(objectToMove);
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Move object to the top
     const moveObjectToTop = (object?: FabricObjectWithId) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
         const objectToMove = object || selectedObject;
-        if (!objectToMove) {return;}
+        if (!objectToMove) return;
 
         canvas.bringToFront(objectToMove);
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Move object to the bottom
     const moveObjectToBottom = (object?: FabricObjectWithId) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
         const objectToMove = object || selectedObject;
-        if (!objectToMove) {return;}
+        if (!objectToMove) return;
 
         canvas.sendToBack(objectToMove);
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Set object z-index directly (for drag & drop ordering)
     const setObjectZIndex = (object: FabricObjectWithId, newIndex: number) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         const objects = canvas.getObjects();
         const currentIndex = objects.indexOf(object);
 
-        if (currentIndex === -1) {return;} // Object not found
-        if (currentIndex === newIndex) {return;} // Already at target index
+        if (currentIndex === -1) return; // Object not found
+        if (currentIndex === newIndex) return; // Already at target index
 
         // Remove from current position
         canvas.remove(object);
 
         // Insert at new position
-        objects.splice(newIndex, 0, object);
         canvas.insertAt(object, newIndex);
-
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Select an object
     const selectObject = (object: FabricObjectWithId | null) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         if (object) {
             // Discard active object before selecting new one
             canvas.discardActiveObject();
             canvas.setActiveObject(object);
             canvas.requestRenderAll();
+
+            // If object belongs to a group, set that group as active
+            if (object.layoutGroup) {
+                setActiveGroupId(object.layoutGroup as string);
+            }
         } else {
             canvas.discardActiveObject();
             canvas.requestRenderAll();
@@ -663,7 +764,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Update a property of the selected object
     const updateObjectProperty = <T,>(property: string, value: T) => {
-        if (!canvas || !selectedObject) {return;}
+        if (!canvas || !selectedObject) return;
 
         // Handle nested properties (e.g., "border.color")
         if (property.includes('.')) {
@@ -680,6 +781,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         selectedObject.setCoords();
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Toggle grid display
@@ -689,7 +791,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Undo last action
     const undo = () => {
-        if (!canvas || !canUndo) {return;}
+        if (!canvas || !canUndo) return;
 
         const newIndex = historyIndex - 1;
         const state = history[newIndex];
@@ -699,12 +801,13 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             setCanUndo(newIndex > 0);
             setCanRedo(true);
             canvas.requestRenderAll();
+            updateLayerGroups();
         });
     };
 
     // Redo last undone action
     const redo = () => {
-        if (!canvas || !canRedo || historyIndex >= history.length - 1) {return;}
+        if (!canvas || !canRedo || historyIndex >= history.length - 1) return;
 
         const newIndex = historyIndex + 1;
         const state = history[newIndex];
@@ -714,35 +817,26 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             setCanUndo(true);
             setCanRedo(newIndex < history.length - 1);
             canvas.requestRenderAll();
+            updateLayerGroups();
         });
     };
 
-
     // createLayoutGroup: Create a new layout group
     const createLayoutGroup = (name: string, options: any = {}) => {
-        if (!canvas) {return '';}
-
-        // Remove any existing layout groups if this is the first group
-        const existingGroups = canvas.getObjects().filter(
-            obj => (obj as FabricObjectWithId).isLayoutParent
-        );
-
-        if (existingGroups.length > 0) {
-            existingGroups.forEach(group => canvas.remove(group));
-        }
+        if (!canvas) return '';
 
         // Create a unique ID based on timestamp
         const groupId = `layout_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        const width = options.width || canvas.getWidth();
-        const height = options.height || canvas.getHeight();
+        const groupWidth = options.width || (canvas.getWidth() * 0.8);
+        const groupHeight = options.height || (canvas.getHeight() * 0.8);
 
         // Create layout parent object (background rectangle)
         const layoutObject = new fabric.Rect({
-            left: options.left || 0,
-            top: options.top || 0,
-            width,
-            height,
+            left: options.left || (canvas.getWidth() - groupWidth) / 2,
+            top: options.top || (canvas.getHeight() - groupHeight) / 2,
+            width: groupWidth,
+            height: groupHeight,
             fill: options.fill || '#f0f0f0',
             opacity: options.opacity || 0.5,
             rx: options.rx || 0,
@@ -754,13 +848,12 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
         // Add custom properties
         layoutObject.set({
-            id: objectCount + 1,
+            id: `parent_${groupId}`,
             objectType: 'rectangle',
             name: name || `Layer ${objectCount + 1}`,
             isLayoutParent: true,
             layoutGroup: groupId
         });
-
 
         // Update object counter
         setObjectCount(objectCount + 1);
@@ -775,21 +868,33 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         // Update selected object state
         setSelectedObject(layoutObject as FabricObjectWithId);
 
+        // Update active group
+        setActiveGroupId(groupId);
+
         // Save canvas state
         saveToHistory();
+        updateLayerGroups();
 
         return groupId;
     };
 
     // Add object to a group
     const addObjectToGroup = (groupId: string, type: ObjectType, options: any = {}) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
-        // Find parent layout object
-        const groupObjects = getObjectsByGroup(groupId);
-        const parentObject = groupObjects.find(obj => obj.isLayoutParent);
+        // Find the layer group
+        const layerGroup = layerGroups.find(group => group.id === groupId);
+        if (!layerGroup) {
+            console.error(`Layer group ${groupId} not found`);
+            return;
+        }
 
-        if (!parentObject) {return;}
+        // Get parent object
+        const parentObject = layerGroup.parentObject;
+        if (!parentObject) {
+            console.error(`Parent object for group ${groupId} not found`);
+            return;
+        }
 
         // Calculate position within parent object
         const parentLeft = parentObject.left || 0;
@@ -802,7 +907,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         const objTop = options.top || (parentTop + parentHeight / 2);
 
         // Count objects of same type in group
-        const sameTypeCount = groupObjects.filter(obj =>
+        const sameTypeCount = layerGroup.objects.filter(obj =>
             obj.objectType === type ||
             (obj.type === 'textbox' && type === 'text') ||
             (obj.type === 'rect' && type === 'rectangle')
@@ -833,20 +938,27 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
                 objName = 'Object';
         }
 
-        // Add object to group
+        // Add object to group with proper states
         addObject(type, {
             ...options,
             left: objLeft,
             top: objTop,
             name: options.name || `${objName} ${sameTypeCount + 1}`,
             layoutGroup: groupId,
-            isLayoutParent: false
+            isLayoutParent: false,
+            visible: layerGroup.visible,
+            selectable: layerGroup.visible && !layerGroup.locked,
+            lockMovementX: layerGroup.locked,
+            lockMovementY: layerGroup.locked,
+            lockRotation: layerGroup.locked,
+            lockScalingX: layerGroup.locked,
+            lockScalingY: layerGroup.locked
         });
     };
 
     // Get objects in a group
     const getObjectsByGroup = (groupId: string): FabricObjectWithId[] => {
-        if (!canvas) {return [];}
+        if (!canvas) return [];
 
         return canvas.getObjects()
             .filter(obj => (obj as FabricObjectWithId).layoutGroup === groupId) as FabricObjectWithId[];
@@ -854,67 +966,171 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Delete a layout group
     const deleteLayoutGroup = (groupId: string) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
-        // Find all layout groups
-        const allGroups: {id: string, parentObj: FabricObjectWithId}[] = [];
+        // Find the group to delete
+        const groupToDelete = layerGroups.find(group => group.id === groupId);
+        if (!groupToDelete) return;
 
-        canvas.getObjects().forEach((obj: FabricObjectWithId) => {
-            if (obj.isLayoutParent && obj.layoutGroup) {
-                allGroups.push({
-                    id: obj.layoutGroup,
-                    parentObj: obj
-                });
-            }
-        });
-
-        // Find all objects in the group
+        // Remove all objects in the group from canvas
         const groupObjects = getObjectsByGroup(groupId);
-
-        // Remove all objects from canvas
         groupObjects.forEach(obj => {
             canvas.remove(obj);
         });
 
-        canvas.requestRenderAll();
+        // Update layer groups
+        updateLayerGroups();
 
         // Auto-create new layout group if none remain
-        if (allGroups.length <= 1) {
+        if (layerGroups.length === 0) {
             setTimeout(() => {
                 createLayoutGroup("Layer 1");
             }, 100);
+        } else {
+            // Set a different active group
+            if (activeGroupId === groupId && layerGroups.length > 0) {
+                setActiveGroupId(layerGroups[0].id);
+            }
         }
 
+        canvas.requestRenderAll();
         // Save canvas state
         saveToHistory();
     };
 
+    // Toggle group visibility
+    const toggleGroupVisibility = (groupId: string) => {
+        if (!canvas) return false;
+
+        const group = layerGroups.find(g => g.id === groupId);
+        if (!group) return false;
+
+        const newVisibility = !group.visible;
+
+        // Update all objects in the group
+        group.objects.forEach(obj => {
+            obj.set({
+                'visible': newVisibility,
+                'evented': newVisibility
+            });
+
+            // If hiding, deselect if it's the selected object
+            if (!newVisibility && selectedObject && selectedObject.id === obj.id) {
+                canvas.discardActiveObject();
+                setSelectedObject(null);
+            }
+        });
+
+        canvas.requestRenderAll();
+        saveToHistory();
+        updateLayerGroups();
+
+        // Notify state change
+        notifyObjectStateChange({
+            type: 'visibility',
+            objectId: null,
+            groupId: groupId
+        });
+
+        return newVisibility;
+    };
+
+    // Toggle group lock
+    const toggleGroupLock = (groupId: string) => {
+        if (!canvas) return false;
+
+        const group = layerGroups.find(g => g.id === groupId);
+        if (!group) return false;
+
+        const newLockState = !group.locked;
+
+        // Update all objects in the group
+        group.objects.forEach(obj => {
+            obj.set({
+                'lockMovementX': newLockState,
+                'lockMovementY': newLockState,
+                'lockRotation': newLockState,
+                'lockScalingX': newLockState,
+                'lockScalingY': newLockState,
+                // Keep objects selectable even when locked
+                'selectable': group.visible
+            });
+
+            obj.setCoords();
+        });
+
+        canvas.requestRenderAll();
+        saveToHistory();
+        updateLayerGroups();
+
+        // Notify state change
+        notifyObjectStateChange({
+            type: newLockState ? 'lock' : 'unlock',
+            objectId: null,
+            groupId: groupId
+        });
+
+        return newLockState;
+    };
+
+    // Rename a group
+    const renameGroup = (groupId: string, newName: string) => {
+        if (!canvas || !newName.trim()) return;
+
+        const group = layerGroups.find(g => g.id === groupId);
+        if (!group || !group.parentObject) return;
+
+        // Update the parent object's name
+        group.parentObject.set({ name: newName });
+
+        canvas.requestRenderAll();
+        saveToHistory();
+        updateLayerGroups();
+    };
+
     // Move object to a different group
     const moveObjectToGroup = (objectId: number | string, groupId: string | null) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         // Find the object to move
         const object = canvas.getObjects().find(
             obj => (obj as FabricObjectWithId).id === objectId
         ) as FabricObjectWithId;
 
-        if (!object) {return;}
+        if (!object) return;
 
         // Don't allow moving layout parent objects
-        if (object.isLayoutParent) {return;}
+        if (object.isLayoutParent) return;
 
-        // Update group property
-        object.set({
-            'layoutGroup': groupId || undefined
-        });
+        // Find target group to get visibility and lock state
+        const targetGroup = groupId ? layerGroups.find(g => g.id === groupId) : null;
+
+        // Update group property and states based on target group
+        if (targetGroup) {
+            object.set({
+                'layoutGroup': groupId,
+                'visible': targetGroup.visible,
+                'selectable': targetGroup.visible && !targetGroup.locked,
+                'lockMovementX': targetGroup.locked,
+                'lockMovementY': targetGroup.locked,
+                'lockRotation': targetGroup.locked,
+                'lockScalingX': targetGroup.locked,
+                'lockScalingY': targetGroup.locked
+            });
+        } else {
+            object.set({
+                'layoutGroup': undefined
+            });
+        }
 
         canvas.requestRenderAll();
         saveToHistory();
+        updateLayerGroups();
     };
 
     // Move all objects in a group together
     const moveGroupTogether = (groupId: string, deltaX: number, deltaY: number) => {
-        if (!canvas) {return;}
+        if (!canvas) return;
 
         // 그룹의 모든 객체 찾기 (부모와 자식 모두)
         const groupObjects = canvas.getObjects().filter(obj => {
@@ -942,32 +1158,16 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         canvas.requestRenderAll();
     };
 
-    // Find active layout group ID
-    const getActiveLayoutGroupId = (): string | null => {
-        if (!canvas) {return null;}
-
-        // If selected object is part of a layout group, use that group
-        if (selectedObject && selectedObject.layoutGroup) {
-            return selectedObject.layoutGroup as string;
-        }
-
-        // Otherwise, find the first layout group
-        const objects = canvas.getObjects() as FabricObjectWithId[];
-        const layoutParents = objects.filter(obj => obj.isLayoutParent && obj.layoutGroup);
-
-        if (layoutParents.length > 0) {
-            return layoutParents[0].layoutGroup as string;
-        }
-
-        return null;
-    };
-
-
-    // 객체의 잠금 상태를 전역으로 관리하는 함수
+    // Toggle object lock state
     const toggleObjectLock = (objectToLock: FabricObjectWithId, newLockState?: boolean) => {
-        if (!canvas) {return false;}
+        if (!canvas) return false;
 
         try {
+            // If this is a layout parent, toggle lock for the whole group
+            if (objectToLock.isLayoutParent && objectToLock.layoutGroup) {
+                return toggleGroupLock(objectToLock.layoutGroup as string);
+            }
+
             // 현재 잠금 상태 확인
             const isCurrentlyLocked = isObjectLocked(objectToLock);
 
@@ -988,6 +1188,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             objectToLock.setCoords();
             canvas.requestRenderAll();
 
+            // Update layer groups
+            updateLayerGroups();
+
             // 상태 변경 알림 발행
             notifyObjectStateChange({
                 type: willBeLocked ? 'lock' : 'unlock',
@@ -1006,6 +1209,55 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         return !!(objectToCheck.lockMovementX && objectToCheck.lockMovementY);
     };
 
+    // JSON Import/Export functions
+
+    // Export canvas as JSON string
+    const saveAsJSON = () => {
+        if (!canvas) return '';
+
+        const json = JSON.stringify(canvas.toJSON([
+            'id',
+            'objectType',
+            'name',
+            'layoutGroup',
+            'isLayoutParent',
+            'visible',
+            'lockMovementX',
+            'lockMovementY',
+            'lockRotation',
+            'lockScalingX',
+            'lockScalingY'
+        ]));
+
+        return json;
+    };
+
+    // Load canvas from JSON string
+    const loadFromJSON = (json: string) => {
+        if (!canvas) return;
+
+        try {
+            canvas.loadFromJSON(json, () => {
+                canvas.requestRenderAll();
+                updateLayerGroups();
+                saveToHistory();
+
+                // Select first object if available
+                const objects = canvas.getObjects() as FabricObjectWithId[];
+                if (objects.length > 0) {
+                    selectObject(objects[0]);
+
+                    // Set active group to the first parent's group
+                    const parent = objects.find(obj => obj.isLayoutParent);
+                    if (parent && parent.layoutGroup) {
+                        setActiveGroupId(parent.layoutGroup as string);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error loading from JSON:', error);
+        }
+    };
 
     // Update canUndo and canRedo when history changes
     useEffect(() => {
@@ -1027,6 +1279,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         canvasHeight: height,
         selectedObject,
         getObjects,
+        layerGroups,
+        activeGroupId,
+        setActiveGroupId,
         addObject,
         updateObject,
         deleteObject,
@@ -1044,6 +1299,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         deleteLayoutGroup,
         moveObjectToGroup,
         moveGroupTogether,
+        toggleGroupVisibility,
+        toggleGroupLock,
+        renameGroup,
         toggleObjectLock,
         isObjectLocked,
         onObjectStateChange,
@@ -1055,7 +1313,9 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         undo,
         redo,
         canUndo,
-        canRedo
+        canRedo,
+        saveAsJSON,
+        loadFromJSON
     };
 
     return (
