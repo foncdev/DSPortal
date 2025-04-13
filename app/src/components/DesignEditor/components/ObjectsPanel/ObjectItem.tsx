@@ -239,6 +239,8 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         e.preventDefault();
         e.stopPropagation();
 
+        console.log('toggleLocked')
+
         if (!canvas || !object || isProcessingRef.current) {return;}
 
         // 처리 중 플래그 설정

@@ -252,7 +252,10 @@
     "deployment": {
       "title": "배포 관리"
     },
-    "toggleSidebar": "사이드바 토글"
+    "toggleSidebar": "사이드바 토글",
+    "test": {
+      "demo1": "컴포넌트 예제"
+    }
   },
   "sidebar": {
     "open": "메뉴 열기",
@@ -416,6 +419,10 @@
     "lockLayer": "lockLayer",
     "unlockLayer": "unlockLayer",
     "hideLayer": "hideLayer",
-    "showLayer": "showLayer"
+    "showLayer": "showLayer",
+    "hideToolbar": "hideToolbar",
+    "objectsNeedLayerWarning": "objectsNeedLayerWarning",
+    "hideObject": "hideObject",
+    "moreActions": "moreActions"
   }
 }

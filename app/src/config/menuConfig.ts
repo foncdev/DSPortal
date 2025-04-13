@@ -195,7 +195,7 @@ export const menuItems: MenuItem[] = [
     {
         id: 'components-demo',
         path: '/components',
-        label: 'UI Components Demo',
+        label: 'menu.test.demo1',
         icon: icons.components
     },
 ];
