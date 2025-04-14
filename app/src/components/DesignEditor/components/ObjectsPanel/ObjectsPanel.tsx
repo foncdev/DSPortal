@@ -1,5 +1,5 @@
 // src/components/DesignEditor/components/ObjectsPanel/ObjectsPanel.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Layers, ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDesignEditor, FabricObjectWithId } from '../../context/DesignEditorContext';
@@ -35,6 +35,41 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
 
     // Processing flags to prevent concurrent operations
     const isProcessingRef = useRef(false);
+    const panelRef = useRef<HTMLDivElement>(null);
+
+    // Clear drag states when mouse leaves the panel or on mouse up
+    useEffect(() => {
+        const handleMouseLeave = () => {
+            resetDragStates();
+        };
+
+        const handleMouseUp = () => {
+            if (draggingId) {
+                // Small delay to allow drop handlers to process first
+                setTimeout(resetDragStates, 100);
+            }
+        };
+
+        const panel = panelRef.current;
+        if (panel) {
+            panel.addEventListener('mouseleave', handleMouseLeave);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            if (panel) {
+                panel.removeEventListener('mouseleave', handleMouseLeave);
+            }
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [draggingId]);
+
+    // Reset all drag related states
+    const resetDragStates = () => {
+        setDraggingId(null);
+        setDragOverId(null);
+        setDragOverIndex(null);
+    };
 
     // Handle adding an object to the canvas
     const handleAddObject = (type: FabricObjectWithId['objectType'], options?: any) => {
@@ -78,7 +113,7 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         setObjectsExpanded(!objectsExpanded);
     };
 
-    // 레이아웃 그룹(레이어) 선택 처리 함수
+    // Handler for when a layout group is selected
     const handleLayoutGroupSelect = (groupId: string, groupObject: FabricObjectWithId) => {
         // 이미 처리 중이면 중복 실행 방지
         if (isProcessingRef.current) {return;}
@@ -112,8 +147,37 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
         }
     };
 
+    // Handle drag start - track which object is being dragged
+    const handleDragStart = (id: number | string) => {
+        setDraggingId(id);
+    };
+
+    // Handle drag end - clear all drag states
+    const handleDragEnd = () => {
+        // Small delay to allow drop handlers to complete first
+        setTimeout(resetDragStates, 50);
+    };
+
+    // Handle drag over for a group with improved visual feedback
+    const handleGroupDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Keep track of what group we're dragging over
+        if (e.currentTarget.getAttribute('data-group-id')) {
+            const groupId = e.currentTarget.getAttribute('data-group-id');
+            setDragOverId(`group_${groupId}`);
+        }
+
+        // Set drag effect
+        e.dataTransfer.dropEffect = 'move';
+    };
+
     return (
-        <div className={`${styles.objectsPanel} ${className || ''}`}>
+        <div
+            className={`${styles.objectsPanel} ${className || ''}`}
+            ref={panelRef}
+        >
             {/* Object tools */}
             <ObjectToolbar onAddObject={handleAddObject} />
 
@@ -171,46 +235,13 @@ const ObjectsPanel: React.FC<ObjectsPanelProps> = ({ className }) => {
                                             handleLayoutGroupSelect(group.id, parentObject);
                                         }
                                     }}
-                                    onDragOver={(e) => {
-                                        e.preventDefault();
-                                        setDragOverId(`group_${group.id}`);
-                                    }}
+                                    onDragOver={handleGroupDragOver}
                                     onDrop={(e) => {
-                                        e.preventDefault();
-                                        if (!canvas || !draggingId) {return;}
-
-                                        // Find the dragged object
-                                        const draggedObj = canvas.getObjects().find(
-                                            obj => (obj as FabricObjectWithId).id === draggingId
-                                        ) as FabricObjectWithId;
-
-                                        if (!draggedObj || draggedObj.isLayoutParent) {return;}
-
-                                        // Move object to this group
-                                        if (draggedObj.layoutGroup !== group.id) {
-                                            draggedObj.set({
-                                                'layoutGroup': group.id,
-                                                'visible': group.visible,
-                                                'selectable': group.visible && !group.locked,
-                                                'lockMovementX': group.locked,
-                                                'lockMovementY': group.locked,
-                                                'lockRotation': group.locked,
-                                                'lockScalingX': group.locked,
-                                                'lockScalingY': group.locked
-                                            });
-
-                                            canvas.requestRenderAll();
-                                        }
-
-                                        setDragOverId(null);
-                                        setDraggingId(null);
+                                        // Handle in LayoutGroupItem
+                                        setTimeout(resetDragStates, 50);
                                     }}
-                                    onDragStart={setDraggingId}
-                                    onDragEnd={() => {
-                                        setDraggingId(null);
-                                        setDragOverId(null);
-                                        setDragOverIndex(null);
-                                    }}
+                                    onDragStart={handleDragStart}
+                                    onDragEnd={handleDragEnd}
                                     onDragOverId={setDragOverId}
                                     onDragOverIndex={setDragOverIndex}
                                 />

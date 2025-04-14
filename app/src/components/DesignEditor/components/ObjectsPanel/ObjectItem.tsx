@@ -21,6 +21,7 @@ interface ObjectItemProps {
     onDragOver: (id: number | string | null) => void;
     groupLocked?: boolean;
     groupVisible?: boolean;
+    index?: number; // Add index prop to know the object's position in the list
 }
 
 /**
@@ -36,7 +37,8 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                                                    onDragEnd,
                                                    onDragOver,
                                                    groupLocked = false,
-                                                   groupVisible = true
+                                                   groupVisible = true,
+                                                   index
                                                }) => {
     const { t } = useTranslation();
     const {
@@ -51,7 +53,8 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         selectObject,
         toggleObjectLock,
         isObjectLocked: checkObjectLock,
-        onObjectStateChange
+        onObjectStateChange,
+        setObjectZIndex // Required for drag and drop reordering
     } = useDesignEditor();
 
     // State for editing name and showing action menu
@@ -61,11 +64,13 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
     const [isVisible, setIsVisible] = useState(object.visible !== false);
     const [isLocked, setIsLocked] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false); // Track if this item is being dragged
 
     // Refs for DOM elements
     const nameInputRef = useRef<HTMLInputElement>(null);
     const actionsMenuRef = useRef<HTMLDivElement>(null);
     const actionsButtonRef = useRef<HTMLButtonElement>(null);
+    const itemRef = useRef<HTMLDivElement>(null); // Reference to the item element
     const isProcessingRef = useRef(false);
 
     // State for menu position
@@ -118,6 +123,16 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
         // 컴포넌트 언마운트 시 구독 해제
         return unsubscribe;
     }, [object.id, onObjectStateChange]);
+
+    // Add effect to clean up drag states when component unmounts
+    useEffect(() => {
+        return () => {
+            if (isDragging) {
+                // Clean up drag states if this component is unmounted while dragging
+                onDragEnd();
+            }
+        };
+    }, [isDragging, onDragEnd]);
 
     // Get object type icon
     const getObjectIcon = () => {
@@ -427,27 +442,123 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             return;
         }
 
+        // Store the dragged object's ID
         onDragStart(object.id);
+        setIsDragging(true);
 
         // Make the element semi-transparent while dragging
         if (e.currentTarget instanceof HTMLElement) {
             e.currentTarget.style.opacity = '0.5';
+        }
+
+        // Store data in the dataTransfer object to use during drop
+        if (e.dataTransfer) {
+            e.dataTransfer.setData('text/plain', object.id.toString());
+            e.dataTransfer.effectAllowed = 'move';
         }
     };
 
     // Handle drag over
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
+        e.stopPropagation();
+
         if (!object.id) {return;}
+
+        // Indicate that a drop is allowed
+        e.dataTransfer.dropEffect = 'move';
+
+        // Notify parent component about which object we're dragging over
         onDragOver(object.id);
+    };
+
+    // Handle drop
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Get the dragged item's ID from dataTransfer
+        const draggedItemId = e.dataTransfer.getData('text/plain');
+
+        if (!draggedItemId || !canvas) {
+            return;
+        }
+
+        try {
+            // Find both objects in the canvas
+            const draggedObject = canvas.getObjects().find(
+                obj => (obj as FabricObjectWithId).id?.toString() === draggedItemId
+            ) as FabricObjectWithId;
+
+            const targetObject = object;
+
+            if (!draggedObject || !targetObject) {
+                return;
+            }
+
+            // Prevent dragging onto itself
+            if (draggedObject.id === targetObject.id) {
+                return;
+            }
+
+            // Find indexes of both objects in the canvas
+            const allObjects = canvas.getObjects() as FabricObjectWithId[];
+            const draggedObjectIndex = allObjects.findIndex(obj => obj.id === draggedObject.id);
+            const targetObjectIndex = allObjects.findIndex(obj => obj.id === targetObject.id);
+
+            if (draggedObjectIndex === -1 || targetObjectIndex === -1) {
+                return;
+            }
+
+            // Reorder the objects in the canvas
+            setObjectZIndex(draggedObject, targetObjectIndex);
+
+            // Reset drag states - this is crucial to clear any visual feedback
+            onDragOver(null);
+
+            // Update canvas
+            canvas.requestRenderAll();
+        } catch (error) {
+            console.error('Error during drop operation:', error);
+            setErrorMessage('Failed to reorder objects');
+        } finally {
+            // Ensure all drag states are reset
+            setIsDragging(false);
+            onDragEnd();
+        }
     };
 
     // Handle drag end
     const handleDragEnd = (e: React.DragEvent) => {
+        // Reset opacity of the dragged element
         if (e.currentTarget instanceof HTMLElement) {
             e.currentTarget.style.opacity = '1';
         }
+
+        // Reset all drag states
+        setIsDragging(false);
         onDragEnd();
+        onDragOver(null);
+    };
+
+    // Handle drag enter - apply visual feedback
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (itemRef.current) {
+            itemRef.current.classList.add(styles.dragOver);
+        }
+    };
+
+    // Handle drag leave - remove visual feedback
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (itemRef.current) {
+            itemRef.current.classList.remove(styles.dragOver);
+        }
     };
 
     // Render actions menu as a portal
@@ -530,17 +641,24 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
             )}
 
             <div
+                ref={itemRef}
                 className={`${styles.objectItem} 
-          ${isGroupChild ? styles.groupChild : ''} 
-          ${isSelected ? styles.selected : ''} 
-          ${isDragOver ? styles.dragOver : ''}
-          ${!isVisible || !groupVisible ? styles.hidden : ''}
-          ${isLocked || groupLocked ? styles.locked : ''}`}
+                  ${isGroupChild ? styles.groupChild : ''} 
+                  ${isSelected ? styles.selected : ''} 
+                  ${isDragOver ? styles.dragOver : ''}
+                  ${isDragging ? styles.dragging : ''}
+                  ${!isVisible || !groupVisible ? styles.hidden : ''}
+                  ${isLocked || groupLocked ? styles.locked : ''}`}
                 onClick={onSelect}
                 draggable={isDraggable}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
+                data-index={index}
+                data-object-id={object.id}
             >
                 <div className={styles.objectInfo}>
                     <div className={styles.objectIcon}>
@@ -560,7 +678,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                         />
                     ) : (
                         <span className={styles.objectName}>
-              {getObjectName()}
+                          {getObjectName()}
                             {!object.isLayoutParent && !groupLocked && isSelected && (
                                 <button
                                     className={styles.editNameButton}
@@ -570,7 +688,7 @@ const ObjectItem: React.FC<ObjectItemProps> = ({
                                     <Edit2 size={14} />
                                 </button>
                             )}
-            </span>
+                        </span>
                     )}
                 </div>
 

@@ -750,3 +750,69 @@
   border-radius: 4px;
   margin-top: 4px;
 }
+
+
+// 드래그 중인 객체 스타일
+.objectItem.dragging {
+  opacity: 0.5;
+  border: 1px dashed var(--color-primary);
+}
+
+// 드래그 오버 상태에서의 스타일 강화
+.objectItem.dragOver {
+  border: 2px solid var(--color-primary);
+  background-color: rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  position: relative;
+  z-index: 5;
+  transform: translateY(-1px);
+}
+
+// 레이아웃 그룹 드래그 오버 스타일 강화
+.layoutGroup.dragOver {
+  border: 2px dashed var(--color-primary);
+  background-color: rgba(59, 130, 246, 0.05);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  position: relative;
+  z-index: 5;
+}
+
+// 드롭 존 스타일 개선
+.dropZone {
+  height: 3px;
+  margin: 2px 0;
+  border-radius: 3px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+
+  &.active {
+    height: 6px;
+    background-color: var(--color-primary);
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    margin: 4px 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 16px;
+    background-color: transparent;
+    z-index: 1;
+  }
+}
+
+// 객체 아이템 hover 스타일 조정
+.objectItem:hover {
+  background-color: var(--color-bg-tertiary);
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .objectActions {
+    opacity: 1;
+  }
+}
