@@ -172,7 +172,12 @@ const AppRoutes: React.FC = () => (
                 path="/editor"
                 element={
                     <AuthLayout requireAuth>
-                        <DesignEditor />
+                        <DesignEditor  initialPreset="ANDROID_FHD"
+                                       initialOrientation="landscape"
+                                       initialDeviceFrame="NONE"
+                                       initialShowRulers={true}
+                                       initialRulerUnit="PX"
+                                       initialShowCoordinates={true}/>
                     </AuthLayout>
                 }
             />

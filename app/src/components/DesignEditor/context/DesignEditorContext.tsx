@@ -1,6 +1,7 @@
 // src/components/DesignEditor/context/DesignEditorContext.tsx
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { fabric } from 'fabric';
+import {Square} from "lucide-react";
 
 // Define object types
 export type ObjectType = 'text' | 'image' | 'video' | 'rectangle' | 'circle' | 'triangle';
@@ -107,6 +108,37 @@ interface DesignEditorContextType {
     // File operations
     saveAsJSON: () => string;
     loadFromJSON: (json: string) => void;
+
+
+    // 확장된 기능
+    deviceFrame: {
+        id: string;
+        name: string;
+        icon: React.ReactNode;
+    } | null;
+    showRulers: boolean;
+    rulerUnit: {
+        id: string;
+        name: string;
+    };
+    showCoordinates: boolean;
+    mousePosition: { x: number; y: number };
+    canvasPreset: {
+        width: number;
+        height: number;
+        name: string;
+        icon: React.ReactNode;
+    };
+    orientation: 'landscape' | 'portrait';
+
+    // 확장된 액션 메서드
+    setDeviceFrame: (frame: { id: string; name: string; icon: React.ReactNode } | null) => void;
+    toggleRulers: () => void;
+    setRulerUnit: (unit: { id: string; name: string }) => void;
+    toggleCoordinates: () => void;
+    setMousePosition: (position: { x: number; y: number }) => void;
+    setCanvasPreset: (preset: { width: number; height: number; name: string; icon: React.ReactNode }) => void;
+    toggleOrientation: () => void;
 }
 
 // Create context with default values
@@ -145,6 +177,19 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const [snapToGuides, setSnapToGuides] = useState(false);
     const [snapToGrid, setSnapToGrid] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
+
+    const [deviceFrame, setDeviceFrame] = useState<DeviceFrame | null>(null);
+    const [showRulers, setShowRulers] = useState<boolean>(true);
+    const [rulerUnit, setRulerUnit] = useState<RulerUnit>({ id: 'px', name: 'Pixels (px)' });
+    const [showCoordinates, setShowCoordinates] = useState<boolean>(true);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [canvasPreset, setCanvasPreset] = useState<CanvasPreset>({
+        width,
+        height,
+        name: 'Custom',
+        icon: <Square size={14} />
+    });
+    const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
 
     // 상태 변경 리스너 관리
     const stateChangeListenersRef = useRef<((event: ObjectStateChangeEvent) => void)[]>([]);
@@ -1253,6 +1298,31 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         }
     };
 
+
+    const toggleRulers = () => {
+        setShowRulers(!showRulers);
+    };
+
+    const toggleCoordinates = () => {
+        setShowCoordinates(!showCoordinates);
+    };
+
+    const toggleOrientation = () => {
+        setOrientation(orientation === 'landscape' ? 'portrait' : 'landscape');
+
+        // 필요하면 캔버스 크기도 조정
+        if (canvas) {
+            if (orientation === 'landscape' && canvasPreset.width < canvasPreset.height) {
+                canvas.setWidth(canvasPreset.height);
+                canvas.setHeight(canvasPreset.width);
+            } else if (orientation === 'portrait' && canvasPreset.width > canvasPreset.height) {
+                canvas.setWidth(canvasPreset.height);
+                canvas.setHeight(canvasPreset.width);
+            }
+            canvas.requestRenderAll();
+        }
+    };
+
     // Update canUndo and canRedo when history changes
     useEffect(() => {
         setCanUndo(historyIndex > 0);
@@ -1313,7 +1383,23 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         canUndo,
         canRedo,
         saveAsJSON,
-        loadFromJSON
+        loadFromJSON,
+
+        deviceFrame,
+        showRulers,
+        rulerUnit,
+        showCoordinates,
+        mousePosition,
+        canvasPreset,
+        orientation,
+
+        setDeviceFrame,
+        toggleRulers,
+        setRulerUnit,
+        toggleCoordinates,
+        setMousePosition,
+        setCanvasPreset,
+        toggleOrientation
     };
 
     return (

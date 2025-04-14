@@ -9,11 +9,32 @@ import styles from './Canvas.module.scss';
 import '../../styles/guidelines.scss'; // Import guidelines styles
 import GuidelinesHandler from '../../utils/GuideLines';
 
+
+interface CanvasProps {
+    deviceFrame?: {
+        id: string;
+        name: string;
+        icon: React.ReactNode;
+    };
+    showRulers?: boolean;
+    rulerUnit?: {
+        id: string;
+        name: string;
+    };
+    onMouseMove?: (x: number, y: number) => void;
+}
+
+
 /**
  * Canvas 컴포넌트
  * fabric.js 캔버스를 관리하고 상호작용을 처리합니다.
  */
-const Canvas: React.FC = () => {
+const Canvas: React.FC<CanvasProps> = ({
+                                           deviceFrame,
+                                           showRulers,
+                                           rulerUnit,
+                                           onMouseMove
+                                       }) => {
     const { t } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -319,7 +340,20 @@ const Canvas: React.FC = () => {
 
                 canvas.requestRenderAll();
                 setLastPanPoint({ x: e.clientX, y: e.clientY });
+
             }
+
+            // const canvas = canvasRef.current;
+            // if (canvas && containerRef.current && onMouseMove) {
+            //     const rect = canvas.getBoundingClientRect();
+            //     const scaleX = canvas.width / rect.width;
+            //     const scaleY = canvas.height / rect.height;
+            //
+            //     const x = Math.round((e.clientX - rect.left) * scaleX);
+            //     const y = Math.round((e.clientY - rect.top) * scaleY);
+            //
+            //     onMouseMove(x, y);
+            // }
         };
 
         const handleMouseUp = () => {
@@ -390,6 +424,9 @@ const Canvas: React.FC = () => {
     const resetZoom = () => {
         setZoomLevel(1);
     };
+
+
+
 
     return (
         <div
