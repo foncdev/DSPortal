@@ -1,7 +1,5 @@
 // src/components/DesignEditor/DesignEditor.tsx
-import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import {
+import React, { useState, useRef } from 'react';import {
     Maximize, Minimize, ZoomIn, ZoomOut, Ruler, MousePointer,
     RotateCcw, Smartphone, Monitor, Square, Instagram
 } from 'lucide-react';

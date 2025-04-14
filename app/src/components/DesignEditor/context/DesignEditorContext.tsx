@@ -180,6 +180,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Canvas state
     const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
+
     const [selectedObject, setSelectedObject] = useState<FabricObjectWithId | null>(null);
     const [objectCount, setObjectCount] = useState(0);
 
@@ -199,6 +200,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
     const [snapToGrid, setSnapToGrid] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
 
+
+
     const [deviceFrame, setDeviceFrame] = useState<DeviceFrame | null>(null);
     const [showRulers, setShowRulers] = useState<boolean>(true);
     const [rulerUnit, setRulerUnit] = useState<RulerUnit>({ id: 'px', name: 'Pixels (px)' });
@@ -214,6 +217,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // 상태 변경 리스너 관리
     const stateChangeListenersRef = useRef<((event: ObjectStateChangeEvent) => void)[]>([]);
+
 
     // 상태 변경 알림 함수
     const notifyObjectStateChange = (event: ObjectStateChangeEvent) => {
@@ -231,6 +235,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
             );
         };
     };
+
 
     // Update layer groups based on canvas objects
     const updateLayerGroups = () => {

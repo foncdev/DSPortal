@@ -143,18 +143,23 @@ const DesignEditorLayout: React.FC<DesignEditorLayoutProps> = ({
 
     // Canvas size should be updated when dimensions change
     useEffect(() => {
-        if (canvas && typeof canvas === 'object') {
+        if (canvas) {
+            // 방어적 코딩 추가
             try {
-                // Check if canvas has the expected methods
-                if (typeof canvas.setWidth === 'function' &&
-                    typeof canvas.setHeight === 'function' &&
-                    typeof canvas.requestRenderAll === 'function') {
+                // fabric.Canvas 인스턴스인지 확인
+                if (canvas.getWidth && canvas.getHeight &&
+                    typeof canvas.setWidth === 'function' &&
+                    typeof canvas.setHeight === 'function') {
 
-                    canvas.setWidth(canvasWidth);
-                    canvas.setHeight(canvasHeight);
-                    canvas.requestRenderAll();
+                    // 현재 크기와 변경할 크기가 다를 때만 업데이트
+                    if (canvas.getWidth() !== canvasWidth || canvas.getHeight() !== canvasHeight) {
+                        console.log(`Resizing canvas to ${canvasWidth}x${canvasHeight}`);
+                        canvas.setWidth(canvasWidth);
+                        canvas.setHeight(canvasHeight);
+                        canvas.requestRenderAll();
+                    }
                 } else {
-                    console.warn('Canvas is missing expected methods');
+                    console.warn('Canvas is not fully initialized yet');
                 }
             } catch (error) {
                 console.error('Error updating canvas dimensions:', error);

@@ -436,6 +436,18 @@
     "importJSON": "importJSON",
     "showToolbar": "툴바 보이기",
     "snapToGridEnabled": "스냅 활성화",
-    "snapToGuidesEnabled": "가이드 활성화"
+    "snapToGuidesEnabled": "가이드 활성화",
+    "enterFullscreen": "enterFullscreen",
+    "hideRulers": "hideRulers",
+    "canvasSize": "canvasSize",
+    "switchToPortrait": "switchToPortrait",
+    "hideCoordinates": "hideCoordinates",
+    "orientation": "orientation",
+    "landscape": "landscape",
+    "portrait": "portrait",
+    "exitFullscreen": "exitFullscreen",
+    "objectAddedToActiveLayer": "objectAddedToActiveLayer",
+    "showCoordinates": "showCoordinates",
+    "showRulers": "showRulers"
   }
 }
