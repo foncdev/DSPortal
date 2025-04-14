@@ -6,6 +6,8 @@ import { ZoomIn, ZoomOut, Maximize, Minimize } from 'lucide-react';
 import { useDesignEditor } from '../../context/DesignEditorContext';
 import { useCanvasEvents } from '../../hooks/useCanvasEvents';
 import styles from './Canvas.module.scss';
+import '../../styles/guidelines.scss'; // Import guidelines styles
+import GuidelinesHandler from '../../utils/GuideLines';
 
 /**
  * Canvas 컴포넌트
@@ -15,6 +17,7 @@ const Canvas: React.FC = () => {
     const { t } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const guidelinesRef = useRef<GuidelinesHandler | null>(null);
 
     // Design Editor 컨텍스트 사용
     const {
@@ -24,7 +27,11 @@ const Canvas: React.FC = () => {
         canvasHeight,
         zoomLevel,
         setZoomLevel,
-        showGrid
+        showGrid,
+        snapToGuides,
+        snapToGrid,
+        toggleSnapToGuides,
+        toggleSnapToGrid
     } = useDesignEditor();
 
     // 패닝 상태 관리
@@ -53,9 +60,43 @@ const Canvas: React.FC = () => {
 
         // 컴포넌트 언마운트 시 정리
         return () => {
+            // Clean up guidelines handler
+            if (guidelinesRef.current) {
+                guidelinesRef.current.destroy();
+            }
             fabricCanvas.dispose();
         };
     }, [canvasRef, setCanvas, canvasWidth, canvasHeight]);
+
+    // Initialize guidelines handler
+    useEffect(() => {
+        if (!canvas || !isCanvasReady) return;
+
+        // Create guidelines handler
+        guidelinesRef.current = new GuidelinesHandler(canvas, canvasWidth, canvasHeight, {
+            enabled: snapToGuides,
+            snapToGrid: snapToGrid,
+            showGuides: snapToGuides
+        });
+
+        return () => {
+            if (guidelinesRef.current) {
+                guidelinesRef.current.destroy();
+                guidelinesRef.current = null;
+            }
+        };
+    }, [canvas, isCanvasReady, canvasWidth, canvasHeight]);
+
+    // Update guidelines configuration when settings change
+    useEffect(() => {
+        if (!guidelinesRef.current) return;
+
+        guidelinesRef.current.updateConfig({
+            enabled: snapToGuides,
+            snapToGrid: snapToGrid,
+            showGuides: snapToGuides
+        });
+    }, [snapToGuides, snapToGrid]);
 
     // 캔버스 렌더링 문제 해결을 위한 추가 효과
     useEffect(() => {

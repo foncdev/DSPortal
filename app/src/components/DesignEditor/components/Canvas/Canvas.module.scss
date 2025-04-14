@@ -155,3 +155,205 @@
     top: 0;
   }
 }
+
+.canvasRulers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+
+  .horizontalRuler {
+    position: absolute;
+    top: 0;
+    left: 20px; // Offset for the corner
+    right: 0;
+    height: 20px;
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    overflow: hidden;
+
+    .rulerMarks {
+      position: relative;
+      width: 100%;
+      height: 100%;
+
+      .rulerMark {
+        position: absolute;
+        top: 0;
+        width: 1px;
+        height: 8px;
+        background-color: var(--color-text-tertiary);
+
+        &.major {
+          height: 12px;
+          background-color: var(--color-text-secondary);
+        }
+
+        .rulerLabel {
+          position: absolute;
+          left: 2px;
+          top: 12px;
+          font-size: 8px;
+          color: var(--color-text-secondary);
+          white-space: nowrap;
+          transform: translateX(-50%);
+        }
+      }
+    }
+  }
+
+  .verticalRuler {
+    position: absolute;
+    top: 20px; // Offset for the corner
+    left: 0;
+    bottom: 0;
+    width: 20px;
+    background-color: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border);
+    overflow: hidden;
+
+    .rulerMarks {
+      position: relative;
+      width: 100%;
+      height: 100%;
+
+      .rulerMark {
+        position: absolute;
+        left: 0;
+        width: 8px;
+        height: 1px;
+        background-color: var(--color-text-tertiary);
+
+        &.major {
+          width: 12px;
+          background-color: var(--color-text-secondary);
+        }
+
+        .rulerLabel {
+          position: absolute;
+          top: 2px;
+          left: 12px;
+          font-size: 8px;
+          color: var(--color-text-secondary);
+          white-space: nowrap;
+          transform: translateY(-50%) rotate(90deg);
+          transform-origin: left center;
+        }
+      }
+    }
+  }
+
+  .rulerCorner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+// Grid overlay enhancements
+.gridOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.4;
+
+  .gridLines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    &.horizontal .gridLine {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background-color: var(--color-border);
+    }
+
+    &.vertical .gridLine {
+      position: absolute;
+      top: 0;
+      width: 1px;
+      height: 100%;
+      background-color: var(--color-border);
+    }
+
+    .gridLine.major {
+      background-color: var(--color-text-tertiary);
+    }
+  }
+}
+
+// Canvas guide styles
+.guideLines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+
+  .guideLine {
+    position: absolute;
+    background-color: var(--color-primary);
+
+    &.horizontal {
+      height: 1px;
+      width: 100%;
+      left: 0;
+    }
+
+    &.vertical {
+      width: 1px;
+      height: 100%;
+      top: 0;
+    }
+
+    &.active {
+      background-color: var(--color-primary-dark);
+      box-shadow: 0 0 3px var(--color-primary);
+    }
+  }
+}
+
+// Enhance zoom controls
+.zoomControls {
+  // Keep existing styles and add:
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  border-radius: 4px;
+  padding: 2px;
+
+  button {
+    &:hover {
+      background-color: var(--color-bg-tertiary);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-xs);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    &.active {
+      background-color: var(--color-primary-lighter);
+      color: var(--color-primary);
+    }
+  }
+}

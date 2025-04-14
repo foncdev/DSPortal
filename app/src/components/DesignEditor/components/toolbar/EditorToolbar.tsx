@@ -16,7 +16,9 @@ import {
     Lock,
     Unlock,
     LayoutTemplate,
-    Layers
+    Layers,
+    Magnet,
+    BoxSelect
 } from 'lucide-react';
 
 import styles from '../../styles/DesignEditor.module.scss';
@@ -53,7 +55,12 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         createLayoutGroup,
         onObjectStateChange,
         saveAsJSON,
-        loadFromJSON
+        loadFromJSON,
+        // Add the snap-related properties
+        snapToGuides,
+        toggleSnapToGuides,
+        snapToGrid,
+        toggleSnapToGrid
     } = useDesignEditor();
 
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
@@ -73,7 +80,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         } else {
             setIsObjectLocked(false);
         }
-    }, [selectedObject, isObjectLocked]);
+    }, [selectedObject, checkObjectLock]);
 
     // 객체 상태 변경 이벤트 구독
     useEffect(() => {
@@ -290,6 +297,22 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
                     onClick={toggleGrid}
                     active={showGrid}
                     icon={<Grid size={18} />}
+                />
+            </ToolGroup>
+
+            {/* Guidelines and snapping tools */}
+            <ToolGroup>
+                <ToolButton
+                    title={t('editor.snapToGuides')}
+                    onClick={toggleSnapToGuides}
+                    active={snapToGuides}
+                    icon={<Magnet size={18} />}
+                />
+                <ToolButton
+                    title={t('editor.snapToGrid')}
+                    onClick={toggleSnapToGrid}
+                    active={snapToGrid}
+                    icon={<BoxSelect size={18} />}
                 />
             </ToolGroup>
 

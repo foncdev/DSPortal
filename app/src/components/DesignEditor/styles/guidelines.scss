@@ -1,0 +1,120 @@
+// src/components/DesignEditor/styles/guidelines.scss
+
+// Styling for guidelines
+.fabric-canvas-guidelines {
+  position: absolute;
+  pointer-events: none; // Don't interfere with other interactions
+
+  &.guideline-horizontal {
+    border-top: 1px dashed #2196F3;
+    width: 100%;
+    height: 0;
+    left: 0;
+    z-index: 999;
+  }
+
+  &.guideline-vertical {
+    border-left: 1px dashed #2196F3;
+    height: 100%;
+    width: 0;
+    top: 0;
+    z-index: 999;
+  }
+}
+
+// Snapping indicators
+.snap-indicator {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #2196F3;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  animation: pulse 0.5s ease-out;
+
+  &.visible {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.7;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+}
+
+// Guidelines highlight style (when object is near a guideline)
+.guideline-highlight {
+  &.guideline-horizontal {
+    border-top: 1px solid #2196F3;
+    box-shadow: 0 0 4px rgba(33, 150, 243, 0.6);
+  }
+
+  &.guideline-vertical {
+    border-left: 1px solid #2196F3;
+    box-shadow: 0 0 4px rgba(33, 150, 243, 0.6);
+  }
+}
+
+// Smart guides - distance indicators
+.distance-indicator {
+  position: absolute;
+  background-color: rgba(33, 150, 243, 0.2);
+  border: 1px dashed #2196F3;
+  color: #2196F3;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 999;
+  transform: translate(-50%, -50%);
+
+  &.horizontal {
+    height: 14px;
+    transform: translateX(-50%);
+  }
+
+  &.vertical {
+    width: 14px;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  .distance-value {
+    position: absolute;
+    white-space: nowrap;
+    background-color: #2196F3;
+    color: white;
+    padding: 0 4px;
+    border-radius: 2px;
+    font-size: 10px;
+    line-height: 14px;
+
+    &.horizontal {
+      top: -16px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    &.vertical {
+      left: -24px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+}

@@ -93,6 +93,10 @@ interface DesignEditorContextType {
     toggleGrid: () => void;
     zoomLevel: number;
     setZoomLevel: (level: number) => void;
+    snapToGuides: boolean;
+    snapToGrid: boolean;
+    toggleSnapToGrid: () => void;
+    toggleSnapToGuides: () => void;
 
     // History
     undo: () => void;
@@ -138,6 +142,8 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
 
     // Canvas settings
     const [showGrid, setShowGrid] = useState(false);
+    const [snapToGuides, setSnapToGuides] = useState(false);
+    const [snapToGrid, setSnapToGrid] = useState(false);
     const [zoomLevel, setZoomLevel] = useState(1);
 
     // 상태 변경 리스너 관리
@@ -1183,6 +1189,17 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         }
     };
 
+
+    // Toggle guides snapping
+    const toggleSnapToGuides = () => {
+        setSnapToGuides(!snapToGuides);
+    };
+
+    // Toggle grid snapping
+    const toggleSnapToGrid = () => {
+        setSnapToGrid(!snapToGrid);
+    };
+
     // 객체의 현재 잠금 상태를 확인하는 유틸리티 함수
     const isObjectLocked = (objectToCheck: FabricObjectWithId) => !!(objectToCheck.lockMovementX && objectToCheck.lockMovementY);
 
@@ -1283,6 +1300,10 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         isObjectLocked,
         onObjectStateChange,
         notifyObjectStateChange,
+        snapToGuides,
+        toggleSnapToGuides,
+        toggleSnapToGrid,
+        snapToGrid,
         showGrid,
         toggleGrid,
         zoomLevel,
