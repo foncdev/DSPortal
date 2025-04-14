@@ -324,7 +324,7 @@ const Canvas: React.FC = () => {
             className={`${styles.canvasContainer} ${isPanning ? styles.panning : ''}`}
         >
             <div
-                className={styles.canvasWrapper}
+                className={styles.canvasWrapper }
                 style={{
                     transform: `scale(${zoomLevel})`,
                     transformOrigin: 'center center'

@@ -103,66 +103,6 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
-
-  .horizontalRuler {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1.25rem;
-    background-color: var(--color-bg-secondary);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .verticalRuler {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 1.25rem;
-    background-color: var(--color-bg-secondary);
-    border-right: 1px solid var(--color-border);
-  }
-
-  .rulerCorner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1.25rem;
-    height: 1.25rem;
-    background-color: var(--color-bg-secondary);
-    border-right: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-  }
-}
-
-// 가이드 스타일
-.guide {
-  position: absolute;
-  background-color: var(--color-primary);
-  z-index: 999;
-  pointer-events: none;
-
-  &.horizontal {
-    height: 1px;
-    width: 100%;
-    left: 0;
-  }
-
-  &.vertical {
-    width: 1px;
-    height: 100%;
-    top: 0;
-  }
-}
-
-.canvasRulers {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
   z-index: 50;
 
   .horizontalRuler {
@@ -257,6 +197,31 @@
     border-bottom: 1px solid var(--color-border);
   }
 }
+
+// 가이드 스타일
+.guide {
+  position: absolute;
+  background-color: var(--color-primary);
+  z-index: 999;
+  pointer-events: none;
+
+  &.horizontal {
+    height: 1px;
+    width: 100%;
+    left: 0;
+  }
+
+  &.vertical {
+    width: 1px;
+    height: 100%;
+    top: 0;
+  }
+}
+
+
+
+
+
 
 // Grid overlay enhancements
 .gridOverlay {
