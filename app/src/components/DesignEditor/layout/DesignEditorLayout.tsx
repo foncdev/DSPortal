@@ -143,10 +143,22 @@ const DesignEditorLayout: React.FC<DesignEditorLayoutProps> = ({
 
     // Canvas size should be updated when dimensions change
     useEffect(() => {
-        if (canvas) {
-            canvas.setWidth(canvasWidth);
-            canvas.setHeight(canvasHeight);
-            canvas.requestRenderAll();
+        if (canvas && typeof canvas === 'object') {
+            try {
+                // Check if canvas has the expected methods
+                if (typeof canvas.setWidth === 'function' &&
+                    typeof canvas.setHeight === 'function' &&
+                    typeof canvas.requestRenderAll === 'function') {
+
+                    canvas.setWidth(canvasWidth);
+                    canvas.setHeight(canvasHeight);
+                    canvas.requestRenderAll();
+                } else {
+                    console.warn('Canvas is missing expected methods');
+                }
+            } catch (error) {
+                console.error('Error updating canvas dimensions:', error);
+            }
         }
     }, [canvas, canvasWidth, canvasHeight]);
 

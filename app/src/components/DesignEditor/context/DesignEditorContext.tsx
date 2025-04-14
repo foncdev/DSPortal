@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { fabric } from 'fabric';
 import {Square} from "lucide-react";
+import {CANVAS_PRESETS, DEVICE_FRAMES, RULER_UNITS} from "@/components/DesignEditor/DesignEditor";
 
 // Define object types
 export type ObjectType = 'text' | 'image' | 'video' | 'rectangle' | 'circle' | 'triangle';
@@ -16,6 +17,26 @@ export interface LayerGroup {
     locked: boolean;
     expanded?: boolean;
 }
+
+interface CanvasPreset {
+    width: number;
+    height: number;
+    name: string;
+    icon: JSX.Element;
+}
+
+interface DeviceFrame {
+    id: string;
+    name: string;
+    icon: JSX.Element;
+}
+
+interface RulerUnit {
+    id: string;
+    name: string;
+}
+
+
 
 interface ObjectStateChangeEvent {
     type: 'lock' | 'unlock' | 'visibility' | 'selection' | 'modification' | 'group';
@@ -281,6 +302,7 @@ export const DesignEditorProvider: React.FC<DesignEditorProviderProps> = ({
         setCanUndo(newIndex > 0);
         setCanRedo(false);
     };
+
 
     // Apply grid to canvas
     useEffect(() => {
