@@ -106,6 +106,16 @@ export const useCanvasEvents = () => {
                     // G key to toggle grid
                     toggleGrid();
                     break;
+
+                case 's':
+                case 'S':
+                    // S key to toggle snap to grid
+                    if (e.shiftKey) {
+                        toggleSnapToGrid();
+                    } else {
+                        toggleSnapToGuides();
+                    }
+                    break;
             }
         }
 
@@ -148,16 +158,47 @@ export const useCanvasEvents = () => {
         }
     }, [canvas, snapToGuides, snapToGrid]);
 
+    // Handle objects moved to apply grid snapping
+    const handleObjectModified = useCallback((e: fabric.IEvent) => {
+        if (!canvas || !snapToGrid) return;
+
+        const target = e.target as FabricObjectWithId;
+        if (!target) return;
+
+        // Apply grid snapping on modification completion if needed
+        const gridSize = 20; // Match the grid size from Canvas.tsx
+
+        // Only snap if not locked
+        if (!target.lockMovementX && !target.lockMovementY) {
+            // Snap position to grid
+            const left = Math.round(target.left! / gridSize) * gridSize;
+            const top = Math.round(target.top! / gridSize) * gridSize;
+
+            // Only update if position changed
+            if (left !== target.left || top !== target.top) {
+                target.set({
+                    left: left,
+                    top: top
+                });
+
+                target.setCoords();
+                canvas.requestRenderAll();
+            }
+        }
+    }, [canvas, snapToGrid]);
+
     // Set up object moving event handlers
     const setupObjectMovingEvents = useCallback(() => {
         if (!canvas) return () => {};
 
         canvas.on('object:moving', handleObjectMoving);
+        canvas.on('object:modified', handleObjectModified);
 
         return () => {
             canvas.off('object:moving', handleObjectMoving);
+            canvas.off('object:modified', handleObjectModified);
         };
-    }, [canvas, handleObjectMoving]);
+    }, [canvas, handleObjectMoving, handleObjectModified]);
 
     return {
         handleKeyDown,

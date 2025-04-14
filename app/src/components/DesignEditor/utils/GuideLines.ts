@@ -61,6 +61,10 @@ export class GuidelinesHandler {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.config = { ...defaultSnapConfig, ...config };
+
+        // Store reference in canvas for access in other components
+        (this.canvas as any).__guidelinesHandler = this;
+
         this.initialize();
     }
 
@@ -80,6 +84,11 @@ export class GuidelinesHandler {
      */
     public updateConfig(config: Partial<SnapConfig>): void {
         this.config = { ...this.config, ...config };
+
+        // Clear guidelines if disabled
+        if (!this.config.enabled || !this.config.showGuides) {
+            this.clearGuideLines();
+        }
     }
 
     /**
@@ -103,7 +112,7 @@ export class GuidelinesHandler {
      * Handle object moving event
      */
     private handleObjectMoving(event: fabric.IEvent<MouseEvent>): void {
-        if (!this.config.enabled || !event.target) return;
+        if (!event.target) return;
 
         const target = event.target as FabricObjectWithId;
         this.draggedObject = target;
@@ -111,7 +120,7 @@ export class GuidelinesHandler {
         // Clear previous guidelines
         this.clearGuideLines();
 
-        // If snapping is enabled
+        // If regular guide snapping is enabled
         if (this.config.enabled) {
             // Generate guidelines for other objects
             if (this.config.snapToObjects) {
@@ -130,6 +139,11 @@ export class GuidelinesHandler {
             if (this.config.showGuides) {
                 this.drawGuideLines();
             }
+        }
+
+        // Apply grid snapping independently
+        if (this.config.snapToGrid) {
+            this.snapToGrid(target);
         }
     }
 
@@ -158,7 +172,15 @@ export class GuidelinesHandler {
     /**
      * Handle object modified event
      */
-    private handleObjectModified(): void {
+    private handleObjectModified(event: fabric.IEvent<MouseEvent>): void {
+        if (!event.target) return;
+        const target = event.target as FabricObjectWithId;
+
+        // Apply final grid snapping if enabled
+        if (this.config.snapToGrid) {
+            this.snapToGrid(target);
+        }
+
         this.clearGuideLines();
     }
 
@@ -308,11 +330,6 @@ export class GuidelinesHandler {
             }
         }
 
-        // Apply grid snapping if enabled
-        if (this.config.snapToGrid && !nearestH && !nearestV) {
-            this.snapToGrid(object);
-        }
-
         // Update object coordinates
         object.setCoords();
     }
@@ -324,17 +341,29 @@ export class GuidelinesHandler {
         if (!this.config.snapToGrid) return;
 
         const { gridSize } = this.config;
-        const objBounds = this.getObjectBounds(object);
 
-        // Snap top-left corner to grid
-        const snappedLeft = Math.round(objBounds.left / gridSize) * gridSize;
-        const snappedTop = Math.round(objBounds.top / gridSize) * gridSize;
+        // 객체의 현재 위치 가져오기
+        const left = object.left || 0;
+        const top = object.top || 0;
 
-        // Apply snapped position
-        object.set({
-            left: snappedLeft,
-            top: snappedTop,
-        });
+        // 그리드 크기에 맞춰 위치 조정
+        const snappedLeft = Math.round(left / gridSize) * gridSize;
+        const snappedTop = Math.round(top / gridSize) * gridSize;
+
+        // 위치가 변경되었을 때만 적용
+        if (left !== snappedLeft || top !== snappedTop) {
+            // 스냅 위치 적용
+            object.set({
+                left: snappedLeft,
+                top: snappedTop
+            });
+
+            // 객체 좌표 업데이트
+            object.setCoords();
+
+            // 캔버스 렌더링 요청
+            this.canvas.requestRenderAll();
+        }
     }
 
     /**
@@ -449,6 +478,11 @@ export class GuidelinesHandler {
         this.canvas.off('mouse:down');
         this.canvas.off('mouse:up');
         this.canvas.off('object:modified');
+
+        // Remove reference from canvas
+        if ((this.canvas as any).__guidelinesHandler === this) {
+            delete (this.canvas as any).__guidelinesHandler;
+        }
 
         // Clear guidelines
         this.clearGuideLines();

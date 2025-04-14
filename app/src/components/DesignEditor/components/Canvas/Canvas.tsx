@@ -1,5 +1,5 @@
 // src/components/DesignEditor/components/Canvas/Canvas.tsx
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { fabric } from 'fabric';
 import { useTranslation } from 'react-i18next';
 import { ZoomIn, ZoomOut, Maximize, Minimize } from 'lucide-react';
@@ -18,6 +18,7 @@ const Canvas: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const guidelinesRef = useRef<GuidelinesHandler | null>(null);
+    const gridGroupRef = useRef<fabric.Group | null>(null);
 
     // Design Editor 컨텍스트 사용
     const {
@@ -38,6 +39,61 @@ const Canvas: React.FC = () => {
     const [isPanning, setIsPanning] = useState(false);
     const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
     const [isCanvasReady, setIsCanvasReady] = useState(false);
+
+    // 그리드 생성 함수
+    const createGrid = useCallback(() => {
+        if (!canvas) return;
+
+        // Remove existing grid if any
+        if (gridGroupRef.current) {
+            canvas.remove(gridGroupRef.current);
+            gridGroupRef.current = null;
+        }
+
+        if (showGrid) {
+            // Create grid
+            const gridSize = 20;
+            const gridLines: fabric.Line[] = [];
+
+            // Create vertical lines
+            for (let i = 0; i <= canvasWidth; i += gridSize) {
+                const isMajor = i % (gridSize * 5) === 0;
+                gridLines.push(new fabric.Line([i, 0, i, canvasHeight], {
+                    stroke: isMajor ? '#aaa' : '#ddd',
+                    strokeWidth: isMajor ? 0.7 : 0.5,
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true
+                }));
+            }
+
+            // Create horizontal lines
+            for (let i = 0; i <= canvasHeight; i += gridSize) {
+                const isMajor = i % (gridSize * 5) === 0;
+                gridLines.push(new fabric.Line([0, i, canvasWidth, i], {
+                    stroke: isMajor ? '#aaa' : '#ddd',
+                    strokeWidth: isMajor ? 0.7 : 0.5,
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true
+                }));
+            }
+
+            // Create a group for all grid lines
+            const gridGroup = new fabric.Group(gridLines, {
+                selectable: false,
+                evented: false,
+                excludeFromExport: true
+            });
+
+            // Add grid to canvas and store reference
+            canvas.add(gridGroup);
+            gridGroup.sendToBack();
+            gridGroupRef.current = gridGroup;
+        }
+
+        canvas.requestRenderAll();
+    }, [canvas, showGrid, canvasWidth, canvasHeight]);
 
     // 컴포넌트 마운트 시 canvas 초기화
     useEffect(() => {
@@ -76,8 +132,12 @@ const Canvas: React.FC = () => {
         guidelinesRef.current = new GuidelinesHandler(canvas, canvasWidth, canvasHeight, {
             enabled: snapToGuides,
             snapToGrid: snapToGrid,
-            showGuides: snapToGuides
+            showGuides: snapToGuides,
+            gridSize: 20 // Match the grid size used in createGrid
         });
+
+        // Create initial grid
+        createGrid();
 
         return () => {
             if (guidelinesRef.current) {
@@ -85,7 +145,7 @@ const Canvas: React.FC = () => {
                 guidelinesRef.current = null;
             }
         };
-    }, [canvas, isCanvasReady, canvasWidth, canvasHeight]);
+    }, [canvas, isCanvasReady, canvasWidth, canvasHeight, createGrid]);
 
     // Update guidelines configuration when settings change
     useEffect(() => {
@@ -97,6 +157,11 @@ const Canvas: React.FC = () => {
             showGuides: snapToGuides
         });
     }, [snapToGuides, snapToGrid]);
+
+    // Update grid when showGrid changes
+    useEffect(() => {
+        createGrid();
+    }, [showGrid, createGrid]);
 
     // 캔버스 렌더링 문제 해결을 위한 추가 효과
     useEffect(() => {
@@ -156,7 +221,15 @@ const Canvas: React.FC = () => {
     }, [canvas, zoomLevel, canvasWidth, canvasHeight]);
 
     // 캔버스 이벤트 설정
-    const { handleKeyDown } = useCanvasEvents();
+    const { handleKeyDown, setupObjectMovingEvents } = useCanvasEvents();
+
+    // Set up object moving events for snap-to-grid
+    useEffect(() => {
+        if (!canvas || !isCanvasReady) return;
+
+        const cleanup = setupObjectMovingEvents();
+        return cleanup;
+    }, [canvas, isCanvasReady, setupObjectMovingEvents]);
 
     // 키보드 단축키 처리
     useEffect(() => {
@@ -337,6 +410,22 @@ const Canvas: React.FC = () => {
             {canvas && canvas.getObjects().length === 0 && (
                 <div className={styles.placeholder}>
                     {t('editor.canvasPlaceholder', 'Add objects to start designing')}
+                </div>
+            )}
+
+            {/* 스냅 모드 표시기 */}
+            {(snapToGrid || snapToGuides) && (
+                <div className={styles.snapIndicator}>
+                    {snapToGrid && (
+                        <div className={styles.snapBadge} title={t('editor.snapToGridEnabled')}>
+                            Grid Snap
+                        </div>
+                    )}
+                    {snapToGuides && (
+                        <div className={styles.snapBadge} title={t('editor.snapToGuidesEnabled')}>
+                            Guide Snap
+                        </div>
+                    )}
                 </div>
             )}
 

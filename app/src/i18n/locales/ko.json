@@ -423,6 +423,19 @@
     "hideToolbar": "hideToolbar",
     "objectsNeedLayerWarning": "objectsNeedLayerWarning",
     "hideObject": "hideObject",
-    "moreActions": "moreActions"
+    "moreActions": "moreActions",
+    "addNewLayer": "레이어 추가",
+    "layers": "레이어",
+    "noLayers": "레이어가 존재하지 않습니다.",
+    "layerEmpty": "객체를 추가해주세요.",
+    "deleteLayer": "레이어 삭제",
+    "snapToGuides": "snapToGuides",
+    "snapToGrid": "snapToGrid",
+    "saveAsImage": "이미지 저장",
+    "exportJSON": "exportJSON",
+    "importJSON": "importJSON",
+    "showToolbar": "툴바 보이기",
+    "snapToGridEnabled": "스냅 활성화",
+    "snapToGuidesEnabled": "가이드 활성화"
   }
 }

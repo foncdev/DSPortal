@@ -143,6 +143,17 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
         }
     };
 
+    // 그리드 스냅 토글 상태를 시각적으로 표시하기 위한 함수
+    const handleToggleGridSnap = () => {
+        // 토글 상태 변경
+        toggleSnapToGrid();
+
+        // 컨텍스트가 업데이트된 후 시각적 피드백 제공
+        if (canvas) {
+            canvas.requestRenderAll();
+        }
+    };
+
     // Alignment functions
     const alignLeft = () => {
         if (!canvas || !selectedObject) {return;}
@@ -310,7 +321,7 @@ const EditorToolbar: React.FC<EditorToolbarProps> = ({ toggleToolbarButton }) =>
                 />
                 <ToolButton
                     title={t('editor.snapToGrid')}
-                    onClick={toggleSnapToGrid}
+                    onClick={handleToggleGridSnap}
                     active={snapToGrid}
                     icon={<BoxSelect size={18} />}
                 />
