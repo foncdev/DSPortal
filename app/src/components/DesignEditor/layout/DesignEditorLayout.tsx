@@ -107,7 +107,7 @@ const DesignEditorLayout: React.FC = () => {
             {/* 상단 툴바 */}
             {toolbarOpen && (
                 <EditorToolbar
-                    toggleToolbarButton={renderToolbarToggleButton}
+                    toggleToolbarButton={renderToolbarToggleButton()}
                 />
             )}
 
