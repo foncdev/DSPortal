@@ -1,363 +1,74 @@
-// src/components/DesignEditor/Canvas/Canvas.module.scss
-.canvasContainer {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-bg-tertiary);
+// src/components/DesignEditor/components/Canvas/Canvas.module.scss
 
-  &.panning {
-    cursor: grabbing;
+.canvas {
+  display: block;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 }
 
-.canvasWrapper {
-  position: relative;
-  box-shadow: var(--shadow-md);
-  transition: transform 0.1s ease;
-  z-index: 5;
-
-  canvas {
-    display: block;
-    border: 1px solid #ddd;
-  }
-}
-
-.placeholder {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 0.75rem;
-  text-align: center;
-  color: var(--color-text-tertiary);
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 0.375rem;
-  pointer-events: none;
-  font-size: 0.8125rem;
-  max-width: 80%;
-  z-index: 10;
-}
-
-.zoomControls {
-  position: absolute;
-  bottom: 0.75rem;
-  right: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.125rem;
-  background-color: var(--color-bg-primary);
-  padding: 0.125rem;
-  border-radius: 0.25rem;
-  box-shadow: var(--shadow-sm);
-  z-index: 100;
-
-  button {
-    width: 1.75rem;
-    height: 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-bg-primary);
-    border: 1px solid var(--color-border);
-    border-radius: 0.125rem;
-    color: var(--color-text-secondary);
-    cursor: pointer;
-    transition: all var(--transition-fast) ease;
-
-    &:hover:not(.disabled) {
-      background-color: var(--color-bg-tertiary);
-      color: var(--color-text-primary);
-    }
-
-    &.active {
-      background-color: var(--color-primary);
-      border-color: var(--color-primary);
-      color: var(--color-primary-contrast);
-    }
-
-    &.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .zoomLevel {
-    font-size: 0.6875rem;
-    padding: 0 0.375rem;
-    color: var(--color-text-secondary);
-    min-width: 2.5rem;
-    text-align: center;
-    user-select: none;
-  }
-}
-
-// 캔버스 눈금자 스타일
-.canvasRulers {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 50;
-
-  .horizontalRuler {
+// Helper classes for grid and guidelines visualization
+:global {
+  // Snap indication
+  .snap-indicator {
     position: absolute;
-    top: 0;
-    left: 20px; // Offset for the corner
-    right: 0;
-    height: 20px;
-    background-color: var(--color-bg-secondary);
-    border-bottom: 1px solid var(--color-border);
-    overflow: hidden;
+    width: 8px;
+    height: 8px;
+    background-color: #2196F3;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    animation: pulse 0.5s ease-out;
 
-    .rulerMarks {
-      position: relative;
-      width: 100%;
-      height: 100%;
+    &.visible {
+      opacity: 1;
+    }
+  }
 
-      .rulerMark {
-        position: absolute;
-        top: 0;
-        width: 1px;
-        height: 8px;
-        background-color: var(--color-text-tertiary);
+  @keyframes pulse {
+    0% {
+      transform: translate(-50%, -50%) scale(0.5);
+      opacity: 0.7;
+    }
+    70% {
+      transform: translate(-50%, -50%) scale(1.2);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.7;
+    }
+  }
 
-        &.major {
-          height: 12px;
-          background-color: var(--color-text-secondary);
-        }
+  // Selection styles
+  .canvas-container {
+    .selection {
+      border: 1px solid rgba(33, 150, 243, 0.8);
+      background-color: rgba(33, 150, 243, 0.1);
+    }
 
-        .rulerLabel {
-          position: absolute;
-          left: 2px;
-          top: 12px;
-          font-size: 8px;
-          color: var(--color-text-secondary);
-          white-space: nowrap;
-          transform: translateX(-50%);
-        }
+    // Controls styles
+    .controls {
+      .corner {
+        background-color: white;
+        border: 1px solid rgba(33, 150, 243, 0.8);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        cursor: pointer;
       }
-    }
-  }
 
-  .verticalRuler {
-    position: absolute;
-    top: 20px; // Offset for the corner
-    left: 0;
-    bottom: 0;
-    width: 20px;
-    background-color: var(--color-bg-secondary);
-    border-right: 1px solid var(--color-border);
-    overflow: hidden;
-
-    .rulerMarks {
-      position: relative;
-      width: 100%;
-      height: 100%;
-
-      .rulerMark {
-        position: absolute;
-        left: 0;
-        width: 8px;
-        height: 1px;
-        background-color: var(--color-text-tertiary);
-
-        &.major {
-          width: 12px;
-          background-color: var(--color-text-secondary);
-        }
-
-        .rulerLabel {
-          position: absolute;
-          top: 2px;
-          left: 12px;
-          font-size: 8px;
-          color: var(--color-text-secondary);
-          white-space: nowrap;
-          transform: translateY(-50%) rotate(90deg);
-          transform-origin: left center;
-        }
-      }
-    }
-  }
-
-  .rulerCorner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 20px;
-    height: 20px;
-    background-color: var(--color-bg-secondary);
-    border-right: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-  }
-}
-
-// 가이드 스타일
-.guide {
-  position: absolute;
-  background-color: var(--color-primary);
-  z-index: 999;
-  pointer-events: none;
-
-  &.horizontal {
-    height: 1px;
-    width: 100%;
-    left: 0;
-  }
-
-  &.vertical {
-    width: 1px;
-    height: 100%;
-    top: 0;
-  }
-}
-
-
-
-
-
-
-// Grid overlay enhancements
-.gridOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 10;
-  opacity: 0.4;
-
-  .gridLines {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    &.horizontal .gridLine {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background-color: var(--color-border);
-    }
-
-    &.vertical .gridLine {
-      position: absolute;
-      top: 0;
-      width: 1px;
-      height: 100%;
-      background-color: var(--color-border);
-    }
-
-    .gridLine.major {
-      background-color: var(--color-text-tertiary);
-    }
-  }
-}
-
-// Canvas guide styles
-.guideLines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 100;
-
-  .guideLine {
-    position: absolute;
-    background-color: var(--color-primary);
-
-    &.horizontal {
-      height: 1px;
-      width: 100%;
-      left: 0;
-    }
-
-    &.vertical {
-      width: 1px;
-      height: 100%;
-      top: 0;
-    }
-
-    &.active {
-      background-color: var(--color-primary-dark);
-      box-shadow: 0 0 3px var(--color-primary);
-    }
-  }
-}
-
-// Enhance zoom controls
-.zoomControls {
-  // Keep existing styles and add:
-  background-color: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-  border-radius: 4px;
-  padding: 2px;
-
-  button {
-    &:hover {
-      background-color: var(--color-bg-tertiary);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-xs);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    &.active {
-      background-color: var(--color-primary-lighter);
-      color: var(--color-primary);
-    }
-  }
-}
-
-.canvasContainer {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-bg-tertiary);
-
-  &.panning {
-    cursor: grabbing;
-  }
-
-  .snapIndicator {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    z-index: 100;
-
-    .snapBadge {
-      padding: 4px 8px;
-      background-color: var(--color-primary);
-      color: white;
-      font-size: 10px;
-      border-radius: 10px;
-      box-shadow: var(--shadow-sm);
-      opacity: 0.8;
-      transition: opacity 0.2s ease;
-
-      &:hover {
-        opacity: 1;
+      .mtr-control {
+        border-radius: 50%;
       }
     }
   }

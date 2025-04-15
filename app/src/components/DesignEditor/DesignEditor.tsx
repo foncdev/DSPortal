@@ -1,10 +1,17 @@
-// src/components/DesignEditor/DesignEditor.tsx
-import React, { useState, useRef } from 'react';import {
-    Maximize, Minimize, ZoomIn, ZoomOut, Ruler, MousePointer,
-    RotateCcw, Smartphone, Monitor, Square, Instagram
+import React, { useState, useRef, useEffect } from 'react';
+import {
+    Square,
+    Smartphone,
+    Monitor,
+    Instagram
 } from 'lucide-react';
 import { DesignEditorProvider } from './context/DesignEditorContext';
-import DesignEditorLayout from './layout/DesignEditorLayout';
+import LeftPanel from './components/panels/LeftPanel';
+import RightPanel from './components/panels/RightPanel';
+import EditorToolbar from './components/toolbar/EditorToolbar';
+import CanvasContainer from './components/Canvas/CanvasContainer';
+import CanvasControls from './components/Canvas/CanvasControls';
+import { useResizablePanel } from './hooks/useResizablePanel';
 import styles from './styles/DesignEditor.module.scss';
 
 // Define canvas presets
@@ -39,24 +46,6 @@ export const RULER_UNITS = {
     MM: { id: 'mm', name: 'Millimeters (mm)' },
 };
 
-interface CanvasPreset {
-    width: number;
-    height: number;
-    name: string;
-    icon: JSX.Element;
-}
-
-interface DeviceFrame {
-    id: string;
-    name: string;
-    icon: JSX.Element;
-}
-
-interface RulerUnit {
-    id: string;
-    name: string;
-}
-
 interface DesignEditorProps {
     initialPreset?: keyof typeof CANVAS_PRESETS;
     initialOrientation?: 'landscape' | 'portrait';
@@ -68,12 +57,8 @@ interface DesignEditorProps {
 }
 
 /**
- * Enhanced DesignEditor component with additional features:
- * - Canvas size presets and orientation control
- * - Device frames
- * - Rulers with different unit options
- * - Mouse coordinate tracking
- * - Fullscreen mode
+ * Improved DesignEditor component that maintains a fixed canvas size
+ * and scales based on available space
  */
 const DesignEditor: React.FC<DesignEditorProps> = ({
                                                        initialPreset = 'ANDROID_FHD',
@@ -85,22 +70,45 @@ const DesignEditor: React.FC<DesignEditorProps> = ({
                                                        className = '',
                                                    }) => {
     // Get preset objects from initial values
-    const getInitialPreset = (): CanvasPreset => CANVAS_PRESETS[initialPreset] || CANVAS_PRESETS.ANDROID_FHD;
-    const getInitialFrame = (): DeviceFrame => DEVICE_FRAMES[initialDeviceFrame] || DEVICE_FRAMES.NONE;
-    const getInitialUnit = (): RulerUnit => RULER_UNITS[initialRulerUnit] || RULER_UNITS.PX;
+    const getInitialPreset = (): any => CANVAS_PRESETS[initialPreset] || CANVAS_PRESETS.ANDROID_FHD;
+    const getInitialFrame = (): any => DEVICE_FRAMES[initialDeviceFrame] || DEVICE_FRAMES.NONE;
+    const getInitialUnit = (): any => RULER_UNITS[initialRulerUnit] || RULER_UNITS.PX;
 
     // State variables for design editor settings
-    const [activePreset, setActivePreset] = useState<CanvasPreset>(getInitialPreset());
+    const [activePreset, setActivePreset] = useState<any>(getInitialPreset());
     const [orientation, setOrientation] = useState<'landscape' | 'portrait'>(initialOrientation);
-    const [deviceFrame, setDeviceFrame] = useState<DeviceFrame>(getInitialFrame());
+    const [deviceFrame, setDeviceFrame] = useState<any>(getInitialFrame());
     const [showRulers, setShowRulers] = useState<boolean>(initialShowRulers);
-    const [rulerUnit, setRulerUnit] = useState<RulerUnit>(getInitialUnit());
+    const [rulerUnit, setRulerUnit] = useState<any>(getInitialUnit());
     const [showCoordinates, setShowCoordinates] = useState<boolean>(initialShowCoordinates);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [showPresetSelector, setShowPresetSelector] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Panel states
+    const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+    const [rightPanelOpen, setRightPanelOpen] = useState(true);
+    const [toolbarOpen, setToolbarOpen] = useState(true);
+    const [activeTab, setActiveTab] = useState('objects'); // 'objects', 'library', 'filemanager'
+
+    // Panel resizing hooks
+    const {
+        width: leftWidth,
+        panelRef: leftPanelRef,
+        resizeHandleRef: leftResizeRef,
+        startResizing: startLeftResizing
+    } = useResizablePanel(280, 200, 400, 'left');
+
+    const {
+        width: rightWidth,
+        panelRef: rightPanelRef,
+        resizeHandleRef: rightResizeRef,
+        startResizing: startRightResizing
+    } = useResizablePanel(280, 200, 400, 'right');
 
     // Refs
     const editorContainerRef = useRef<HTMLDivElement>(null);
+    const contentAreaRef = useRef<HTMLDivElement>(null);
 
     // Get current canvas dimensions with orientation
     const getCurrentDimensions = () => {
@@ -114,6 +122,34 @@ const DesignEditor: React.FC<DesignEditorProps> = ({
 
     const dimensions = getCurrentDimensions();
 
+    // Handle fullscreen toggle
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement && editorContainerRef.current) {
+            editorContainerRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+    };
+
+    // Listen for fullscreen changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
+    // Toggle panels
+    const toggleLeftPanel = () => setLeftPanelOpen(!leftPanelOpen);
+    const toggleRightPanel = () => setRightPanelOpen(!rightPanelOpen);
+    const toggleToolbar = () => setToolbarOpen(!toolbarOpen);
+
     // Handle mouse position update
     const updateMousePosition = (x: number, y: number) => {
         if (showCoordinates) {
@@ -121,20 +157,19 @@ const DesignEditor: React.FC<DesignEditorProps> = ({
         }
     };
 
-    // Handle canvas preset selection
-    const handlePresetChange = (presetKey: keyof typeof CANVAS_PRESETS) => {
-        setActivePreset(CANVAS_PRESETS[presetKey]);
-        setShowPresetSelector(false);
+    // Handle canvas preset change
+    const handlePresetChange = (preset: any) => {
+        setActivePreset(preset);
     };
 
     // Handle device frame change
-    const handleDeviceFrameChange = (frameKey: keyof typeof DEVICE_FRAMES) => {
-        setDeviceFrame(DEVICE_FRAMES[frameKey]);
+    const handleDeviceFrameChange = (frame: any) => {
+        setDeviceFrame(frame);
     };
 
     // Handle ruler unit change
-    const handleRulerUnitChange = (unitKey: keyof typeof RULER_UNITS) => {
-        setRulerUnit(RULER_UNITS[unitKey]);
+    const handleRulerUnitChange = (unit: any) => {
+        setRulerUnit(unit);
     };
 
     // Handle orientation toggle
@@ -142,34 +177,86 @@ const DesignEditor: React.FC<DesignEditorProps> = ({
         setOrientation(orientation === 'landscape' ? 'portrait' : 'landscape');
     };
 
-    // Pass settings to layout component
+    // Render toolbar toggle button
+    const renderToolbarToggleButton = () => (
+        <button
+            className={styles.toolbarToggleButton}
+            onClick={toggleToolbar}
+            title={toolbarOpen ? "Hide Toolbar" : "Show Toolbar"}
+        >
+            {/* Icon can be Minimize/Maximize based on state */}
+            {toolbarOpen ? "▲" : "▼"}
+        </button>
+    );
+
     return (
         <div
             ref={editorContainerRef}
-            className={`${styles.designEditor} ${className}`}
+            className={`${styles.editorContainer} ${className}`}
         >
             <DesignEditorProvider width={dimensions.width} height={dimensions.height}>
-                <DesignEditorLayout
-                    canvasWidth={dimensions.width}
-                    canvasHeight={dimensions.height}
-                    activePreset={activePreset}
-                    orientation={orientation}
-                    deviceFrame={deviceFrame}
-                    showRulers={showRulers}
-                    rulerUnit={rulerUnit}
-                    showCoordinates={showCoordinates}
-                    mousePosition={mousePosition}
-                    showPresetSelector={showPresetSelector}
-                    onMousePositionChange={updateMousePosition}
-                    onPresetChange={handlePresetChange}
-                    onOrientationToggle={toggleOrientation}
-                    onDeviceFrameChange={handleDeviceFrameChange}
-                    onRulerToggle={() => setShowRulers(!showRulers)}
-                    onRulerUnitChange={handleRulerUnitChange}
-                    onCoordinatesToggle={() => setShowCoordinates(!showCoordinates)}
-                    onPresetSelectorToggle={() => setShowPresetSelector(!showPresetSelector)}
-                    containerRef={editorContainerRef}
-                />
+                {/* Toolbar toggle button - only visible when toolbar is hidden */}
+                {!toolbarOpen && (
+                    <div className={styles.toolbarToggleContainer}>
+                        {renderToolbarToggleButton()}
+                    </div>
+                )}
+
+                {/* Main toolbar */}
+                {toolbarOpen && (
+                    <div className={styles.toolbar}>
+                        <EditorToolbar toggleToolbarButton={renderToolbarToggleButton()} />
+                    </div>
+                )}
+
+                <div className={styles.editorMain}>
+                    {/* Left panel */}
+                    <LeftPanel
+                        isOpen={leftPanelOpen}
+                        width={leftWidth}
+                        panelRef={leftPanelRef}
+                        resizeHandleRef={leftResizeRef}
+                        onToggle={toggleLeftPanel}
+                        onStartResize={startLeftResizing}
+                        activeTab={activeTab}
+                        onTabChange={setActiveTab}
+                    />
+
+                    {/* Canvas content area */}
+                    <div ref={contentAreaRef} className={styles.contentArea}>
+                        <CanvasContainer
+                            onMouseMove={updateMousePosition}
+                            showDeviceFrame={deviceFrame.id !== 'none'}
+                            deviceFrameType={deviceFrame.id}
+                            showRulers={showRulers}
+                            rulerUnit={rulerUnit.id}
+                        />
+
+                        {/* Canvas controls */}
+                        <CanvasControls
+                            containerRef={contentAreaRef}
+                            onPresetChange={handlePresetChange}
+                            onOrientationToggle={toggleOrientation}
+                            onDeviceFrameChange={handleDeviceFrameChange}
+                            onRulerToggle={() => setShowRulers(!showRulers)}
+                            onRulerUnitChange={handleRulerUnitChange}
+                            onCoordinatesToggle={() => setShowCoordinates(!showCoordinates)}
+                            onFullscreenToggle={toggleFullscreen}
+                            showPresetSelector={showPresetSelector}
+                            onTogglePresetSelector={() => setShowPresetSelector(!showPresetSelector)}
+                        />
+                    </div>
+
+                    {/* Right panel */}
+                    <RightPanel
+                        isOpen={rightPanelOpen}
+                        width={rightWidth}
+                        panelRef={rightPanelRef}
+                        resizeHandleRef={rightResizeRef}
+                        onToggle={toggleRightPanel}
+                        onStartResize={startRightResizing}
+                    />
+                </div>
             </DesignEditorProvider>
         </div>
     );
