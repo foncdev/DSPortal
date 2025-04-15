@@ -1,0 +1,199 @@
+.canvasContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-bg-tertiary);
+
+  &.panning {
+    cursor: grabbing;
+  }
+}
+
+.canvasWrapper {
+  position: absolute;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.1s ease;
+  z-index: 5;
+
+  canvas {
+    display: block;
+    border: 1px solid #ddd;
+  }
+}
+
+.coordinatesDisplay {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 50;
+  user-select: none;
+  pointer-events: none;
+}
+
+// Rulers styling
+.canvasRulers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+
+  .horizontalRuler {
+    position: absolute;
+    top: 0;
+    left: 20px; // Offset for the corner
+    right: 0;
+    height: 20px;
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .verticalRuler {
+    position: absolute;
+    top: 20px; // Offset for the corner
+    left: 0;
+    bottom: 0;
+    width: 20px;
+    background-color: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border);
+    overflow: hidden;
+  }
+
+  .rulerCorner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background-color: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .rulerMark {
+    position: absolute;
+    background-color: var(--color-text-tertiary);
+
+    &.horizontal {
+      top: 0;
+      width: 1px;
+      height: 8px;
+
+      &.major {
+        height: 12px;
+        background-color: var(--color-text-secondary);
+      }
+
+      .rulerLabel {
+        position: absolute;
+        left: 0;
+        top: 13px;
+        font-size: 8px;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+        transform: translateX(-50%);
+      }
+    }
+
+    &.vertical {
+      left: 0;
+      width: 8px;
+      height: 1px;
+
+      &.major {
+        width: 12px;
+        background-color: var(--color-text-secondary);
+      }
+
+      .rulerLabel {
+        position: absolute;
+        top: 0;
+        left: 13px;
+        font-size: 8px;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+        transform: translateY(-50%) rotate(90deg);
+        transform-origin: left center;
+      }
+    }
+  }
+}
+
+// Device frame styling
+.deviceFrame,
+.deviceNotch {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+// Canvas guide styles
+.guideLines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+
+  .guideLine {
+    position: absolute;
+    background-color: var(--color-primary);
+
+    &.horizontal {
+      height: 1px;
+      width: 100%;
+      left: 0;
+    }
+
+    &.vertical {
+      width: 1px;
+      height: 100%;
+      top: 0;
+    }
+
+    &.active {
+      background-color: var(--color-primary-dark);
+      box-shadow: 0 0 3px var(--color-primary);
+    }
+  }
+}
+
+// Snap indicators
+.snapIndicator {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 100;
+
+  .snapBadge {
+    padding: 4px 8px;
+    background-color: var(--color-primary);
+    color: white;
+    font-size: 10px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
